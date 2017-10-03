@@ -18,8 +18,9 @@ func TestNewPoint(t *testing.T) {
 		{"valid both upper limits", 90, 180, nil},
 		{"valid both lower limits", -90.00000, -180.0000, nil},
 		{"valid with just point decimal", 90., 180., nil},
-		{"invalid lat", 75, 280, geocoding.LATError},
-		{"invalid lng", 75, 280, geocoding.LONError},
+		{"invalid lat > 90", 95, 280, geocoding.LATError},
+		{"invalid lat < -95", -95, 280, geocoding.LATError},
+		{"invalid lng > 180", 75, 280, geocoding.LONError},
 		{"invalid lng with decimals", 77.11112223331, 249.99999999, geocoding.LONError},
 		{"invalid lng for 2 decimals points", 90, 180.2, geocoding.LONError},
 	}
