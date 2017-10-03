@@ -40,3 +40,24 @@ func TestNewPoint(t *testing.T) {
 		})
 	}
 }
+
+func TestPoint_Lat(t *testing.T) {
+	p, _ := geocoding.NewPoint(40.5, 120.5)
+
+	lat := p.Lat()
+
+	if lat != 40.5 {
+		t.Errorf("Expected Lat to be '%v'. Got '%v'", 40.5, lat)
+	}
+}
+
+// Tests that calling GetLng() after creating a new point returns the expected lng value.
+func TestPoint_Lng(t *testing.T) {
+	p, _ := geocoding.NewPoint(40.5, 120.5)
+
+	lng := p.Lng()
+
+	if lng != 120.5 {
+		t.Errorf("Expected Lat to be '%v'. Got '%v'", 120.5, lng)
+	}
+}
