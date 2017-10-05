@@ -8,7 +8,7 @@ import (
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
-	Point     geocoding.Point
+	Point     *geocoding.Point
 	Timestamp time.Duration
 	Payload   interface{}
 }
