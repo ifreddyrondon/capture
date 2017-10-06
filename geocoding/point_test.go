@@ -42,7 +42,7 @@ func TestNewPoint(t *testing.T) {
 	}
 }
 
-func TestPoint_Lat(t *testing.T) {
+func TestPointLat(t *testing.T) {
 	p, _ := geocoding.NewPoint(40.5, 120.5)
 
 	lat := p.Lat()
@@ -53,7 +53,7 @@ func TestPoint_Lat(t *testing.T) {
 }
 
 // Tests that calling GetLng() after creating a new point returns the expected lng value.
-func TestPoint_Lng(t *testing.T) {
+func TestPointLng(t *testing.T) {
 	p, _ := geocoding.NewPoint(40.5, 120.5)
 
 	lng := p.Lng()
