@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	LATError = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
-	LONError = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
+	LATError            = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
+	LONError            = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
+	PointUnmarshalError = errors.New("cannot unmarshal json into Point value")
 )
 
 // Point represents a physical Point in geographic notation [lat, lng].
@@ -49,7 +50,7 @@ func UnmarshalJSON(body []byte) (*Point, error) {
 	var values map[string]float64
 	if err := decoder.Decode(&values); err != nil {
 		log.Print(err)
-		return nil, err
+		return nil, PointUnmarshalError
 	}
 
 	p, err := NewPoint(values["lat"], values["lng"])

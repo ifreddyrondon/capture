@@ -107,6 +107,14 @@ func TestUnmarshalJSON(t *testing.T) {
 	}
 }
 
+func TestFailUnmarshalInvalidJSON(t *testing.T) {
+	invalidBody := []byte("`")
+	_, err := geocoding.UnmarshalJSON(invalidBody)
+	if err != geocoding.PointUnmarshalError {
+		t.Errorf("Expected get the error '%v'. Got '%v'", geocoding.PointUnmarshalError, err)
+	}
+}
+
 func pointToBytes(lat, lng float64) ([]byte, error) {
 	res := fmt.Sprintf(`{"lat":%v, "lng":%v}`, lat, lng)
 	return []byte(res), nil
