@@ -1,6 +1,11 @@
 package geocoding
 
-import "errors"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"log"
+)
 
 var (
 	LATError = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
@@ -35,4 +40,23 @@ func (p *Point) Lat() float64 {
 // Lng returns the point longitude.
 func (p *Point) Lng() float64 {
 	return p.lng
+}
+
+// UnmarshalJSON decode a JSON body into a Point value
+// Throws an error if the body of the point cannot be interpreted by the JSON body
+func UnmarshalJSON(body []byte) (*Point, error) {
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	var values map[string]float64
+	if err := decoder.Decode(&values); err != nil {
+		log.Print(err)
+		return nil, err
+	}
+
+	p, err := NewPoint(values["lat"], values["lng"])
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+
+	return p, nil
 }

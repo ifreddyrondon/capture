@@ -3,6 +3,8 @@ package geocoding_test
 import (
 	"testing"
 
+	"fmt"
+
 	"github.com/ifreddyrondon/gocapture/geocoding"
 )
 
@@ -52,7 +54,6 @@ func TestPointLat(t *testing.T) {
 	}
 }
 
-// Tests that calling GetLng() after creating a new point returns the expected lng value.
 func TestPointLng(t *testing.T) {
 	p, _ := geocoding.NewPoint(40.5, 120.5)
 
@@ -61,4 +62,62 @@ func TestPointLng(t *testing.T) {
 	if lng != 120.5 {
 		t.Errorf("Expected Lat to be '%v'. Got '%v'", 120.5, lng)
 	}
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	tt := []struct {
+		name        string
+		lat, lng    float64
+		resultPoint *geocoding.Point
+		resultError error
+	}{
+		{
+			"valid lat and lng",
+			40.7486,
+			-73.9864,
+			getPoint(40.7486, -73.9864),
+			nil,
+		},
+		{
+			"valid lat and lng",
+			40.7486,
+			-73.9864,
+			getPoint(40.7486, -73.9864),
+			nil,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			pointBody, _ := pointToBytes(tc.lat, tc.lng)
+			resultPoint, resultError := geocoding.UnmarshalJSON(pointBody)
+
+			if resultError != tc.resultError {
+				t.Errorf("Expected get the error '%v'. Got '%v'", tc.resultError, resultError)
+			}
+
+			// if result expected an error do not check for internal attrs
+			if tc.resultError != nil {
+				return
+			}
+
+			if resultPoint.Lat() != tc.resultPoint.Lat() {
+				t.Errorf("Expected result lat point to be '%v'. Got '%v'", tc.resultPoint.Lat(), resultPoint.Lat())
+			}
+
+			if resultPoint.Lng() != tc.resultPoint.Lng() {
+				t.Errorf("Expected result lng point to be '%v'. Got '%v'", tc.resultPoint.Lng(), resultPoint.Lng())
+			}
+		})
+	}
+}
+
+func pointToBytes(lat, lng float64) ([]byte, error) {
+	res := fmt.Sprintf(`{"lat":%v, "lng":%v}`, lat, lng)
+	return []byte(res), nil
+}
+
+func getPoint(lat, lng float64) *geocoding.Point {
+	p, _ := geocoding.NewPoint(lat, lng)
+	return p
 }
