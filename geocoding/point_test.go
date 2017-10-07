@@ -78,13 +78,8 @@ func TestUnmarshalJSON(t *testing.T) {
 			getPoint(40.7486, -73.9864),
 			nil,
 		},
-		{
-			"valid lat and lng",
-			40.7486,
-			-73.9864,
-			getPoint(40.7486, -73.9864),
-			nil,
-		},
+		{"invalid lat", 100, 1, nil, geocoding.LATError},
+		{"invalid lng", 1, 190, nil, geocoding.LONError},
 	}
 
 	for _, tc := range tt {
