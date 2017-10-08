@@ -55,25 +55,23 @@ func TestNewPoint(t *testing.T) {
 func TestUnmarshalJSON(t *testing.T) {
 	tt := []struct {
 		name        string
-		lat, lng    float64
+		payload     []byte
 		resultPoint *geocoding.Point
 		resultError error
 	}{
 		{
 			"valid lat and lng",
-			40.7486,
-			-73.9864,
+			pointToBytes(40.7486, -73.9864),
 			getPoint(40.7486, -73.9864),
 			nil,
 		},
-		{"invalid lat", 100, 1, nil, geocoding.LATError},
-		{"invalid lng", 1, 190, nil, geocoding.LONError},
+		{"invalid lat", pointToBytes(100, 1), nil, geocoding.LATError},
+		{"invalid lng", pointToBytes(1, 190), nil, geocoding.LONError},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			pointBody, _ := pointToBytes(tc.lat, tc.lng)
-			resultPoint, resultError := geocoding.UnmarshalJSON(pointBody)
+			resultPoint, resultError := geocoding.UnmarshalJSON(tc.payload)
 
 			if resultError != tc.resultError {
 				t.Errorf("Expected get the error '%v'. Got '%v'", tc.resultError, resultError)
@@ -103,9 +101,9 @@ func TestFailUnmarshalInvalidJSON(t *testing.T) {
 	}
 }
 
-func pointToBytes(lat, lng float64) ([]byte, error) {
+func pointToBytes(lat, lng float64) []byte {
 	res := fmt.Sprintf(`{"lat":%v, "lng":%v}`, lat, lng)
-	return []byte(res), nil
+	return []byte(res)
 }
 
 func getPoint(lat, lng float64) *geocoding.Point {
