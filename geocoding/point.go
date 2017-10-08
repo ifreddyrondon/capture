@@ -8,8 +8,10 @@ import (
 )
 
 var (
-	LATError            = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
-	LONError            = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
+	RangeLATError       = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
+	RangeLONError       = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
+	MissingLATError     = errors.New("missing latitude")
+	MissingLNGError     = errors.New("missing longitude")
 	PointUnmarshalError = errors.New("cannot unmarshal json into Point value")
 )
 
@@ -23,11 +25,11 @@ type Point struct {
 //For a valid latitude, longitude pair: -90<=latitude<=+90 and -180<=longitude<=180
 func NewPoint(lat float64, lng float64) (*Point, error) {
 	if lat < -90 || lat > 90 {
-		return nil, LATError
+		return nil, RangeLATError
 	}
 
 	if lng < -180 || lng > 180 {
-		return nil, LONError
+		return nil, RangeLONError
 	}
 
 	return &Point{Lat: lat, Lng: lng}, nil
@@ -41,6 +43,14 @@ func UnmarshalJSON(body []byte) (*Point, error) {
 	if err := decoder.Decode(&values); err != nil {
 		log.Print(err)
 		return nil, PointUnmarshalError
+	}
+
+	if _, ok := values["lat"]; !ok {
+		return nil, MissingLATError
+	}
+
+	if _, ok := values["lng"]; !ok {
+		return nil, MissingLNGError
 	}
 
 	p, err := NewPoint(values["lat"], values["lng"])
