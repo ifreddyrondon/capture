@@ -35,32 +35,20 @@ func TestNewPoint(t *testing.T) {
 				if p == nil {
 					t.Errorf("Expected point not to nil. Got '%v'", p)
 				}
+
+				if p.Lat != tc.lat {
+					t.Errorf("Expected result lat point to be '%v'. Got '%v'", tc.lat, p.Lat)
+				}
+
+				if p.Lng != tc.lng {
+					t.Errorf("Expected result lng point to be '%v'. Got '%v'", tc.lng, p.Lng)
+				}
 			} else {
 				if err == nil {
 					t.Errorf("Expected error to be %v. Got '%v'", tc.err, p)
 				}
 			}
 		})
-	}
-}
-
-func TestPointLat(t *testing.T) {
-	p, _ := geocoding.NewPoint(40.5, 120.5)
-
-	lat := p.Lat()
-
-	if lat != 40.5 {
-		t.Errorf("Expected Lat to be '%v'. Got '%v'", 40.5, lat)
-	}
-}
-
-func TestPointLng(t *testing.T) {
-	p, _ := geocoding.NewPoint(40.5, 120.5)
-
-	lng := p.Lng()
-
-	if lng != 120.5 {
-		t.Errorf("Expected Lat to be '%v'. Got '%v'", 120.5, lng)
 	}
 }
 
@@ -96,12 +84,12 @@ func TestUnmarshalJSON(t *testing.T) {
 				return
 			}
 
-			if resultPoint.Lat() != tc.resultPoint.Lat() {
-				t.Errorf("Expected result lat point to be '%v'. Got '%v'", tc.resultPoint.Lat(), resultPoint.Lat())
+			if resultPoint.Lat != tc.resultPoint.Lat {
+				t.Errorf("Expected result lat point to be '%v'. Got '%v'", tc.resultPoint.Lat, resultPoint.Lat)
 			}
 
-			if resultPoint.Lng() != tc.resultPoint.Lng() {
-				t.Errorf("Expected result lng point to be '%v'. Got '%v'", tc.resultPoint.Lng(), resultPoint.Lng())
+			if resultPoint.Lng != tc.resultPoint.Lng {
+				t.Errorf("Expected result lng point to be '%v'. Got '%v'", tc.resultPoint.Lng, resultPoint.Lng)
 			}
 		})
 	}

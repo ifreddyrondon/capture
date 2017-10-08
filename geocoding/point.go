@@ -15,8 +15,8 @@ var (
 
 // Point represents a physical Point in geographic notation [lat, lng].
 type Point struct {
-	lat float64
-	lng float64
+	Lat float64 `json:"lat"`
+	Lng float64 `json:"lng"`
 }
 
 // NewPoint returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
@@ -30,17 +30,7 @@ func NewPoint(lat float64, lng float64) (*Point, error) {
 		return nil, LONError
 	}
 
-	return &Point{lat: lat, lng: lng}, nil
-}
-
-// Lat returns the point latitude.
-func (p *Point) Lat() float64 {
-	return p.lat
-}
-
-// Lng returns the point longitude.
-func (p *Point) Lng() float64 {
-	return p.lng
+	return &Point{Lat: lat, Lng: lng}, nil
 }
 
 // UnmarshalJSON decode a JSON body into a Point value
