@@ -67,6 +67,7 @@ func TestUnmarshalJSON(t *testing.T) {
 		},
 		{"invalid lat", pointToBytes(100, 1), nil, geocoding.LATError},
 		{"invalid lng", pointToBytes(1, 190), nil, geocoding.LONError},
+		{"invalid json", []byte("`"), nil, geocoding.PointUnmarshalError},
 	}
 
 	for _, tc := range tt {
@@ -90,14 +91,6 @@ func TestUnmarshalJSON(t *testing.T) {
 				t.Errorf("Expected result lng point to be '%v'. Got '%v'", tc.resultPoint.Lng, resultPoint.Lng)
 			}
 		})
-	}
-}
-
-func TestFailUnmarshalInvalidJSON(t *testing.T) {
-	invalidBody := []byte("`")
-	_, err := geocoding.UnmarshalJSON(invalidBody)
-	if err != geocoding.PointUnmarshalError {
-		t.Errorf("Expected get the error '%v'. Got '%v'", geocoding.PointUnmarshalError, err)
 	}
 }
 
