@@ -65,11 +65,31 @@ func TestUnmarshalJSON(t *testing.T) {
 			getPoint(40.7486, -73.9864),
 			nil,
 		},
+		{
+			"valid with latitude and longitude",
+			[]byte(`{"latitude":1, "longitude":1}`),
+			getPoint(1, 1),
+			nil,
+		},
+		{
+			"valid mixed latitude and lng",
+			[]byte(`{"latitude":1, "lng":1}`),
+			getPoint(1, 1),
+			nil,
+		},
+		{
+			"valid mixed lat and longitude",
+			[]byte(`{"lat":1, "longitude":1}`),
+			getPoint(1, 1),
+			nil,
+		},
 		{"invalid lat", pointToBytes(100, 1), nil, geocoding.RangeLATError},
 		{"invalid lng", pointToBytes(1, 190), nil, geocoding.RangeLONError},
 		{"invalid json", []byte("`"), nil, geocoding.PointUnmarshalError},
 		{"missing lat", []byte(`{"lng":1}`), nil, geocoding.MissingLATError},
 		{"missing lng", []byte(`{"lat":1}`), nil, geocoding.MissingLNGError},
+		{"missing latitude", []byte(`{"longitude":1}`), nil, geocoding.MissingLATError},
+		{"missing longitude", []byte(`{"latitude":1}`), nil, geocoding.MissingLNGError},
 	}
 
 	for _, tc := range tt {

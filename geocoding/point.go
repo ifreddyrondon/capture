@@ -45,19 +45,44 @@ func UnmarshalJSON(body []byte) (*Point, error) {
 		return nil, PointUnmarshalError
 	}
 
-	if _, ok := values["lat"]; !ok {
+	var lat, lng float64
+	var isOk bool
+	if lat, isOk = getLatitude(&values); !isOk {
 		return nil, MissingLATError
 	}
-
-	if _, ok := values["lng"]; !ok {
+	if lng, isOk = getLongitude(&values); !isOk {
 		return nil, MissingLNGError
 	}
 
-	p, err := NewPoint(values["lat"], values["lng"])
+	p, err := NewPoint(lat, lng)
 	if err != nil {
 		log.Print(err)
 		return nil, err
 	}
 
 	return p, nil
+}
+
+func getLatitude(values *map[string]float64) (float64, bool) {
+	var val float64
+	var isOk bool
+	if val, isOk = (*values)["lat"]; isOk {
+		isOk = true
+	} else if val, isOk = (*values)["latitude"]; isOk {
+		isOk = true
+	}
+
+	return val, isOk
+}
+
+func getLongitude(values *map[string]float64) (float64, bool) {
+	var val float64
+	var isOk bool
+	if val, isOk = (*values)["lng"]; isOk {
+		isOk = true
+	} else if val, isOk = (*values)["longitude"]; isOk {
+		isOk = true
+	}
+
+	return val, isOk
 }
