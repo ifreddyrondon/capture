@@ -83,6 +83,7 @@ func TestUnmarshalJSON(t *testing.T) {
 			getPoint(1, 1),
 			nil,
 		},
+		{"invalid empty json", []byte("{}"), nil, geocoding.MissingLATError},
 		{"invalid lat", pointToBytes(100, 1), nil, geocoding.RangeLATError},
 		{"invalid lng", pointToBytes(1, 190), nil, geocoding.RangeLONError},
 		{"invalid json", []byte("`"), nil, geocoding.PointUnmarshalError},

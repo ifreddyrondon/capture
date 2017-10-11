@@ -36,7 +36,7 @@ func NewPoint(lat float64, lng float64) (*Point, error) {
 }
 
 // UnmarshalJSON decode a JSON body into a Point value
-// Throws an error if the body of the point cannot be interpreted by the JSON body
+// Throws an error if the payload cannot be interpreted as a JSON body
 func UnmarshalJSON(body []byte) (*Point, error) {
 	decoder := json.NewDecoder(bytes.NewReader(body))
 	var values map[string]float64
