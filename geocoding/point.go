@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	RangeLATError       = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
-	RangeLONError       = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
-	MissingLATError     = errors.New("missing latitude")
-	MissingLNGError     = errors.New("missing longitude")
-	PointUnmarshalError = errors.New("cannot unmarshal json into Point value")
+	PointRangeLATError   = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
+	PointRangeLONError   = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
+	PointMissingLATError = errors.New("missing latitude")
+	PointMissingLNGError = errors.New("missing longitude")
+	PointUnmarshalError  = errors.New("cannot unmarshal json into Point value")
 )
 
 // Point represents a physical Point in geographic notation [lat, lng].
@@ -22,20 +22,20 @@ type Point struct {
 }
 
 // NewPoint returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
-//For a valid latitude, longitude pair: -90<=latitude<=+90 and -180<=longitude<=180
+// For a valid latitude, longitude pair: -90<=latitude<=+90 and -180<=longitude<=180
 func NewPoint(lat float64, lng float64) (*Point, error) {
 	if lat < -90 || lat > 90 {
-		return nil, RangeLATError
+		return nil, PointRangeLATError
 	}
 
 	if lng < -180 || lng > 180 {
-		return nil, RangeLONError
+		return nil, PointRangeLONError
 	}
 
 	return &Point{Lat: lat, Lng: lng}, nil
 }
 
-// UnmarshalJSON decode a JSON body into a Point value
+// UnmarshalJSON decode a []byte (JSON body) into a *Point value
 // Throws an error if the payload cannot be interpreted as a JSON body
 func UnmarshalJSON(body []byte) (*Point, error) {
 	decoder := json.NewDecoder(bytes.NewReader(body))
@@ -48,10 +48,10 @@ func UnmarshalJSON(body []byte) (*Point, error) {
 	var lat, lng float64
 	var isOk bool
 	if lat, isOk = getLatitude(&values); !isOk {
-		return nil, MissingLATError
+		return nil, PointMissingLATError
 	}
 	if lng, isOk = getLongitude(&values); !isOk {
-		return nil, MissingLNGError
+		return nil, PointMissingLNGError
 	}
 
 	p, err := NewPoint(lat, lng)
