@@ -35,32 +35,35 @@ func NewPoint(lat float64, lng float64) (*Point, error) {
 	return &Point{Lat: lat, Lng: lng}, nil
 }
 
-// UnmarshalJSON decode a []byte (JSON body) into a *Point value
-// Throws an error if the payload cannot be interpreted as a JSON body
-func UnmarshalJSON(body []byte) (*Point, error) {
-	decoder := json.NewDecoder(bytes.NewReader(body))
+// UnmarshalJSON decodes the current Point from a JSON body.
+// Throws an error if the body of the point cannot be interpreted by the JSON body.
+// Implements the json.Unmarshaler Interface
+func (p *Point) UnmarshalJSON(data []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
 	var values map[string]float64
 	if err := decoder.Decode(&values); err != nil {
 		log.Print(err)
-		return nil, PointUnmarshalError
+		return PointUnmarshalError
 	}
 
 	var lat, lng float64
 	var isOk bool
 	if lat, isOk = getLatitude(&values); !isOk {
-		return nil, PointMissingLATError
+		return PointMissingLATError
 	}
 	if lng, isOk = getLongitude(&values); !isOk {
-		return nil, PointMissingLNGError
+		return PointMissingLNGError
 	}
 
-	p, err := NewPoint(lat, lng)
+	point, err := NewPoint(lat, lng)
 	if err != nil {
 		log.Print(err)
-		return nil, err
+		return err
 	}
 
-	return p, nil
+	*p = *point
+
+	return nil
 }
 
 func getLatitude(values *map[string]float64) (float64, bool) {

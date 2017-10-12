@@ -95,7 +95,8 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			resultPoint, resultError := geocoding.UnmarshalJSON(tc.payload)
+			resultPoint := geocoding.Point{}
+			resultError := resultPoint.UnmarshalJSON(tc.payload)
 
 			if resultError != tc.resultError {
 				t.Errorf("Expected get the error '%v'. Got '%v'", tc.resultError, resultError)
