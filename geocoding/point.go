@@ -17,8 +17,8 @@ var (
 
 // Point represents a physical Point in geographic notation [lat, lng].
 type Point struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Lat float64
+	Lng float64
 }
 
 // NewPoint returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
@@ -35,23 +35,29 @@ func NewPoint(lat float64, lng float64) (*Point, error) {
 	return &Point{Lat: lat, Lng: lng}, nil
 }
 
+type pointJSON struct {
+	Lat       float64 `json:"lat"`
+	Latitude  float64 `json:"latitude"`
+	Lng       float64 `json:"lng"`
+	Longitude float64 `json:"longitude"`
+}
+
 // UnmarshalJSON decodes the current Point from a JSON body.
 // Throws an error if the body of the point cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
 func (p *Point) UnmarshalJSON(data []byte) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
-	var values map[string]float64
-	if err := decoder.Decode(&values); err != nil {
+	var model pointJSON
+	if err := decoder.Decode(&model); err != nil {
 		log.Print(err)
 		return PointUnmarshalError
 	}
 
-	var lat, lng float64
-	var isOk bool
-	if lat, isOk = getLatitude(&values); !isOk {
+	lat, lng := getLat(&model), getLng(&model)
+	if lat == 0 {
 		return PointMissingLATError
 	}
-	if lng, isOk = getLongitude(&values); !isOk {
+	if lng == 0 {
 		return PointMissingLNGError
 	}
 
@@ -66,26 +72,22 @@ func (p *Point) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func getLatitude(values *map[string]float64) (float64, bool) {
-	var val float64
-	var isOk bool
-	if val, isOk = (*values)["lat"]; isOk {
-		isOk = true
-	} else if val, isOk = (*values)["latitude"]; isOk {
-		isOk = true
+func getLat(model *pointJSON) float64 {
+	var lat float64
+	if model.Lat != 0 {
+		lat = model.Lat
+	} else if model.Latitude != 0 {
+		lat = model.Latitude
 	}
-
-	return val, isOk
+	return lat
 }
 
-func getLongitude(values *map[string]float64) (float64, bool) {
-	var val float64
-	var isOk bool
-	if val, isOk = (*values)["lng"]; isOk {
-		isOk = true
-	} else if val, isOk = (*values)["longitude"]; isOk {
-		isOk = true
+func getLng(model *pointJSON) float64 {
+	var lng float64
+	if model.Lng != 0 {
+		lng = model.Lng
+	} else if model.Longitude != 0 {
+		lng = model.Longitude
 	}
-
-	return val, isOk
+	return lng
 }
