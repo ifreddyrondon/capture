@@ -3,6 +3,7 @@ package captures_test
 import (
 	"os"
 	"testing"
+
 	"time"
 
 	"github.com/ifreddyrondon/gocapture/captures"
@@ -46,6 +47,16 @@ func TestCaptureDateUnmarshalJSON(t *testing.T) {
 		{
 			"valid Unix timestamp as string date with timestamp key",
 			[]byte(`{"timestamp": "630655260"}`),
+			"1989-12-26 06:01:00 +0000 UTC",
+		},
+		{
+			"valid Unix timestamp as integer date with date key",
+			[]byte(`{"date": 630655260}`),
+			"1989-12-26 06:01:00 +0000 UTC",
+		},
+		{
+			"valid Unix timestamp as integer date with timestamp key",
+			[]byte(`{"timestamp": 630655260}`),
 			"1989-12-26 06:01:00 +0000 UTC",
 		},
 	}

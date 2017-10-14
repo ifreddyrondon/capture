@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"log"
 
+	"strconv"
+
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/simplereach/timeutils"
 )
@@ -33,7 +35,7 @@ func NewCaptureDate() *CaptureDate {
 func (t *CaptureDate) UnmarshalJSON(data []byte) error {
 	t.Date = t.clock.Now()
 	decoder := json.NewDecoder(bytes.NewReader(data))
-	var values map[string]string
+	var values map[string]interface{}
 	if err := decoder.Decode(&values); err != nil {
 		log.Print(err)
 		return nil
@@ -57,8 +59,8 @@ func (t *CaptureDate) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func getTimestampValue(values *map[string]string) (string, bool) {
-	var val string
+func getTimestampValue(values *map[string]interface{}) (string, bool) {
+	var val interface{}
 	var isOk bool
 	if val, isOk = (*values)["date"]; isOk {
 		isOk = true
@@ -66,7 +68,21 @@ func getTimestampValue(values *map[string]string) (string, bool) {
 		isOk = true
 	}
 
-	return val, isOk
+	if !isOk {
+		return "", isOk
+	}
+
+	var date string
+	switch v := val.(type) {
+	case float64:
+		date = strconv.Itoa(int(v))
+	case string:
+		date = v
+	default:
+		return "", false
+	}
+
+	return date, isOk
 }
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
