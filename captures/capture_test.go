@@ -39,12 +39,12 @@ func TestCaptureDateUnmarshalJSON(t *testing.T) {
 			"1989-12-26 06:01:00 +0000 UTC",
 		},
 		{
-			"valid Unix timestamp date with date key",
+			"valid Unix timestamp as string date with date key",
 			[]byte(`{"date": "630655260"}`),
 			"1989-12-26 06:01:00 +0000 UTC",
 		},
 		{
-			"valid Unix timestamp date with timestamp key",
+			"valid Unix timestamp as string date with timestamp key",
 			[]byte(`{"timestamp": "630655260"}`),
 			"1989-12-26 06:01:00 +0000 UTC",
 		},
@@ -62,8 +62,38 @@ func TestCaptureDateUnmarshalJSON(t *testing.T) {
 	}
 }
 
-// TODO: add unit test when unmarshal capture date fails
-//{"empty json", []byte("{}"), captures.CaptureDate{Date: nowFunc()}},
+func TestCaptureDateUnmarshalJSONWhenFails(t *testing.T) {
+	timeMock := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
+	captures.SetClockInstance(captures.NewMockClock(timeMock))
+
+	defer os.Setenv("TZ", os.Getenv("TZ"))
+	os.Setenv("TZ", "UTC")
+
+	tt := []struct {
+		name    string
+		payload []byte
+		result  string
+	}{
+		{"empty json", []byte("{}"), "1989-12-26 06:01:00 +0000 UTC"},
+		{"invalid json", []byte("`"), "1989-12-26 06:01:00 +0000 UTC"},
+		{
+			"missing date or timestamp",
+			[]byte(`{"foo": "630655260"}`),
+			"1989-12-26 06:01:00 +0000 UTC",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := captures.NewCaptureDate()
+			result.UnmarshalJSON(tc.payload)
+
+			if result.Date.String() != tc.result {
+				t.Errorf("Expected CaptureDate to be '%v'. Got '%v'", tc.result, result.Date.String())
+			}
+		})
+	}
+}
 
 func TestNewCapture(t *testing.T) {
 	point, _ := geocoding.NewPoint(1, 2)

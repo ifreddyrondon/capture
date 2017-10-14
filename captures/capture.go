@@ -16,7 +16,7 @@ var (
 	CaptureUnmarshalError = errors.New("cannot unmarshal json into Capture value")
 )
 
-var clockInstance = new(ProductionClock)
+var clockInstance Clock = new(ProductionClock)
 
 type CaptureDate struct {
 	Date  time.Time
