@@ -8,7 +8,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/captures"
 )
 
-func TestDateUnmarshalJSON(t *testing.T) {
+func TestUnmarshalJSON(t *testing.T) {
 	defer os.Setenv("TZ", os.Getenv("TZ"))
 	os.Setenv("TZ", "UTC")
 
@@ -71,7 +71,7 @@ func TestDateUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestDateUnmarshalJSONWhenFails(t *testing.T) {
+func TestUnmarshalJSONWhenFails(t *testing.T) {
 	timeMock := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
 	captures.SetClockInstance(captures.NewMockClock(timeMock))
 
