@@ -81,6 +81,16 @@ func TestCaptureDateUnmarshalJSONWhenFails(t *testing.T) {
 			[]byte(`{"foo": "630655260"}`),
 			"1989-12-26 06:01:00 +0000 UTC",
 		},
+		{
+			"invalid date",
+			[]byte(`{"date": "asd"}`),
+			"1989-12-26 06:01:00 +0000 UTC",
+		},
+		{
+			"invalid timestamp",
+			[]byte(`{"timestamp": "asd"}`),
+			"1989-12-26 06:01:00 +0000 UTC",
+		},
 	}
 
 	for _, tc := range tt {
