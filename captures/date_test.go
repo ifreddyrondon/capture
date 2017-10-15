@@ -9,6 +9,20 @@ import (
 	"github.com/ifreddyrondon/gocapture/captures"
 )
 
+func TestNewDate(t *testing.T) {
+	date := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
+	result := captures.NewDate(date)
+	expetedResult := "1989-12-26 06:01:00 +0000 UTC"
+
+	if result == nil {
+		t.Errorf("Expected capture not to nil. Got '%v'", result)
+	}
+
+	if result.Timestamp.String() != expetedResult {
+		t.Errorf("Expected date to be '%v'. Got '%v'", expetedResult, result.Timestamp.String())
+	}
+}
+
 func TestUnmarshalJSON(t *testing.T) {
 	defer os.Setenv("TZ", os.Getenv("TZ"))
 	os.Setenv("TZ", "UTC")

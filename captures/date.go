@@ -9,6 +9,7 @@ import (
 	"github.com/simplereach/timeutils"
 )
 
+// Date represents the specific timestamp at which the capture was taken.
 type Date struct {
 	Timestamp time.Time
 	clock     *Clock
