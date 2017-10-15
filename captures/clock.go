@@ -2,32 +2,24 @@ package captures
 
 import "time"
 
-// Clock interface is a drop replacement for time.Now().
+// Clock is a drop replacement for time.Now().
 // It's intended to be used as pointer fields on another struct.
-// You can use any struct that implements Clock to facilitates
-// unit testing when accessing the current time.
-type Clock interface {
-	Now() time.Time
-}
-
-// ProductionClock implements the Clock interface and forward
-// to the corresponding functions in the standard time package.
-type ProductionClock struct{}
-
-func (c *ProductionClock) Now() time.Time {
-	return time.Now()
-}
-
-// MockClock implements the Clock interface and get an instant (time.Time)
-// attribute. When Now() method is called, it returns the instant.
-type MockClock struct {
+// Leaving the instance as a nil reference will cause any calls
+// on the *Clock to forward to the corresponding functions in the
+// standard time package. This is meant to be the behavior in production.
+type Clock struct {
 	instant time.Time
 }
 
-func (c *MockClock) Now() time.Time {
+func (c *Clock) Now() time.Time {
+	if c == nil {
+		return time.Now()
+	}
 	return c.instant
 }
 
-func NewMockClock(instant time.Time) *MockClock {
-	return &MockClock{instant: instant}
+// NewMockClock is a helper constructor to facilitates unit testing.
+// It'll return the instant Time when Now() method is called.
+func NewMockClock(instant time.Time) *Clock {
+	return &Clock{instant: instant}
 }

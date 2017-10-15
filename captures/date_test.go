@@ -3,6 +3,7 @@ package captures_test
 import (
 	"os"
 	"testing"
+
 	"time"
 
 	"github.com/ifreddyrondon/gocapture/captures"
@@ -61,7 +62,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := captures.NewDate()
+			result := &captures.Date{}
 			result.UnmarshalJSON(tc.payload)
 
 			if result.Timestamp.String() != tc.result {
@@ -72,11 +73,11 @@ func TestUnmarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalJSONWhenFails(t *testing.T) {
-	timeMock := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	captures.SetClockInstance(captures.NewMockClock(timeMock))
-
 	defer os.Setenv("TZ", os.Getenv("TZ"))
 	os.Setenv("TZ", "UTC")
+
+	fakeTime := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
+	mockClock := captures.NewMockClock(fakeTime)
 
 	tt := []struct {
 		name    string
@@ -104,7 +105,8 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := captures.NewDate()
+			result := &captures.Date{}
+			captures.SetClockInstance(result, mockClock)
 			result.UnmarshalJSON(tc.payload)
 
 			if result.Timestamp.String() != tc.result {

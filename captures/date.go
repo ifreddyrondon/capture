@@ -9,15 +9,13 @@ import (
 	"github.com/simplereach/timeutils"
 )
 
-var clockInstance Clock = new(ProductionClock)
-
 type Date struct {
 	Timestamp time.Time
-	clock     Clock
+	clock     *Clock
 }
 
-func NewDate() *Date {
-	return &Date{clock: clockInstance}
+func NewDate(date time.Time) *Date {
+	return &Date{Timestamp: date}
 }
 
 type dateJSON struct {
