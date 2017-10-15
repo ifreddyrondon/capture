@@ -10,7 +10,7 @@ import (
 
 func TestNewCapture(t *testing.T) {
 	point, _ := geocoding.NewPoint(1, 2)
-	timestamp := captures.Date{Timestamp: time.Now()}
+	timestamp := captures.NewDate(time.Now())
 	var payload interface{}
 
 	result := captures.NewCapture(point, timestamp, payload)
