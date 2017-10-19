@@ -1,10 +1,10 @@
 package geocoding
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
 	"log"
+
+	"github.com/mailru/easyjson/jwriter"
 )
 
 var (
@@ -17,8 +17,8 @@ var (
 
 // Point represents a physical Point in geographic notation [lat, lng].
 type Point struct {
-	Lat float64
-	Lng float64
+	Lat float64 `json:"lat"`
+	Lng float64 `json:"lng"`
 }
 
 // NewPoint returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
@@ -42,13 +42,20 @@ type pointJSON struct {
 	Longitude float64 `json:"longitude"`
 }
 
+// MarshalJSON decode current Point to JSON.
+// It supports json.Marshaler interface.
+func (po Point) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding1(&w, po)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
 // UnmarshalJSON decodes the current Point from a JSON body.
 // Throws an error if the body of the point cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
-func (p *Point) UnmarshalJSON(data []byte) error {
-	decoder := json.NewDecoder(bytes.NewReader(data))
+func (po *Point) UnmarshalJSON(data []byte) error {
 	var model pointJSON
-	if err := decoder.Decode(&model); err != nil {
+	if err := model.UnmarshalJSON(data); err != nil {
 		log.Print(err)
 		return PointUnmarshalError
 	}
@@ -67,7 +74,7 @@ func (p *Point) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*p = *point
+	*po = *point
 
 	return nil
 }

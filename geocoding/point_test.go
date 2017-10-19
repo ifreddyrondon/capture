@@ -52,6 +52,16 @@ func TestNewPoint(t *testing.T) {
 	}
 }
 
+func TestPointMarshalJSON(t *testing.T) {
+	p := getPoint(1, 1)
+	expected := `{"lat":1,"lng":1}`
+	result, _ := p.MarshalJSON()
+
+	if expected != string(result) {
+		t.Errorf("Expected Marshal result to be '%v'. Got '%v'", expected, string(result))
+	}
+}
+
 func TestUnmarshalJSON(t *testing.T) {
 	tt := []struct {
 		name        string
