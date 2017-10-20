@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/gocapture/captures"
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/captures/geocoding"
 )
 
 func TestNewCapture(t *testing.T) {

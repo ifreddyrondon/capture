@@ -3,9 +3,9 @@ package geocoding_test
 import (
 	"testing"
 
-	"fmt"
+	"github.com/ifreddyrondon/gocapture/captures/geocoding"
 
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"fmt"
 )
 
 func TestNewPoint(t *testing.T) {

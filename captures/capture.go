@@ -1,7 +1,7 @@
 package captures
 
 import (
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/captures/geocoding"
 )
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
