@@ -1,4 +1,4 @@
-package captures
+package capture
 
 import (
 	"bytes"

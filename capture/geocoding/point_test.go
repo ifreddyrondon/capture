@@ -3,7 +3,7 @@ package geocoding_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/captures/geocoding"
+	"github.com/ifreddyrondon/gocapture/capture/geocoding"
 
 	"fmt"
 )

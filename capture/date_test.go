@@ -1,4 +1,4 @@
-package captures_test
+package capture_test
 
 import (
 	"os"
@@ -6,12 +6,12 @@ import (
 
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/captures"
+	"github.com/ifreddyrondon/gocapture/capture"
 )
 
 func TestNewDate(t *testing.T) {
 	date := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	result := captures.NewDate(date)
+	result := capture.NewDate(date)
 	expetedResult := "1989-12-26 06:01:00 +0000 UTC"
 
 	if result == nil {
@@ -76,7 +76,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := &captures.Date{}
+			result := &capture.Date{}
 			result.UnmarshalJSON(tc.payload)
 
 			if result.Timestamp.String() != tc.result {
@@ -91,7 +91,7 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 	os.Setenv("TZ", "UTC")
 
 	fakeTime := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	mockClock := captures.NewMockClock(fakeTime)
+	mockClock := capture.NewMockClock(fakeTime)
 
 	tt := []struct {
 		name    string
@@ -119,8 +119,8 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := &captures.Date{}
-			captures.SetClockInstance(result, mockClock)
+			result := &capture.Date{}
+			capture.SetClockInstance(result, mockClock)
 			result.UnmarshalJSON(tc.payload)
 
 			if result.Timestamp.String() != tc.result {
