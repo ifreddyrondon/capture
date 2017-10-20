@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 )
 
@@ -35,13 +36,6 @@ func NewPoint(lat float64, lng float64) (*Point, error) {
 	return &Point{Lat: lat, Lng: lng}, nil
 }
 
-type pointJSON struct {
-	Lat       float64 `json:"lat"`
-	Latitude  float64 `json:"latitude"`
-	Lng       float64 `json:"lng"`
-	Longitude float64 `json:"longitude"`
-}
-
 // MarshalJSON decode current Point to JSON.
 // It supports json.Marshaler interface.
 func (po Point) MarshalJSON() ([]byte, error) {
@@ -50,17 +44,26 @@ func (po Point) MarshalJSON() ([]byte, error) {
 	return w.Buffer.BuildBytes(), w.Error
 }
 
+type pointJSON struct {
+	Lat       float64 `json:"lat"`
+	Latitude  float64 `json:"latitude"`
+	Lng       float64 `json:"lng"`
+	Longitude float64 `json:"longitude"`
+}
+
 // UnmarshalJSON decodes the current Point from a JSON body.
 // Throws an error if the body of the point cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
 func (po *Point) UnmarshalJSON(data []byte) error {
-	var model pointJSON
-	if err := model.UnmarshalJSON(data); err != nil {
+	model := new(pointJSON)
+	r := jlexer.Lexer{Data: data}
+	easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(&r, model)
+	if err := r.Error(); err != nil {
 		log.Print(err)
 		return PointUnmarshalError
 	}
 
-	lat, lng := getLat(&model), getLng(&model)
+	lat, lng := getLat(model), getLng(model)
 	if lat == 0 {
 		return PointMissingLATError
 	}

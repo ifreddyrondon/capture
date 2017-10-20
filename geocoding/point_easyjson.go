@@ -45,13 +45,6 @@ func easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.L
 	}
 }
 
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *pointJSON) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(&r, v)
-	return r.Error()
-}
-
 func easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding1(out *jwriter.Writer, in Point) {
 	out.RawByte('{')
 	first := true
