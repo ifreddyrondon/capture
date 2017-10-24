@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/capture/geocoding"
+	"github.com/ifreddyrondon/gocapture/geocoding"
 )
 
 func TestNewCapture(t *testing.T) {
@@ -42,13 +42,13 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 			"invalid point",
 			[]byte(`{"lat": -91, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
 			nil,
-			geocoding.PointRangeLATError,
+			geocoding.ErrorLATRange,
 		},
 		{
 			"missing point lat",
 			[]byte(`{"lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
 			nil,
-			geocoding.PointMissingLATError,
+			geocoding.ErrorLATMissing,
 		},
 	}
 

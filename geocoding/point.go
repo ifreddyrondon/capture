@@ -9,11 +9,16 @@ import (
 )
 
 var (
-	PointRangeLATError   = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
-	PointRangeLONError   = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
-	PointMissingLATError = errors.New("missing latitude")
-	PointMissingLNGError = errors.New("missing longitude")
-	PointUnmarshalError  = errors.New("cannot unmarshal json into Point value")
+	ErrorLATRange       = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
+	ErrorLONRange       = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
+	ErrorLATMissing     = errors.New("missing latitude")
+	ErrorLNGMissing     = errors.New("missing longitude")
+	ErrorUnmarshalPoint = errors.New("cannot unmarshal json into Point value")
+)
+
+const (
+	// According to Wikipedia, the Earth's radius is about 6,371km
+	EARTH_RADIUS = 6371
 )
 
 // Point represents a physical Point in geographic notation [lat, lng].
@@ -26,11 +31,11 @@ type Point struct {
 // For a valid latitude, longitude pair: -90<=latitude<=+90 and -180<=longitude<=180
 func NewPoint(lat float64, lng float64) (*Point, error) {
 	if lat < -90 || lat > 90 {
-		return nil, PointRangeLATError
+		return nil, ErrorLATRange
 	}
 
 	if lng < -180 || lng > 180 {
-		return nil, PointRangeLONError
+		return nil, ErrorLONRange
 	}
 
 	return &Point{Lat: lat, Lng: lng}, nil
@@ -60,15 +65,15 @@ func (po *Point) UnmarshalJSON(data []byte) error {
 	easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(&r, model)
 	if err := r.Error(); err != nil {
 		log.Print(err)
-		return PointUnmarshalError
+		return ErrorUnmarshalPoint
 	}
 
 	lat, lng := getLat(model), getLng(model)
 	if lat == 0 {
-		return PointMissingLATError
+		return ErrorLATMissing
 	}
 	if lng == 0 {
-		return PointMissingLNGError
+		return ErrorLNGMissing
 	}
 
 	point, err := NewPoint(lat, lng)

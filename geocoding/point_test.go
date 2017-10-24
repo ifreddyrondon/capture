@@ -3,7 +3,7 @@ package geocoding_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/capture/geocoding"
+	"github.com/ifreddyrondon/gocapture/geocoding"
 
 	"fmt"
 )
@@ -20,11 +20,11 @@ func TestNewPoint(t *testing.T) {
 		{"valid both upper limits", 90, 180, nil},
 		{"valid both lower limits", -90.00000, -180.0000, nil},
 		{"valid with just point decimal", 90., 180., nil},
-		{"invalid lat > 90", 95, 280, geocoding.PointRangeLATError},
-		{"invalid lat < -95", -95, 280, geocoding.PointRangeLATError},
-		{"invalid lng > 180", 75, 280, geocoding.PointRangeLONError},
-		{"invalid lng with decimals", 77.11112223331, 249.99999999, geocoding.PointRangeLONError},
-		{"invalid lng for 2 decimals points", 90, 180.2, geocoding.PointRangeLONError},
+		{"invalid lat > 90", 95, 280, geocoding.ErrorLATRange},
+		{"invalid lat < -95", -95, 280, geocoding.ErrorLATRange},
+		{"invalid lng > 180", 75, 280, geocoding.ErrorLONRange},
+		{"invalid lng with decimals", 77.11112223331, 249.99999999, geocoding.ErrorLONRange},
+		{"invalid lng for 2 decimals points", 90, 180.2, geocoding.ErrorLONRange},
 	}
 
 	for _, tc := range tt {
@@ -93,14 +93,14 @@ func TestUnmarshalJSON(t *testing.T) {
 			getPoint(1, 1),
 			nil,
 		},
-		{"invalid empty json", []byte("{}"), nil, geocoding.PointMissingLATError},
-		{"invalid lat", pointToBytes(100, 1), nil, geocoding.PointRangeLATError},
-		{"invalid lng", pointToBytes(1, 190), nil, geocoding.PointRangeLONError},
-		{"invalid json", []byte("`"), nil, geocoding.PointUnmarshalError},
-		{"missing lat", []byte(`{"lng":1}`), nil, geocoding.PointMissingLATError},
-		{"missing lng", []byte(`{"lat":1}`), nil, geocoding.PointMissingLNGError},
-		{"missing latitude", []byte(`{"longitude":1}`), nil, geocoding.PointMissingLATError},
-		{"missing longitude", []byte(`{"latitude":1}`), nil, geocoding.PointMissingLNGError},
+		{"invalid empty json", []byte("{}"), nil, geocoding.ErrorLATMissing},
+		{"invalid lat", pointToBytes(100, 1), nil, geocoding.ErrorLATRange},
+		{"invalid lng", pointToBytes(1, 190), nil, geocoding.ErrorLONRange},
+		{"invalid json", []byte("`"), nil, geocoding.ErrorUnmarshalPoint},
+		{"missing lat", []byte(`{"lng":1}`), nil, geocoding.ErrorLATMissing},
+		{"missing lng", []byte(`{"lat":1}`), nil, geocoding.ErrorLNGMissing},
+		{"missing latitude", []byte(`{"longitude":1}`), nil, geocoding.ErrorLATMissing},
+		{"missing longitude", []byte(`{"latitude":1}`), nil, geocoding.ErrorLNGMissing},
 	}
 
 	for _, tc := range tt {

@@ -1,7 +1,7 @@
 package capture
 
 import (
-	"github.com/ifreddyrondon/gocapture/capture/geocoding"
+	"github.com/ifreddyrondon/gocapture/geocoding"
 )
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
@@ -20,7 +20,7 @@ func NewCapture(point *geocoding.Point, timestamp *Date, payload interface{}) *C
 // Throws an error if the body of the date cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
 func (c *Capture) UnmarshalJSON(data []byte) error {
-	p := geocoding.Point{}
+	p := new(geocoding.Point)
 	if err := p.UnmarshalJSON(data); err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 	date := Date{}
 	date.UnmarshalJSON(data)
 
-	capture := NewCapture(&p, &date, "")
+	capture := NewCapture(p, &date, "")
 	*c = *capture
 	return nil
 }
