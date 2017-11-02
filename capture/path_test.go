@@ -33,3 +33,67 @@ func TestPathAddCapture(t *testing.T) {
 		})
 	}
 }
+
+func TestPathUnmarshalJSON(t *testing.T) {
+	tt := []struct {
+		name        string
+		body        []byte
+		resultError error
+		expectedLen int
+	}{
+		// TODO: fix empty path
+		{
+			"empty path",
+			[]byte(`[]`),
+			nil,
+			0,
+		},
+		{
+			"valid capture into path of len 1",
+			[]byte(`[{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
+			nil,
+			1,
+		},
+		{
+			"valid capture into path of len 2",
+			[]byte(`[
+				{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
+				{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
+			nil,
+			2,
+		},
+		{
+			"invalid capture into path of len 1",
+			[]byte(`[{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
+			nil,
+			0,
+		},
+		{
+			"invalid capture into path of len 2",
+			[]byte(`[
+				{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
+				{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
+			nil,
+			1,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			p := new(capture.Path)
+			err := p.UnmarshalJSON(tc.body)
+
+			if err != tc.resultError {
+				t.Fatalf("Expected get the error '%v'. Got '%v'", tc.resultError, err)
+			}
+
+			if tc.resultError != nil {
+				return
+			}
+
+			if tc.expectedLen != len(p.Captures) {
+				t.Errorf("Expected len of catures to be '%v'. Got '%v'", tc.expectedLen, len(p.Captures))
+			}
+		})
+	}
+}
