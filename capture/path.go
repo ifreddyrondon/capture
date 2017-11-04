@@ -55,7 +55,7 @@ func (p *Path) UnmarshalJSON(data []byte) error {
 	}
 
 	<-done
-	processed := []channelData{}
+	var processed []channelData
 	for data := range jobs {
 		processed = append(processed, data)
 	}
