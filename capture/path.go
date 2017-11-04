@@ -31,6 +31,10 @@ func (p *Path) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
+	if len(pj) == 0 {
+		return nil
+	}
+
 	jobs := make(chan channelData, len(pj))
 	done := make(chan bool)
 	var readyCounter int

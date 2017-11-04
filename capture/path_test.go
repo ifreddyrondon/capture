@@ -41,7 +41,6 @@ func TestPathUnmarshalJSON(t *testing.T) {
 		resultError error
 		expectedLen int
 	}{
-		// TODO: fix empty path
 		{
 			"empty path",
 			[]byte(`[]`),
