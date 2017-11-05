@@ -3,6 +3,7 @@ package capture
 import (
 	"encoding/json"
 	"sort"
+	"sync"
 )
 
 // Path represent an array of captures.
@@ -17,9 +18,24 @@ func (p *Path) AddCapture(captures ...*Capture) {
 	p.Captures = append(p.Captures, captures...)
 }
 
-type channelData struct {
+type indexCapture struct {
 	index   int
 	capture *Capture
+}
+
+type job struct {
+	index int
+	data  json.RawMessage
+}
+
+func worker(wg *sync.WaitGroup, jobs <-chan job, results chan<- indexCapture) {
+	for job := range jobs {
+		capture := new(Capture)
+		if err := capture.UnmarshalJSON(job.data); err == nil {
+			results <- indexCapture{index: job.index, capture: capture}
+		}
+		wg.Done()
+	}
 }
 
 // UnmarshalJSON decodes a path from a JSON body.
@@ -35,28 +51,25 @@ func (p *Path) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	jobs := make(chan channelData, len(pj))
-	done := make(chan bool)
-	var readyCounter int
+	var wg sync.WaitGroup
+	wg.Add(len(pj))
+	jobs := make(chan job, len(pj))
+	results := make(chan indexCapture, len(pj))
 
-	for i, v := range pj {
-		go func(index int, data json.RawMessage) {
-			capture := new(Capture)
-			if err := capture.UnmarshalJSON(data); err == nil {
-				jobs <- channelData{index: i, capture: capture}
-			}
-
-			readyCounter++
-			if readyCounter == len(pj) {
-				close(jobs)
-				done <- true
-			}
-		}(i, v)
+	// creando 3 workers
+	for w := 1; w <= 3; w++ {
+		go worker(&wg, jobs, results)
 	}
+	// creando jobs
+	for i, v := range pj {
+		jobs <- job{index: i, data: v}
+	}
+	close(jobs)
+	wg.Wait()
+	close(results)
 
-	<-done
-	var processed []channelData
-	for data := range jobs {
+	var processed []indexCapture
+	for data := range results {
 		processed = append(processed, data)
 	}
 	sort.Slice(processed, func(i, j int) bool {
