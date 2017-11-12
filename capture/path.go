@@ -6,6 +6,8 @@ import (
 	"sync"
 )
 
+const WorkersNumber = 4
+
 // Path represent an array of captures.
 type Path struct {
 	Captures []*Capture
@@ -56,11 +58,10 @@ func (p *Path) UnmarshalJSON(data []byte) error {
 	jobs := make(chan job, len(pj))
 	results := make(chan indexCapture, len(pj))
 
-	// creando 3 workers
-	for w := 1; w <= 3; w++ {
+	for w := 0; w < WorkersNumber; w++ {
 		go worker(&wg, jobs, results)
 	}
-	// creando jobs
+
 	for i, v := range pj {
 		jobs <- job{index: i, data: v}
 	}
