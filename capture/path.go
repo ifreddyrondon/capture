@@ -69,11 +69,9 @@ func (p *Path) UnmarshalJSON(data []byte) error {
 	wg.Wait()
 	close(results)
 
-	processed := make([]indexCapture, len(results))
-	idx := 0
+	processed := make([]indexCapture, 0, len(results))
 	for data := range results {
-		processed[idx] = data
-		idx++
+		processed = append(processed, data)
 	}
 	sort.Slice(processed, func(i, j int) bool {
 		return processed[i].index < processed[j].index
