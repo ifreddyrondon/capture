@@ -10,7 +10,7 @@ const WorkersNumber = 4
 
 // Path represent an array of captures.
 type Path struct {
-	Captures []*Capture
+	Captures []*Capture `json:"captures"`
 }
 
 // AddCapture add new captures into the path.
