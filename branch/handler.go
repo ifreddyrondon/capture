@@ -1,4 +1,4 @@
-package capture
+package branch
 
 import (
 	"net/http"
@@ -10,7 +10,7 @@ import (
 
 type Handler struct{}
 
-// Routes creates a REST router for the capture resource
+// Routes creates a REST router for the branch resource
 func (h *Handler) Routes() chi.Router {
 	r := gobastion.NewRouter()
 
@@ -20,7 +20,7 @@ func (h *Handler) Routes() chi.Router {
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	path := new(Path)
+	path := new(Branch)
 	if err := utils.ReadJSON(r.Body, path); err != nil {
 		utils.BadRequest(w, err)
 	}

@@ -1,28 +1,30 @@
-package capture
+package branch
 
 import (
 	"encoding/json"
 	"sort"
 	"sync"
+
+	"github.com/ifreddyrondon/gocapture/capture"
 )
 
 const WorkersNumber = 4
 
-// Path represent an array of captures.
-type Path struct {
-	Captures []*Capture `json:"captures"`
+// Branch represent a collection of captures.
+type Branch struct {
+	Captures []*capture.Capture `json:"captures"`
 }
 
-// AddCapture add new captures into the path.
+// AddCapture add new captures into the branch.
 // The new captures will always be added at the end of the road.
 // respecting their insertion order.
-func (p *Path) AddCapture(captures ...*Capture) {
+func (p *Branch) AddCapture(captures ...*capture.Capture) {
 	p.Captures = append(p.Captures, captures...)
 }
 
 type indexCapture struct {
 	index   int
-	capture *Capture
+	capture *capture.Capture
 }
 
 type job struct {
@@ -32,7 +34,7 @@ type job struct {
 
 func worker(wg *sync.WaitGroup, jobs <-chan job, results chan<- indexCapture) {
 	for job := range jobs {
-		capture := new(Capture)
+		capture := new(capture.Capture)
 		if err := capture.UnmarshalJSON(job.data); err == nil {
 			results <- indexCapture{index: job.index, capture: capture}
 		}
@@ -40,10 +42,10 @@ func worker(wg *sync.WaitGroup, jobs <-chan job, results chan<- indexCapture) {
 	}
 }
 
-// UnmarshalJSON decodes a path from a JSON body.
-// Throws an error if the body of the path cannot be interpreted as JSON.
+// UnmarshalJSON decodes a branch from a JSON body.
+// Throws an error if the body of the branch cannot be interpreted as JSON.
 // Implements the json.Unmarshaler Interface
-func (p *Path) UnmarshalJSON(data []byte) error {
+func (p *Branch) UnmarshalJSON(data []byte) error {
 	var pj []json.RawMessage
 	if err := json.Unmarshal(data, &pj); err != nil {
 		return err

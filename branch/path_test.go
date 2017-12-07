@@ -1,9 +1,13 @@
-package capture_test
+package branch_test
 
 import (
 	"testing"
 
+	"time"
+
+	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
+	"github.com/ifreddyrondon/gocapture/geocoding"
 )
 
 func TestPathAddCapture(t *testing.T) {
@@ -20,7 +24,7 @@ func TestPathAddCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			p := new(capture.Path)
+			p := new(branch.Branch)
 			p.AddCapture(tc.captures...)
 
 			if p == nil {
@@ -79,7 +83,7 @@ func TestPathUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			p := new(capture.Path)
+			p := new(branch.Branch)
 			err := p.UnmarshalJSON(tc.body)
 
 			if err != tc.resultError {
@@ -95,4 +99,12 @@ func TestPathUnmarshalJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
+	p, _ := geocoding.NewPoint(lat, lng)
+	parsedDate, _ := time.Parse(time.RFC3339, date)
+	timestamp := capture.NewDate(parsedDate)
+
+	return capture.NewCapture(p, timestamp, payload)
 }
