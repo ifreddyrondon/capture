@@ -1,6 +1,8 @@
 package capture
 
 import (
+	"time"
+
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -14,6 +16,8 @@ type Capture struct {
 	Payload interface{}   `json:"payload"`
 	*geocoding.Point
 	*Timestamp
+	CreatedDate  time.Time `json:"created_date" bson:"createdDate"`
+	LastModified time.Time `json:"last_modified" bson:"lastModified"`
 }
 
 // NewCapture returns a new pointer to a Capture composed of the passed Point, Time and payload
@@ -43,6 +47,8 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (c *Capture) save(DB *mgo.Database) error {
+func (c *Capture) create(DB *mgo.Database) error {
+	now := time.Now()
+	c.CreatedDate, c.LastModified = now, now
 	return DB.C(collection).Insert(c)
 }

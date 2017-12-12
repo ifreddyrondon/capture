@@ -2,11 +2,6 @@ package capture
 
 import (
 	"net/http"
-	"os"
-
-	"encoding/json"
-
-	"fmt"
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/gobastion"
@@ -30,13 +25,11 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	err := capture.save(ctx.Value("DB").(*mgo.Database))
+	err := capture.create(ctx.Value("DB").(*mgo.Database))
 	if err != nil {
 		utils.InternalServerError(w, err)
 		return
 	}
-	fmt.Println(capture.Timestamp.Timestamp)
-	json.NewEncoder(os.Stdout).Encode(capture)
 
 	utils.Send(w, capture)
 }

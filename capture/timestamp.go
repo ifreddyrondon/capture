@@ -13,7 +13,7 @@ import (
 
 // Timestamp represents the specific moment at which the capture was taken.
 type Timestamp struct {
-	Timestamp time.Time
+	Timestamp time.Time `json:"timestamp"`
 	clock     *Clock
 }
 
