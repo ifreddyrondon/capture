@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi"
+	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gobastion/utils"
 	"gopkg.in/mgo.v2"
 )
@@ -17,7 +18,7 @@ type Handler struct{}
 
 // Routes creates a REST router for the branch resource
 func (h *Handler) Routes() chi.Router {
-	r := chi.NewRouter()
+	r := gobastion.NewRouter()
 	r.Post("/", h.create)
 	return r
 }

@@ -22,8 +22,8 @@
 [[projects]]
   name = "github.com/ifreddyrondon/gobastion"
   packages = [".","config","midleware","utils"]
-  revision = "8b26444dd567f4549588504b93a515fcb1477edf"
-  version = "1.1.0"
+  revision = "0c551694d1b3f036a27b2048c5588fd4f53bf650"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/joho/godotenv"
@@ -64,7 +64,7 @@
 [[projects]]
   branch = "v2"
   name = "gopkg.in/mgo.v2"
-  packages = ["bson","internal/json"]
+  packages = [".","bson","internal/json","internal/sasl","internal/scram"]
   revision = "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 
 [[projects]]
@@ -76,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a73ec8f2d3ee76024df31d16a309d4d996dee935f796960c33d180e3e2cf84ed"
+  inputs-digest = "0ff579384fdffe1d1fd7054195f18d7b16a23726887b593b9b7b26cb908336ab"
   solver-name = "gps-cdcl"
   solver-version = 1
