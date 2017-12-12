@@ -104,7 +104,7 @@ func TestPathUnmarshalJSON(t *testing.T) {
 func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
 	parsedDate, _ := time.Parse(time.RFC3339, date)
-	timestamp := capture.NewDate(parsedDate)
+	timestamp := capture.NewTimestamp(parsedDate)
 
 	return capture.NewCapture(p, timestamp, payload)
 }

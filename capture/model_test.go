@@ -12,7 +12,7 @@ import (
 
 func TestNewCapture(t *testing.T) {
 	point, _ := geocoding.NewPoint(1, 2)
-	timestamp := capture.NewDate(time.Now())
+	timestamp := capture.NewTimestamp(time.Now())
 	var payload interface{}
 
 	result := capture.NewCapture(point, timestamp, payload)
@@ -74,11 +74,11 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 				t.Errorf("Expected Lng of capture to be '%v'. Got '%v'", tc.result.Point.Lng, result.Point.Lng)
 			}
 
-			if result.Date.Timestamp.String() != tc.result.Date.Timestamp.String() {
+			if result.Timestamp.Timestamp.String() != tc.result.Timestamp.Timestamp.String() {
 				t.Errorf(
 					"Expected Date of capture to be '%v'. Got '%v'",
-					tc.result.Date.Timestamp.String(),
-					result.Date.Timestamp.String())
+					tc.result.Timestamp.Timestamp.String(),
+					result.Timestamp.Timestamp.String())
 			}
 		})
 	}
@@ -87,7 +87,7 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
 	parsedDate, _ := time.Parse(time.RFC3339, date)
-	timestamp := capture.NewDate(parsedDate)
+	timestamp := capture.NewTimestamp(parsedDate)
 
 	return capture.NewCapture(p, timestamp, payload)
 }

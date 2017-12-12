@@ -6,20 +6,22 @@ import (
 	"log"
 	"time"
 
+	"fmt"
+
 	"github.com/simplereach/timeutils"
 )
 
-// Date represents the specific timestamp at which the capture was taken.
-type Date struct {
+// Timestamp represents the specific moment at which the capture was taken.
+type Timestamp struct {
 	Timestamp time.Time
 	clock     *Clock
 }
 
-func NewDate(date time.Time) *Date {
-	return &Date{Timestamp: date}
+func NewTimestamp(date time.Time) *Timestamp {
+	return &Timestamp{Timestamp: date}
 }
 
-type dateJSON struct {
+type timestampJSON struct {
 	stringer struct {
 		Date      string `json:"date"`
 		Timestamp string `json:"timestamp"`
@@ -28,13 +30,13 @@ type dateJSON struct {
 	Timestamp json.Number `json:"timestamp"`
 }
 
-// UnmarshalJSON decodes the date of the capture from a JSON body.
-// Throws an error if the body of the date cannot be interpreted by the JSON body.
+// UnmarshalJSON decodes the Timestamp of the capture from a JSON body.
+// Throws an error if the body of the Timestamp cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
-func (t *Date) UnmarshalJSON(data []byte) error {
+func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	t.Timestamp = t.clock.Now()
 
-	model := new(dateJSON)
+	model := new(timestampJSON)
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	if err := decoder.Decode(&model); err != nil {
 		log.Print(err)
@@ -55,4 +57,10 @@ func (t *Date) UnmarshalJSON(data []byte) error {
 
 	t.Timestamp = parsedTime
 	return nil
+}
+
+// MarshalJSON decode current Date to JSON.
+// It supports json.Marshaler interface.
+func (t Timestamp) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("%v", t.Timestamp)), nil
 }

@@ -11,7 +11,7 @@ import (
 
 func TestNewDate(t *testing.T) {
 	date := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	result := capture.NewDate(date)
+	result := capture.NewTimestamp(date)
 	expetedResult := "1989-12-26 06:01:00 +0000 UTC"
 
 	if result == nil {
@@ -76,7 +76,7 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := &capture.Date{}
+			result := &capture.Timestamp{}
 			result.UnmarshalJSON(tc.payload)
 
 			if result.Timestamp.String() != tc.result {
@@ -119,7 +119,7 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := &capture.Date{}
+			result := &capture.Timestamp{}
 			capture.SetClockInstance(result, mockClock)
 			result.UnmarshalJSON(tc.payload)
 
@@ -127,5 +127,15 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 				t.Errorf("Expected CaptureDate to be '%v'. Got '%v'", tc.result, result.Timestamp.String())
 			}
 		})
+	}
+}
+
+func TestDateMarshalJSON(t *testing.T) {
+	parsedDate, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
+
+	expected := "1989-12-26 06:01:00 +0000 UTC"
+	result, _ := capture.NewTimestamp(parsedDate).MarshalJSON()
+	if string(result) != expected {
+		t.Errorf("Expected Marshall data to be '%v'. Got '%v'", expected, string(result))
 	}
 }

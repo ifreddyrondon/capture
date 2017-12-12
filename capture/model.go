@@ -2,18 +2,28 @@ package capture
 
 import (
 	"github.com/ifreddyrondon/gocapture/geocoding"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
+
+const collection = "captures"
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
+	ID      bson.ObjectId `json:"id" bson:"_id,omitempty"`
+	Payload interface{}   `json:"payload"`
 	*geocoding.Point
-	*Date
-	Payload interface{}
+	*Timestamp
 }
 
 // NewCapture returns a new pointer to a Capture composed of the passed Point, Time and payload
-func NewCapture(point *geocoding.Point, timestamp *Date, payload interface{}) *Capture {
-	return &Capture{point, timestamp, payload}
+func NewCapture(point *geocoding.Point, timestamp *Timestamp, payload interface{}) *Capture {
+	return &Capture{
+		ID:        bson.NewObjectId(),
+		Payload:   payload,
+		Point:     point,
+		Timestamp: timestamp,
+	}
 }
 
 // UnmarshalJSON decodes the capture from a JSON body.
@@ -25,10 +35,14 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	date := Date{}
-	date.UnmarshalJSON(data)
+	t := Timestamp{}
+	t.UnmarshalJSON(data)
 
-	capture := NewCapture(p, &date, "")
+	capture := NewCapture(p, &t, "")
 	*c = *capture
 	return nil
+}
+
+func (c *Capture) save(DB *mgo.Database) error {
+	return DB.C(collection).Insert(c)
 }
