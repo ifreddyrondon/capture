@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
@@ -8,11 +10,19 @@ import (
 )
 
 func main() {
+	db, err := database.Open("localhost/captures")
+	if err != nil {
+		log.Panic(err)
+	}
+	defer db.Close()
+
 	app := gobastion.New("")
-	database.CreateConnection("localhost/captures")
-	defer database.DB.Close()
-	app.APIRouter.Use(database.MongoCtx)
+
+	app.APIRouter.Use(db.Ctx)
 	app.APIRouter.Mount("/collection", new(branch.Handler).Routes())
 	app.APIRouter.Mount("/captures", new(capture.Handler).Routes())
-	app.Serve()
+	err = app.Serve()
+	if err != nil {
+		log.Printf("%v", err)
+	}
 }
