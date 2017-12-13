@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"log"
+
 	"gopkg.in/mgo.v2"
 )
 
@@ -17,6 +19,13 @@ func (db *DB) Close() {
 	if db.Session != nil {
 		db.Session.Close()
 	}
+}
+
+// Finalize implements the Finalizer interface to be executed as graceful shutdown.
+func (db *DB) Finalize() error {
+	log.Printf("[finalizer:db] closing the main session")
+	db.Close()
+	return nil
 }
 
 // CopySession return a session with the same parameters as the original
