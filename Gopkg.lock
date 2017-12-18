@@ -22,8 +22,8 @@
 [[projects]]
   name = "github.com/ifreddyrondon/gobastion"
   packages = [".","config","midleware","utils"]
-  revision = "bb10b09629cd58f76c8179ff826a6ea60bae9f14"
-  version = "v1.2.0"
+  revision = "2856703e1fb2e4ad9a9000563076733351354dbc"
+  version = "v1.2.1"
 
 [[projects]]
   name = "github.com/joho/godotenv"
@@ -76,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1b1f70be47850974677d0d6334981c13533bd3f8ee653a0b4e7dba4caaaa63e3"
+  inputs-digest = "68dd9280a86c4caeaf634b1296553a29c2085469109c4e13dac0e47f1800e85f"
   solver-name = "gps-cdcl"
   solver-version = 1

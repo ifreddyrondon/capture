@@ -15,7 +15,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	app := gobastion.New("")
+	app := gobastion.New(nil)
 	app.AppendFinalizers(db)
 	app.APIRouter.Use(db.Ctx)
 	app.APIRouter.Mount("/collection", new(branch.Handler).Routes())
