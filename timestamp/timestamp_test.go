@@ -106,7 +106,7 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 func TestDateMarshalJSON(t *testing.T) {
 	parsedDate, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
 
-	expected := "1989-12-26 06:01:00 +0000 UTC"
+	expected := `"1989-12-26T06:01:00Z"`
 	result, _ := timestamp.NewTimestamp(parsedDate).MarshalJSON()
 	if string(result) != expected {
 		t.Errorf("Expected Marshall data to be '%v'. Got '%v'", expected, string(result))
