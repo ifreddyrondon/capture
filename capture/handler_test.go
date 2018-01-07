@@ -65,9 +65,6 @@ func checkErrorResponse(t *testing.T, expected, actual map[string]interface{}) {
 
 // TODO: create test for fields with shadow name and 400
 func TestCreateCapture(t *testing.T) {
-	//defer os.Setenv("TZ", os.Getenv("TZ"))
-	//os.Setenv("TZ", "UTC")
-
 	tt := []struct {
 		name     string
 		payload  []byte
@@ -82,7 +79,7 @@ func TestCreateCapture(t *testing.T) {
 				"payload":   "",
 				"lat":       1.0,
 				"lng":       12.0,
-				"timestamp": "1989-12-26T06:01:00.00Z",
+				"timestamp": "1989-12-26T06:01:00Z",
 			},
 		},
 	}

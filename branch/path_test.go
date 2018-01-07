@@ -8,6 +8,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/timestamp"
 )
 
 func TestPathAddCapture(t *testing.T) {
@@ -104,7 +105,7 @@ func TestPathUnmarshalJSON(t *testing.T) {
 func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
 	parsedDate, _ := time.Parse(time.RFC3339, date)
-	timestamp := capture.NewTimestamp(parsedDate)
+	ts := timestamp.NewTimestamp(parsedDate)
 
-	return capture.NewCapture(p, timestamp, payload)
+	return capture.NewCapture(p, ts, payload)
 }
