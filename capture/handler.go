@@ -31,5 +31,5 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.Send(w, capture)
+	utils.Created(w, capture)
 }

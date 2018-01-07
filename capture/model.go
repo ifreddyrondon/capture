@@ -8,7 +8,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-const collection = "captures"
+const Collection = "captures"
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
@@ -50,5 +50,5 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 func (c *Capture) create(DB *mgo.Database) error {
 	now := time.Now()
 	c.CreatedDate, c.LastModified = now, now
-	return DB.C(collection).Insert(c)
+	return DB.C(Collection).Insert(c)
 }

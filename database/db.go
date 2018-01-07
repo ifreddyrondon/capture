@@ -21,7 +21,7 @@ func (db *DB) Close() {
 	}
 }
 
-// Finalize implements the Finalizer interface to be executed as graceful shutdown.
+// Finalize implements the Finalizer interface from bastion to be executed as graceful shutdown.
 func (db *DB) Finalize() error {
 	log.Printf("[finalizer:db] closing the main session")
 	db.Close()
