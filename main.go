@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 
+	"github.com/ifreddyrondon/gocapture/app"
+	"github.com/ifreddyrondon/gocapture/branch"
+	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
-	"github.com/ifreddyrondon/gocapture/server"
 )
 
 func main() {
@@ -13,8 +15,12 @@ func main() {
 		log.Panic(err)
 	}
 
-	app := server.New(db)
-	err = app.Bastion.Serve()
+	routers := []app.Router{
+		new(capture.Handler),
+		new(branch.Handler),
+	}
+
+	err = app.New(db, routers).Bastion.Serve()
 	if err != nil {
 		log.Printf("%v", err)
 	}

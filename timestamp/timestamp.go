@@ -1,4 +1,4 @@
-package capture
+package timestamp
 
 import (
 	"bytes"
@@ -62,5 +62,5 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 // MarshalJSON decode current Date to JSON.
 // It supports json.Marshaler interface.
 func (t Timestamp) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("%v", t.Timestamp)), nil
+	return []byte(fmt.Sprintf("%v", t.Timestamp.UTC())), nil
 }

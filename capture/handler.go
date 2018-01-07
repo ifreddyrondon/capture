@@ -6,13 +6,18 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gobastion/utils"
+	"github.com/ifreddyrondon/gocapture/app"
 	"gopkg.in/mgo.v2"
 )
 
 type Handler struct{}
 
-// Routes creates a REST router for the branch resource
-func (h *Handler) Routes() chi.Router {
+func (h *Handler) Pattern() string {
+	return app.CaptureDomain
+}
+
+// Routes creates a REST router for the capture resource
+func (h *Handler) Router() chi.Router {
 	r := gobastion.NewRouter()
 	r.Post("/", h.create)
 	return r

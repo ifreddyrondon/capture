@@ -8,14 +8,15 @@ import (
 
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/timestamp"
 )
 
 func TestNewCapture(t *testing.T) {
 	point, _ := geocoding.NewPoint(1, 2)
-	timestamp := capture.NewTimestamp(time.Now())
+	ts := timestamp.NewTimestamp(time.Now())
 	var payload interface{}
 
-	result := capture.NewCapture(point, timestamp, payload)
+	result := capture.NewCapture(point, ts, payload)
 
 	if result == nil {
 		t.Errorf("Expected capture not to nil. Got '%v'", result)
@@ -74,11 +75,10 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 				t.Errorf("Expected Lng of capture to be '%v'. Got '%v'", tc.result.Point.Lng, result.Point.Lng)
 			}
 
-			if result.Timestamp.Timestamp.String() != tc.result.Timestamp.Timestamp.String() {
+			if !result.Timestamp.Timestamp.Equal(tc.result.Timestamp.Timestamp) {
 				t.Errorf(
 					"Expected Date of capture to be '%v'. Got '%v'",
-					tc.result.Timestamp.Timestamp.String(),
-					result.Timestamp.Timestamp.String())
+					tc.result.Timestamp.Timestamp, result.Timestamp.Timestamp)
 			}
 		})
 	}
@@ -87,7 +87,7 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
 	parsedDate, _ := time.Parse(time.RFC3339, date)
-	timestamp := capture.NewTimestamp(parsedDate)
+	ts := timestamp.NewTimestamp(parsedDate)
 
-	return capture.NewCapture(p, timestamp, payload)
+	return capture.NewCapture(p, ts, payload)
 }

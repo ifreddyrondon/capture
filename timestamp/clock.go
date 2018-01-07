@@ -1,4 +1,4 @@
-package capture
+package timestamp
 
 import "time"
 

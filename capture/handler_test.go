@@ -10,15 +10,15 @@ import (
 
 	"os"
 
+	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
-	"github.com/ifreddyrondon/gocapture/server"
 )
 
-var app *server.Server
+var application *app.App
 
 func clearCollection() {
-	app.DB.Session.DB("captures_test").C(capture.Collection).RemoveAll(nil)
+	application.DB.Session.DB("captures_test").C(app.CaptureDomain).RemoveAll(nil)
 }
 
 func TestMain(m *testing.M) {
@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Panic(err)
 	}
-	app = server.New(db)
+	application = app.New(db, []app.Router{new(capture.Handler)})
 	code := m.Run()
 	clearCollection()
 	if err != nil {
@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
-	app.Bastion.APIRouter.ServeHTTP(rr, req)
+	application.Bastion.APIRouter.ServeHTTP(rr, req)
 
 	return rr
 }
@@ -63,7 +63,11 @@ func checkErrorResponse(t *testing.T, expected, actual map[string]interface{}) {
 	}
 }
 
+// TODO: create test for fields with shadow name and 400
 func TestCreateCapture(t *testing.T) {
+	//defer os.Setenv("TZ", os.Getenv("TZ"))
+	//os.Setenv("TZ", "UTC")
+
 	tt := []struct {
 		name     string
 		payload  []byte
@@ -75,13 +79,10 @@ func TestCreateCapture(t *testing.T) {
 			payload: []byte(`{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"}`),
 			status:  http.StatusCreated,
 			response: map[string]interface{}{
-				"id":            "5a383aa2fd7ce125dfc2a103",
-				"payload":       "",
-				"lat":           1.0,
-				"lng":           12.0,
-				"timestamp":     "1989-12-26T03:01:00-03:00",
-				"created_date":  "2017-12-18T19:01:06.11110229-03:00",
-				"last_modified": "2017-12-18T19:01:06.11110229-03:00",
+				"payload":   "",
+				"lat":       1.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00.00Z",
 			},
 		},
 	}
@@ -90,7 +91,7 @@ func TestCreateCapture(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			clearCollection()
 
-			req, _ := http.NewRequest("POST", "/captures", bytes.NewBuffer(tc.payload))
+			req, _ := http.NewRequest("POST", "/captures/", bytes.NewBuffer(tc.payload))
 			response := executeRequest(req)
 
 			checkResponseCode(t, tc.status, response.Code)
