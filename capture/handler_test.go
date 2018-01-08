@@ -82,6 +82,27 @@ func TestCreateCapture(t *testing.T) {
 				"timestamp": "1989-12-26T06:01:00Z",
 			},
 		},
+		{
+			name:    "create capture with timestamp",
+			payload: []byte(`{"lat": 1, "lng": 12, "timestamp": "630655260"}`),
+			status:  http.StatusCreated,
+			response: map[string]interface{}{
+				"payload":   "",
+				"lat":       1.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00Z",
+			},
+		},
+		{
+			name:    "bad request, missing body",
+			payload: []byte(`{`),
+			status:  http.StatusBadRequest,
+			response: map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "unexpected EOF",
+			},
+		},
 	}
 
 	for _, tc := range tt {

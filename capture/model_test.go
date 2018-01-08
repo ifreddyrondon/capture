@@ -51,6 +51,12 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 			nil,
 			geocoding.ErrorLATMissing,
 		},
+		{
+			"bad payload",
+			[]byte(`{`),
+			nil,
+			geocoding.ErrorUnmarshalPoint,
+		},
 	}
 
 	for _, tc := range tt {

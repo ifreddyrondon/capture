@@ -27,6 +27,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	capture := new(Capture)
 	if err := utils.ReadJSON(r.Body, capture); err != nil {
 		utils.BadRequest(w, err)
+		return
 	}
 
 	ctx := r.Context()
