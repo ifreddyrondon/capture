@@ -10,7 +10,11 @@ import (
 )
 
 const (
-	BranchDomain  = "branches"
+	// BranchDomain is the domain name for branches model.
+	// It'll be used for generate collections.
+	BranchDomain = "branches"
+	// CaptureDomain is the domain name for branches model.
+	// It'll be used for generate collections.
 	CaptureDomain = "captures"
 )
 

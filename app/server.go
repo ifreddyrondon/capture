@@ -4,21 +4,20 @@ import (
 	"fmt"
 
 	"github.com/ifreddyrondon/gobastion"
-	"github.com/ifreddyrondon/gocapture/database"
 )
 
 type App struct {
 	Bastion *gobastion.Bastion
-	*database.DB
+	DataSource
 }
 
-func New(db *database.DB, routes []Router) *App {
+func New(ds DataSource, routes []Router) *App {
 	server := &App{
-		Bastion: gobastion.New(nil),
-		DB:      db,
+		Bastion:    gobastion.New(nil),
+		DataSource: ds,
 	}
-	server.Bastion.AppendFinalizers(db)
-	server.Bastion.APIRouter.Use(db.Ctx)
+	server.Bastion.AppendFinalizers(ds)
+	server.Bastion.APIRouter.Use(ds.GetCtx())
 
 	for _, v := range routes {
 		server.Bastion.APIRouter.Mount(

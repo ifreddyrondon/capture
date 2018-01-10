@@ -37,14 +37,16 @@ func (db *DB) CopySession() *mgo.Session {
 	return nil
 }
 
-// Ctx set into the context request a DB value with a session to perform actions.
-func (db *DB) Ctx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session := db.CopySession()
-		defer session.Close()
-		ctx := context.WithValue(r.Context(), "DB", session.DB(""))
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+// GetCtx implements the DataSource interface.
+func (db *DB) GetCtx() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			session := db.CopySession()
+			defer session.Close()
+			ctx := context.WithValue(r.Context(), "DB", session.DB(""))
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
 // Open establishes a new session with the mongod server, it returns a *DB
