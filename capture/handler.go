@@ -6,14 +6,15 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gobastion/utils"
-	"github.com/ifreddyrondon/gocapture/app"
 	"gopkg.in/mgo.v2"
 )
+
+const Domain = "captures"
 
 type Handler struct{}
 
 func (h *Handler) Pattern() string {
-	return app.CaptureDomain
+	return Domain
 }
 
 // Routes creates a REST router for the capture resource
@@ -31,7 +32,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	err := capture.create(ctx.Value("DB").(*mgo.Database))
+	err := capture.create(ctx.Value("DataSource").(*mgo.Database))
 	if err != nil {
 		utils.InternalServerError(w, err)
 		return

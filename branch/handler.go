@@ -6,13 +6,14 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gobastion/utils"
-	"github.com/ifreddyrondon/gocapture/app"
 )
+
+const Domain = "branches"
 
 type Handler struct{}
 
 func (h *Handler) Pattern() string {
-	return app.BranchDomain
+	return Domain
 }
 
 // Routes creates a REST router for the branch resource

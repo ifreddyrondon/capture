@@ -3,7 +3,6 @@ package capture
 import (
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 	"gopkg.in/mgo.v2"
@@ -50,5 +49,5 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 func (c *Capture) create(DB *mgo.Database) error {
 	now := time.Now()
 	c.CreatedDate, c.LastModified = now, now
-	return DB.C(app.CaptureDomain).Insert(c)
+	return DB.C(Domain).Insert(c)
 }

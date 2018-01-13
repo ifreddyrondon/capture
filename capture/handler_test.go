@@ -13,20 +13,23 @@ import (
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
+	"gopkg.in/mgo.v2"
 )
 
 var application *app.App
+var db *mgo.Database
 
 func clearCollection() {
-	application.DB.Session.DB("captures_test").C(app.CaptureDomain).RemoveAll(nil)
+	db.DropDatabase()
 }
 
 func TestMain(m *testing.M) {
-	db, err := database.Open("localhost/captures_test")
+	ds, err := database.Open("localhost/captures_test")
 	if err != nil {
 		log.Panic(err)
 	}
-	application = app.New(db, []app.Router{new(capture.Handler)})
+	application = app.New(ds, []app.Router{new(capture.Handler)})
+	db = ds.DB()
 	code := m.Run()
 	clearCollection()
 	if err != nil {

@@ -1,21 +1,9 @@
 package app
 
 import (
-	"time"
+	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/gocapture/geocoding"
-	"github.com/ifreddyrondon/gocapture/timestamp"
-	"gopkg.in/mgo.v2/bson"
-)
-
-const (
-	// BranchDomain is the domain name for branches model.
-	// It'll be used for generate collections.
-	BranchDomain = "branches"
-	// CaptureDomain is the domain name for branches model.
-	// It'll be used for generate collections.
-	CaptureDomain = "captures"
 )
 
 type Router interface {
@@ -23,16 +11,12 @@ type Router interface {
 	Router() chi.Router
 }
 
-// Capture is the representation of data sample of any kind taken at a specific time and location.
-type Capture struct {
-	ID      bson.ObjectId `json:"id" bson:"_id,omitempty"`
-	Payload interface{}   `json:"payload"`
-	*geocoding.Point
-	*timestamp.Timestamp
-	CreatedDate  time.Time `json:"created_date" bson:"createdDate"`
-	LastModified time.Time `json:"last_modified" bson:"lastModified"`
-}
-
-type CaptureService interface {
-	CreateCapture(*Capture) error
+// DataSource is an interface to manage the different kinds of databases
+// from the application environment
+type DataSource interface {
+	// Ctx returns a function that set into the context request a value.
+	// The value represent a DataSource.
+	Ctx() func(next http.Handler) http.Handler
+	// Finalize will be executed into the graceful shutdown of bastion.
+	Finalize() error
 }
