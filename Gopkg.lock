@@ -21,9 +21,9 @@
 
 [[projects]]
   name = "github.com/ifreddyrondon/gobastion"
-  packages = [".","config","midleware","utils"]
-  revision = "2856703e1fb2e4ad9a9000563076733351354dbc"
-  version = "v1.2.1"
+  packages = [".","config"]
+  revision = "818dc75a802427fc2450fd1b0b86baa98fbc98fa"
+  version = "v1.2.3"
 
 [[projects]]
   name = "github.com/joho/godotenv"
@@ -34,7 +34,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/mailru/easyjson"
-  packages = ["buffer","jlexer","jwriter"]
+  packages = [".","buffer","jlexer","jwriter"]
   revision = "32fa128f234d041f196a9f3e0fea5ac9772c08e1"
 
 [[projects]]
@@ -76,6 +76,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "68dd9280a86c4caeaf634b1296553a29c2085469109c4e13dac0e47f1800e85f"
+  inputs-digest = "f9aa1b211aeda34f3f2f1a34edd2eb8df5db5b987d0ede30de984477bf51adda"
   solver-name = "gps-cdcl"
   solver-version = 1

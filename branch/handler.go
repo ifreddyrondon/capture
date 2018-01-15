@@ -5,12 +5,14 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/gobastion"
-	"github.com/ifreddyrondon/gobastion/utils"
 )
 
 const Domain = "branches"
 
-type Handler struct{}
+type Handler struct {
+	gobastion.Reader
+	gobastion.Responder
+}
 
 func (h *Handler) Pattern() string {
 	return Domain
@@ -25,8 +27,9 @@ func (h *Handler) Router() chi.Router {
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 	path := new(Branch)
-	if err := utils.ReadJSON(r.Body, path); err != nil {
-		utils.BadRequest(w, err)
+	if err := h.Read(r.Body, path); err != nil {
+		h.BadRequest(w, err)
 	}
-	utils.Send(w, path)
+	h.Send(w, path)
+	return
 }

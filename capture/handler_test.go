@@ -10,6 +10,7 @@ import (
 
 	"os"
 
+	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
@@ -24,11 +25,19 @@ func clearCollection() {
 }
 
 func TestMain(m *testing.M) {
+	reader := new(gobastion.JsonReader)
+	responder := new(gobastion.JsonResponder)
+
 	ds, err := database.Open("localhost/captures_test")
 	if err != nil {
 		log.Panic(err)
 	}
-	application = app.New(ds, []app.Router{new(capture.Handler)})
+
+	handler := new(capture.Handler)
+	handler.Reader = reader
+	handler.Responder = responder
+
+	application = app.New(ds, []app.Router{handler})
 	db = ds.DB()
 	code := m.Run()
 	clearCollection()

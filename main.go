@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
@@ -15,10 +16,17 @@ func main() {
 		log.Panic(err)
 	}
 
-	routers := []app.Router{
-		new(capture.Handler),
-		new(branch.Handler),
-	}
+	reader := new(gobastion.JsonReader)
+
+	captureHandler := new(capture.Handler)
+	captureHandler.Reader = reader
+	captureHandler.Responder = gobastion.DefaultResponder
+
+	branchHandler := new(branch.Handler)
+	branchHandler.Reader = reader
+	branchHandler.Responder = gobastion.DefaultResponder
+
+	routers := []app.Router{captureHandler, branchHandler}
 
 	err = app.New(db, routers).Bastion.Serve()
 	if err != nil {
