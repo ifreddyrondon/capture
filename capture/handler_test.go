@@ -63,15 +63,15 @@ func checkResponseCode(t *testing.T, expected, actual int) {
 
 func checkErrorResponse(t *testing.T, expected, actual map[string]interface{}) {
 	if actual["error"] != expected["error"] {
-		t.Errorf("Expected the Error %v. Got %v", expected["error"], actual["error"])
+		t.Errorf("Expected the Error %v. Got '%v'", expected["error"], actual["error"])
 	}
 
 	if actual["message"] != expected["message"] {
-		t.Errorf("Expected the Message '%v'. Got %v", expected["message"], actual["message"])
+		t.Errorf("Expected the Message '%v'. Got '%v'", expected["message"], actual["message"])
 	}
 
 	if actual["status"] != expected["status"] {
-		t.Errorf("Expected the Status '%v'. Got %v", expected["status"], actual["status"])
+		t.Errorf("Expected the Status '%v'. Got '%v'", expected["status"], actual["status"])
 	}
 }
 
@@ -106,6 +106,17 @@ func TestCreateCapture(t *testing.T) {
 			},
 		},
 		{
+			name:    "create capture with latitude, longitude and data names",
+			payload: []byte(`{"latitude": 1, "longitude": 12, "date": "630655260"}`),
+			status:  http.StatusCreated,
+			response: map[string]interface{}{
+				"payload":   "",
+				"lat":       1.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00Z",
+			},
+		},
+		{
 			name:    "bad request, missing body",
 			payload: []byte(`{`),
 			status:  http.StatusBadRequest,
@@ -113,6 +124,26 @@ func TestCreateCapture(t *testing.T) {
 				"status":  400.0,
 				"error":   "Bad Request",
 				"message": "unexpected EOF",
+			},
+		},
+		{
+			name:    "bad request, missing lng",
+			payload: []byte(`{"lat": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			status:  http.StatusBadRequest,
+			response: map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "missing longitude",
+			},
+		},
+		{
+			name:    "bad request, missing lat",
+			payload: []byte(`{"lng": 12, "date": "1989-12-26T06:01:00.00Z"}`),
+			status:  http.StatusBadRequest,
+			response: map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "missing latitude",
 			},
 		},
 	}
