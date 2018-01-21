@@ -75,7 +75,6 @@ func checkErrorResponse(t *testing.T, expected, actual map[string]interface{}) {
 	}
 }
 
-// TODO: create test for fields with shadow name and 400
 func TestCreateCapture(t *testing.T) {
 	tt := []struct {
 		name     string
@@ -186,6 +185,10 @@ func TestCreateCapture(t *testing.T) {
 
 			if m["timestamp"] != tc.response["timestamp"] {
 				t.Errorf("Expected timestamp to be '%v'. Got '%v'", tc.response["timestamp"], m["timestamp"])
+			}
+
+			if m["payload"] != tc.response["payload"] {
+				t.Errorf("Expected payload to be '%v'. Got '%v'", tc.response["payload"], m["payload"])
 			}
 		})
 	}

@@ -86,6 +86,10 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 					"Expected Date of capture to be '%v'. Got '%v'",
 					tc.result.Timestamp.Timestamp, result.Timestamp.Timestamp)
 			}
+
+			if result.Payload != tc.result.Payload {
+				t.Errorf("Expected payload of capture to be '%v'. Got '%v'", tc.result.Payload, result.Payload)
+			}
 		})
 	}
 }
