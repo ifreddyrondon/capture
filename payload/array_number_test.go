@@ -3,19 +3,10 @@ package payload_test
 import (
 	"testing"
 
+	"encoding/json"
+
 	"github.com/ifreddyrondon/gocapture/payload"
 )
-
-func TestArrayNumberPayloadValues(t *testing.T) {
-	expected := []float64{-78.75, -80.5, -73.75, -70.75, -72}
-
-	values := payload.ArrayNumberPayload{-78.75, -80.5, -73.75, -70.75, -72}.Values()
-	for i, v := range values.(payload.ArrayNumberPayload) {
-		if v != expected[i] {
-			t.Fatalf("Expected payload at index %v to be '%v'. Got '%v'", i, expected[i], v)
-		}
-	}
-}
 
 func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
 	tt := []struct {
@@ -90,6 +81,30 @@ func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
 				if v != result[i] {
 					t.Fatalf("Expected payload at index %v to be '%v'. Got '%v'", i, v, result[i])
 				}
+			}
+		})
+	}
+}
+
+func TestArrayNumberPayloadMarshalJSON(t *testing.T) {
+	tt := []struct {
+		name     string
+		payload  payload.ArrayNumberPayload
+		expected string
+	}{
+		{"empty payload", payload.ArrayNumberPayload{}, `[]`},
+		{
+			"payload with valid data",
+			payload.ArrayNumberPayload{1, 2, 3}, `[1,2,3]`,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result, _ := json.Marshal(tc.payload)
+
+			if tc.expected != string(result) {
+				t.Errorf("Expected Marshal result to be '%v'. Got '%v'", tc.expected, string(result))
 			}
 		})
 	}

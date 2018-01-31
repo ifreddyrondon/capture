@@ -1,10 +1,16 @@
 package payload
 
 import (
+	"errors"
+
 	"encoding/json"
 	"log"
 
 	"github.com/mailru/easyjson/jlexer"
+)
+
+var (
+	ErrorUnmarshalPayload = errors.New("cannot unmarshal json into Payload valid value")
 )
 
 type unmarshalMap struct {
@@ -34,10 +40,6 @@ func (v *unmarshalMap) getPayload() []float64 {
 
 // ArrayNumberPayload represent an association of float numbers
 type ArrayNumberPayload []float64
-
-func (pp ArrayNumberPayload) Values() interface{} {
-	return pp
-}
 
 func (pp *ArrayNumberPayload) UnmarshalJSON(data []byte) error {
 	model := new(unmarshalMap)
