@@ -2,13 +2,14 @@ package capture_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"os"
+
+	"encoding/json"
 
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gocapture/app"
@@ -83,22 +84,22 @@ func TestCreateCapture(t *testing.T) {
 		response map[string]interface{}
 	}{
 		{
-			name:    "create capture with date",
+			name:    "create capture with date name",
 			payload: []byte(`{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"}`),
 			status:  http.StatusCreated,
 			response: map[string]interface{}{
-				"payload":   "",
+				"payload":   nil,
 				"lat":       1.0,
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
 			},
 		},
 		{
-			name:    "create capture with timestamp",
+			name:    "create capture with timestamp name",
 			payload: []byte(`{"lat": 1, "lng": 12, "timestamp": "630655260"}`),
 			status:  http.StatusCreated,
 			response: map[string]interface{}{
-				"payload":   "",
+				"payload":   nil,
 				"lat":       1.0,
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
@@ -109,10 +110,21 @@ func TestCreateCapture(t *testing.T) {
 			payload: []byte(`{"latitude": 1, "longitude": 12, "date": "630655260"}`),
 			status:  http.StatusCreated,
 			response: map[string]interface{}{
-				"payload":   "",
+				"payload":   nil,
 				"lat":       1.0,
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
+			},
+		},
+		{
+			name:    "create capture with payload",
+			payload: []byte(`{"latitude": 1, "longitude": 12, "date": "630655260", "payload": [-78.75, -80.5, -73.75, -70.75, -72]}`),
+			status:  http.StatusCreated,
+			response: map[string]interface{}{
+				"lat":       1.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00Z",
+				"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
 			},
 		},
 		{
@@ -161,6 +173,7 @@ func TestCreateCapture(t *testing.T) {
 
 			if tc.status != http.StatusOK {
 				checkErrorResponse(t, tc.response, m)
+				return
 			}
 
 			if m["id"] == "" {
@@ -187,8 +200,17 @@ func TestCreateCapture(t *testing.T) {
 				t.Errorf("Expected timestamp to be '%v'. Got '%v'", tc.response["timestamp"], m["timestamp"])
 			}
 
-			if m["payload"] != tc.response["payload"] {
-				t.Errorf("Expected payload to be '%v'. Got '%v'", tc.response["payload"], m["payload"])
+			if tc.response["payload"] == nil {
+				if m["payload"] != nil {
+					t.Errorf("Expected payload to be nil. Got '%v'", m["payload"])
+				}
+				return
+			}
+
+			for i, v := range tc.response["payload"].([]float32) {
+				if v != m["payload"].([]float32)[i] {
+					t.Fatalf("Expected payload at index %v to be '%v'. Got '%v'", i, v, m["payload"].([]float64)[i])
+				}
 			}
 		})
 	}

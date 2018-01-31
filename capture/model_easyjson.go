@@ -40,12 +40,17 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 		} else {
 			out.RawString(prefix)
 		}
-		if m, ok := in.Payload.(easyjson.Marshaler); ok {
-			m.MarshalEasyJSON(out)
-		} else if m, ok := in.Payload.(json.Marshaler); ok {
-			out.Raw(m.MarshalJSON())
+		if in.Payload == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
 		} else {
-			out.Raw(json.Marshal(in.Payload))
+			out.RawByte('[')
+			for v1, v2 := range in.Payload {
+				if v1 > 0 {
+					out.RawByte(',')
+				}
+				out.Float64(float64(v2))
+			}
+			out.RawByte(']')
 		}
 	}
 	{

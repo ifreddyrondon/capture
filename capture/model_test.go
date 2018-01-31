@@ -1,22 +1,21 @@
 package capture_test
 
 import (
+	"os"
 	"testing"
 	"time"
 
-	"os"
-
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 )
 
 func TestNewCapture(t *testing.T) {
 	point, _ := geocoding.NewPoint(1, 2)
 	ts := timestamp.NewTimestamp(time.Now())
-	var payload interface{}
 
-	result := capture.NewCapture(point, ts, payload)
+	result := capture.NewCapture(point, ts, []float64{12, 11})
 
 	if result == nil {
 		t.Errorf("Expected capture not to nil. Got '%v'", result)
@@ -36,7 +35,7 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 		{
 			"valid point with given date",
 			[]byte(`{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			getCapture(1, 1, "1989-12-26T06:01:00.00Z", ""),
+			getCapture(1, 1, "1989-12-26T06:01:00.00Z", []float64{}),
 			nil,
 		},
 		{
@@ -87,14 +86,20 @@ func TestCaptureUnmarshalJSON(t *testing.T) {
 					tc.result.Timestamp.Timestamp, result.Timestamp.Timestamp)
 			}
 
-			if result.Payload != tc.result.Payload {
-				t.Errorf("Expected payload of capture to be '%v'. Got '%v'", tc.result.Payload, result.Payload)
+			if len(result.Payload) != len(tc.result.Payload) {
+				t.Errorf("Expected payload to be '%v'. Got '%v'", len(tc.result.Payload), len(result.Payload))
+			}
+
+			for i, v := range tc.result.Payload {
+				if v != result.Payload[i] {
+					t.Fatalf("Expected payload at index %v to be '%v'. Got '%v'", i, v, result.Payload[i])
+				}
 			}
 		})
 	}
 }
 
-func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
+func getCapture(lat, lng float64, date string, payload payload.ArrayNumberPayload) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
 	parsedDate, _ := time.Parse(time.RFC3339, date)
 	ts := timestamp.NewTimestamp(parsedDate)
