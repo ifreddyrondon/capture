@@ -1,15 +1,11 @@
 package capture_test
 
 import (
-	"bytes"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"os"
-
-	"encoding/json"
 
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gocapture/app"
@@ -18,7 +14,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-var application *app.App
+var bastion *gobastion.Bastion
 var db *mgo.Database
 
 func clearCollection() {
@@ -38,56 +34,23 @@ func TestMain(m *testing.M) {
 	handler.Reader = reader
 	handler.Responder = responder
 
-	application = app.New(ds, []app.Router{handler})
+	bastion = app.New(ds, []app.Router{handler}).Bastion
 	db = ds.DB()
 	code := m.Run()
 	clearCollection()
-	if err != nil {
-		log.Panic(err)
-	}
-
 	os.Exit(code)
 }
 
-func executeRequest(req *http.Request) *httptest.ResponseRecorder {
-	rr := httptest.NewRecorder()
-	application.Bastion.APIRouter.ServeHTTP(rr, req)
-
-	return rr
-}
-
-func checkResponseCode(t *testing.T, expected, actual int) {
-	if expected != actual {
-		t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-	}
-}
-
-func checkErrorResponse(t *testing.T, expected, actual map[string]interface{}) {
-	if actual["error"] != expected["error"] {
-		t.Errorf("Expected the Error %v. Got '%v'", expected["error"], actual["error"])
-	}
-
-	if actual["message"] != expected["message"] {
-		t.Errorf("Expected the Message '%v'. Got '%v'", expected["message"], actual["message"])
-	}
-
-	if actual["status"] != expected["status"] {
-		t.Errorf("Expected the Status '%v'. Got '%v'", expected["status"], actual["status"])
-	}
-}
-
-func TestCreateCapture(t *testing.T) {
+func TestCreateValidCapture(t *testing.T) {
 	tt := []struct {
 		name     string
-		payload  []byte
-		status   int
+		payload  map[string]interface{}
 		response map[string]interface{}
 	}{
 		{
-			name:    "create capture with date name",
-			payload: []byte(`{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"}`),
-			status:  http.StatusCreated,
-			response: map[string]interface{}{
+			"create capture with date name",
+			map[string]interface{}{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"},
+			map[string]interface{}{
 				"payload":   nil,
 				"lat":       1.0,
 				"lng":       12.0,
@@ -96,8 +59,7 @@ func TestCreateCapture(t *testing.T) {
 		},
 		{
 			name:    "create capture with timestamp name",
-			payload: []byte(`{"lat": 1, "lng": 12, "timestamp": "630655260"}`),
-			status:  http.StatusCreated,
+			payload: map[string]interface{}{"lat": 1, "lng": 12, "timestamp": "630655260"},
 			response: map[string]interface{}{
 				"payload":   nil,
 				"lat":       1.0,
@@ -107,8 +69,7 @@ func TestCreateCapture(t *testing.T) {
 		},
 		{
 			name:    "create capture with latitude, longitude and data names",
-			payload: []byte(`{"latitude": 1, "longitude": 12, "date": "630655260"}`),
-			status:  http.StatusCreated,
+			payload: map[string]interface{}{"latitude": 1, "longitude": 12, "date": "630655260"},
 			response: map[string]interface{}{
 				"payload":   nil,
 				"lat":       1.0,
@@ -117,9 +78,13 @@ func TestCreateCapture(t *testing.T) {
 			},
 		},
 		{
-			name:    "create capture with payload",
-			payload: []byte(`{"latitude": 1, "longitude": 12, "date": "630655260", "payload": [-78.75, -80.5, -73.75, -70.75, -72]}`),
-			status:  http.StatusCreated,
+			name: "create capture with payload",
+			payload: map[string]interface{}{
+				"latitude":  1,
+				"longitude": 12,
+				"date":      "630655260",
+				"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+			},
 			response: map[string]interface{}{
 				"lat":       1.0,
 				"lng":       12.0,
@@ -127,20 +92,47 @@ func TestCreateCapture(t *testing.T) {
 				"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
 			},
 		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			clearCollection()
+
+			e := gobastion.Tester(t, bastion)
+			e.POST("/captures/").
+				WithJSON(tc.payload).
+				Expect().
+				Status(http.StatusCreated).
+				JSON().Object().
+				ContainsKey("payload").ValueEqual("payload", tc.response["payload"]).
+				ContainsKey("lat").ValueEqual("lat", tc.response["lat"]).
+				ContainsKey("lng").ValueEqual("lng", tc.response["lng"]).
+				ContainsKey("timestamp").ValueEqual("timestamp", tc.response["timestamp"]).
+				ContainsKey("id").NotEmpty().
+				ContainsKey("created_date").NotEmpty().
+				ContainsKey("last_modified").NotEmpty()
+		})
+	}
+}
+
+func TestCreateInValidCapture(t *testing.T) {
+	tt := []struct {
+		name     string
+		payload  map[string]interface{}
+		response map[string]interface{}
+	}{
 		{
 			name:    "bad request, missing body",
-			payload: []byte(`{`),
-			status:  http.StatusBadRequest,
+			payload: map[string]interface{}{},
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "unexpected EOF",
+				"message": "missing latitude",
 			},
 		},
 		{
 			name:    "bad request, missing lng",
-			payload: []byte(`{"lat": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			status:  http.StatusBadRequest,
+			payload: map[string]interface{}{"lat": 1, "date": "630655260"},
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
@@ -149,8 +141,7 @@ func TestCreateCapture(t *testing.T) {
 		},
 		{
 			name:    "bad request, missing lat",
-			payload: []byte(`{"lng": 12, "date": "1989-12-26T06:01:00.00Z"}`),
-			status:  http.StatusBadRequest,
+			payload: map[string]interface{}{"lng": 1, "date": "630655260"},
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
@@ -163,55 +154,27 @@ func TestCreateCapture(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			clearCollection()
 
-			req, _ := http.NewRequest("POST", "/captures/", bytes.NewBuffer(tc.payload))
-			response := executeRequest(req)
-
-			checkResponseCode(t, tc.status, response.Code)
-
-			var m map[string]interface{}
-			json.Unmarshal(response.Body.Bytes(), &m)
-
-			if tc.status != http.StatusOK {
-				checkErrorResponse(t, tc.response, m)
-				return
-			}
-
-			if m["id"] == "" {
-				t.Errorf("Expected id diferent from empty")
-			}
-
-			if m["created_date"] == "" {
-				t.Errorf("Expected id diferent from empty")
-			}
-
-			if m["last_modified"] == "" {
-				t.Errorf("Expected id diferent from empty")
-			}
-
-			if m["lat"] != tc.response["lat"] {
-				t.Errorf("Expected lat to be '%v'. Got '%v'", tc.response["lat"], m["lat"])
-			}
-
-			if m["lng"] != tc.response["lng"] {
-				t.Errorf("Expected lng to be '%v'. Got '%v'", tc.response["lng"], m["lng"])
-			}
-
-			if m["timestamp"] != tc.response["timestamp"] {
-				t.Errorf("Expected timestamp to be '%v'. Got '%v'", tc.response["timestamp"], m["timestamp"])
-			}
-
-			if tc.response["payload"] == nil {
-				if m["payload"] != nil {
-					t.Errorf("Expected payload to be nil. Got '%v'", m["payload"])
-				}
-				return
-			}
-
-			for i, v := range tc.response["payload"].([]float32) {
-				if v != m["payload"].([]float32)[i] {
-					t.Fatalf("Expected payload at index %v to be '%v'. Got '%v'", i, v, m["payload"].([]float64)[i])
-				}
-			}
+			e := gobastion.Tester(t, bastion)
+			e.POST("/captures/").
+				WithJSON(tc.payload).
+				Expect().
+				Status(http.StatusBadRequest).
+				JSON().Object().Equal(tc.response)
 		})
 	}
+}
+
+func TestCreateInValidPayloadCapture(t *testing.T) {
+	response := map[string]interface{}{
+		"status":  400.0,
+		"error":   "Bad Request",
+		"message": "cannot unmarshal json into Point value",
+	}
+
+	e := gobastion.Tester(t, bastion)
+	e.POST("/captures/").
+		WithJSON("{").
+		Expect().
+		Status(http.StatusBadRequest).
+		JSON().Object().Equal(response)
 }
