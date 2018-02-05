@@ -54,7 +54,7 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	t.Timestamp = parsedTime
+	t.Timestamp = parsedTime.UTC()
 	return nil
 }
 

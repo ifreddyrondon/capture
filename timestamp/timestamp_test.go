@@ -6,24 +6,18 @@ import (
 	"time"
 
 	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewDate(t *testing.T) {
 	date := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	result := timestamp.NewTimestamp(date)
-	expetedResult := "1989-12-26 06:01:00 +0000 UTC"
-
-	if result == nil {
-		t.Errorf("Expected capture not to nil. Got '%v'", result)
-	}
-
-	if result.Timestamp.String() != expetedResult {
-		t.Errorf("Expected date to be '%v'. Got '%v'", expetedResult, result.Timestamp.String())
-	}
+	ts := timestamp.NewTimestamp(date)
+	expected := "1989-12-26 06:01:00 +0000 UTC"
+	assert.Equal(t, expected, ts.Timestamp.String())
 }
 
 func TestUnmarshalJSON(t *testing.T) {
-	expectResult := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
+	expected := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
 	tt := []struct {
 		name    string
 		payload []byte
@@ -64,20 +58,16 @@ func TestUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := &timestamp.Timestamp{}
-			result.UnmarshalJSON(tc.payload)
-
-			if !result.Timestamp.Equal(expectResult) {
-				t.Errorf("Expected CaptureDate to be '%v'. Got '%v'", expectResult, result.Timestamp)
-			}
+			ts := &timestamp.Timestamp{}
+			ts.UnmarshalJSON(tc.payload)
+			assert.Equal(t, expected, ts.Timestamp)
 		})
 	}
 }
 
 func TestUnmarshalJSONWhenFails(t *testing.T) {
-	expectResult := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	fakeTime := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	mockClock := timestamp.NewMockClock(fakeTime)
+	expected := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
+	mockClock := timestamp.NewMockClock(expected)
 
 	tt := []struct {
 		name    string
@@ -92,13 +82,10 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := &timestamp.Timestamp{}
-			timestamp.SetClockInstance(result, mockClock)
-			result.UnmarshalJSON(tc.payload)
-
-			if !result.Timestamp.Equal(expectResult) {
-				t.Errorf("Expected CaptureDate to be '%v'. Got '%v'", expectResult, result.Timestamp)
-			}
+			ts := &timestamp.Timestamp{}
+			timestamp.SetClockInstance(ts, mockClock)
+			ts.UnmarshalJSON(tc.payload)
+			assert.Equal(t, expected, ts.Timestamp)
 		})
 	}
 }
