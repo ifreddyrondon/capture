@@ -1,7 +1,6 @@
 package capture_test
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -9,92 +8,71 @@ import (
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewCapture(t *testing.T) {
-	point, _ := geocoding.NewPoint(1, 2)
+	p, err := geocoding.NewPoint(1, 2)
 	ts := timestamp.NewTimestamp(time.Now())
+	result := capture.NewCapture(p, ts, []float64{12, 11})
+	require.Nil(t, err)
+	require.NotNil(t, result)
+}
 
-	result := capture.NewCapture(point, ts, []float64{12, 11})
-
-	if result == nil {
-		t.Errorf("Expected capture not to nil. Got '%v'", result)
+func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
+	tt := []struct {
+		name    string
+		payload []byte
+		result  *capture.Capture
+	}{
+		{
+			"success without payload",
+			[]byte(`{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			getCapture(1, 1, "1989-12-26T06:01:00.00Z", nil),
+		},
+	}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := capture.Capture{}
+			err := result.UnmarshalJSON(tc.payload)
+			require.Nil(t, err)
+			assert.Equal(t, tc.result.Lat, result.Lat)
+			assert.Equal(t, tc.result.Lng, result.Lng)
+			assert.Equal(t, tc.result.Timestamp, result.Timestamp)
+			assert.Equal(t, tc.result.Payload, result.Payload)
+		})
 	}
 }
 
-func TestCaptureUnmarshalJSON(t *testing.T) {
-	defer os.Setenv("TZ", os.Getenv("TZ"))
-	os.Setenv("TZ", "UTC")
-
+func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 	tt := []struct {
-		name      string
-		payload   []byte
-		result    *capture.Capture
-		resultErr error
+		name    string
+		payload []byte
+		err     error
 	}{
-		{
-			"valid point with given date",
-			[]byte(`{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			getCapture(1, 1, "1989-12-26T06:01:00.00Z", []float64{}),
-			nil,
-		},
 		{
 			"invalid point",
 			[]byte(`{"lat": -91, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			nil,
 			geocoding.ErrorLATRange,
 		},
 		{
 			"missing point lat",
 			[]byte(`{"lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			nil,
 			geocoding.ErrorLATMissing,
 		},
 		{
 			"bad payload",
 			[]byte(`{`),
-			nil,
 			geocoding.ErrorUnmarshalPoint,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := capture.Capture{}
-			resultError := result.UnmarshalJSON(tc.payload)
-
-			if resultError != tc.resultErr {
-				t.Errorf("Expected get the error '%v'. Got '%v'", tc.resultErr, resultError)
-			}
-
-			// if result expected an error do not check for internal attrs
-			if tc.resultErr != nil {
-				return
-			}
-
-			if result.Point.Lat != tc.result.Point.Lat {
-				t.Errorf("Expected Lat of capture to be '%v'. Got '%v'", tc.result.Point.Lat, result.Point.Lat)
-			}
-
-			if result.Point.Lng != tc.result.Point.Lng {
-				t.Errorf("Expected Lng of capture to be '%v'. Got '%v'", tc.result.Point.Lng, result.Point.Lng)
-			}
-
-			if !result.Timestamp.Timestamp.Equal(tc.result.Timestamp.Timestamp) {
-				t.Errorf(
-					"Expected Date of capture to be '%v'. Got '%v'",
-					tc.result.Timestamp.Timestamp, result.Timestamp.Timestamp)
-			}
-
-			if len(result.Payload) != len(tc.result.Payload) {
-				t.Errorf("Expected payload to be '%v'. Got '%v'", len(tc.result.Payload), len(result.Payload))
-			}
-
-			for i, v := range tc.result.Payload {
-				if v != result.Payload[i] {
-					t.Fatalf("Expected payload at index %v to be '%v'. Got '%v'", i, v, result.Payload[i])
-				}
-			}
+			c := capture.Capture{}
+			err := c.UnmarshalJSON(tc.payload)
+			require.Equal(t, tc.err, err)
 		})
 	}
 }
