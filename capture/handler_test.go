@@ -7,6 +7,8 @@ import (
 
 	"os"
 
+	"time"
+
 	"github.com/ifreddyrondon/gobastion"
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
@@ -152,8 +154,6 @@ func TestCreateInValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			clearCollection()
-
 			e := gobastion.Tester(t, bastion)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
@@ -177,4 +177,35 @@ func TestCreateInValidPayloadCapture(t *testing.T) {
 		Expect().
 		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
+}
+
+func TestListCapturesWithValues(t *testing.T) {
+	clearCollection()
+	if err := createCapture(); err != nil {
+		log.Fatal(err)
+	}
+
+	e := gobastion.Tester(t, bastion)
+	array := e.GET("/captures/").
+		Expect().
+		Status(http.StatusOK).
+		JSON().Array().NotEmpty()
+
+	array.Length().Equal(1)
+	array.First().Object().
+		ContainsKey("payload").
+		ContainsKey("lat").
+		ContainsKey("lng").
+		ContainsKey("timestamp").
+		ContainsKey("id").
+		ContainsKey("created_date").
+		ContainsKey("last_modified")
+}
+
+func createCapture() error {
+	c := getCapture(1, 1, "1989-12-26T06:01:00.00Z", []float64{})
+	now := time.Now()
+	c.CreatedDate, c.LastModified = now, now
+
+	return db.C(capture.Domain).Insert(c)
 }

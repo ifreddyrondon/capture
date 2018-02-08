@@ -10,6 +10,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type Captures []Capture
+
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
 	ID      bson.ObjectId              `json:"id" bson:"_id,omitempty"`
@@ -59,4 +61,12 @@ func (c *Capture) create(DB *mgo.Database) error {
 	now := time.Now()
 	c.CreatedDate, c.LastModified = now, now
 	return DB.C(Domain).Insert(c)
+}
+
+func (c *Capture) list(DB *mgo.Database, start, count int) (*Captures, error) {
+	results := new(Captures)
+	if err := DB.C(Domain).Find(nil).All(results); err != nil {
+		return nil, err
+	}
+	return results, nil
 }
