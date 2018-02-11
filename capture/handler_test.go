@@ -179,6 +179,12 @@ func TestCreateInValidPayloadCapture(t *testing.T) {
 		JSON().Object().Equal(response)
 }
 
+func TestListCapturesWhenEmpty(t *testing.T) {
+	clearCollection()
+	e := gobastion.Tester(t, bastion)
+	e.GET("/captures/").Expect().JSON().Array().Empty()
+}
+
 func TestListCapturesWithValues(t *testing.T) {
 	clearCollection()
 	if err := createCapture(); err != nil {

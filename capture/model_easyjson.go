@@ -105,10 +105,3 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 	}
 	out.RawByte('}')
 }
-
-// MarshalJSON supports json.Marshaler interface
-func (v Capture) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
