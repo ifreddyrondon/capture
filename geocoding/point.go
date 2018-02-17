@@ -60,15 +60,15 @@ type pointJSON struct {
 // Throws an error if the body of the point cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
 func (po *Point) UnmarshalJSON(data []byte) error {
-	model := new(pointJSON)
+	var model pointJSON
 	r := jlexer.Lexer{Data: data}
-	easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(&r, model)
+	easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(&r, &model)
 	if err := r.Error(); err != nil {
 		log.Print(err)
 		return ErrorUnmarshalPoint
 	}
 
-	lat, lng := getLat(model), getLng(model)
+	lat, lng := getLat(&model), getLng(&model)
 	if lat == 0 {
 		return ErrorLATMissing
 	}
@@ -88,21 +88,15 @@ func (po *Point) UnmarshalJSON(data []byte) error {
 }
 
 func getLat(model *pointJSON) float64 {
-	var lat float64
-	if model.Lat != 0 {
-		lat = model.Lat
-	} else if model.Latitude != 0 {
-		lat = model.Latitude
+	if model.Lat == 0 {
+		return model.Latitude
 	}
-	return lat
+	return model.Lat
 }
 
 func getLng(model *pointJSON) float64 {
-	var lng float64
-	if model.Lng != 0 {
-		lng = model.Lng
-	} else if model.Longitude != 0 {
-		lng = model.Longitude
+	if model.Lng == 0 {
+		return model.Longitude
 	}
-	return lng
+	return model.Lng
 }
