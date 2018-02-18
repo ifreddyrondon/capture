@@ -1,7 +1,6 @@
 package timestamp
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"log"
@@ -21,10 +20,6 @@ func NewTimestamp(date time.Time) *Timestamp {
 }
 
 type timestampJSON struct {
-	stringer struct {
-		Date      string `json:"date"`
-		Timestamp string `json:"timestamp"`
-	}
 	Date      json.Number `json:"date"`
 	Timestamp json.Number `json:"timestamp"`
 }
@@ -35,20 +30,12 @@ type timestampJSON struct {
 func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	t.Timestamp = t.clock.Now()
 
-	model := new(timestampJSON)
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	if err := decoder.Decode(&model); err != nil {
+	var model timestampJSON
+	if err := json.Unmarshal(data, &model); err != nil {
 		log.Print(err)
 		return nil
 	}
-
-	var date string
-	if model.Date != "" {
-		date = model.Date.String()
-	} else if model.Timestamp != "" {
-		date = model.Timestamp.String()
-	}
-
+	date := getDate(&model)
 	parsedTime, err := timeutils.ParseDateString(date)
 	if err != nil {
 		return nil
@@ -56,6 +43,13 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 
 	t.Timestamp = parsedTime.UTC()
 	return nil
+}
+
+func getDate(model *timestampJSON) string {
+	if model.Date == "" {
+		return model.Timestamp.String()
+	}
+	return model.Date.String()
 }
 
 // MarshalJSON implements the json.Marshaler interface.
