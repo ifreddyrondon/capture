@@ -8,104 +8,76 @@ import (
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestPathAddCapture(t *testing.T) {
-	tt := []struct {
-		name     string
-		captures []*capture.Capture
-	}{
-		{"empty path", []*capture.Capture{}},
-		{"empty path", []*capture.Capture{
-			getCapture(1, 1, "1989-12-26T06:01:00.00Z", ""),
-			getCapture(1, 2, "1989-12-26T06:01:00.00Z", ""),
-		}},
-	}
+func TestEmptyBranch(t *testing.T) {
+	p := []byte(`[]`)
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			p := new(branch.Branch)
-			p.AddCapture(tc.captures...)
-
-			if p == nil {
-				t.Errorf("Expected path not to nil. Got '%v'", p)
-			}
-
-			if len(p.Captures) != len(tc.captures) {
-				t.Errorf("Expected path len to be '%v'. Got '%v'", len(tc.captures), len(p.Captures))
-			}
-		})
-	}
+	var b branch.Branch
+	err := b.UnmarshalJSON(p)
+	require.Nil(t, err)
+	require.Empty(t, b, "Expected len of branch to be 0. Got '%v'", len(b))
 }
 
 func TestPathUnmarshalJSON(t *testing.T) {
 	tt := []struct {
-		name        string
-		body        []byte
-		resultError error
-		expectedLen int
+		name    string
+		payload []byte
+		result  branch.Branch
 	}{
 		{
-			"empty path",
-			[]byte(`[]`),
-			nil,
-			0,
-		},
-		{
-			"valid capture into path of len 1",
+			"path of len 1",
 			[]byte(`[{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			nil,
-			1,
+			getBranch(getCapture(1, 1, "1989-12-26T06:01:00.00Z", nil)),
 		},
 		{
-			"valid capture into path of len 2",
+			"path of len 2",
 			[]byte(`[
-				{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
-				{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
-			nil,
-			2,
+			{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
+			{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
+			getBranch(
+				getCapture(1, 1, "1989-12-26T06:01:00.00Z", nil),
+				getCapture(1, 2, "1989-12-26T06:01:00.00Z", nil),
+			),
 		},
 		{
 			"invalid capture into path of len 1",
 			[]byte(`[{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			nil,
-			0,
+			branch.Branch{},
 		},
 		{
 			"invalid capture into path of len 2",
 			[]byte(`[
-				{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
-				{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
-			nil,
-			1,
+			{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
+			{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
+			getBranch(getCapture(1, 2, "1989-12-26T06:01:00.00Z", nil)),
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			p := new(branch.Branch)
-			err := p.UnmarshalJSON(tc.body)
-
-			if err != tc.resultError {
-				t.Fatalf("Expected get the error '%v'. Got '%v'", tc.resultError, err)
-			}
-
-			if tc.resultError != nil {
-				return
-			}
-
-			if tc.expectedLen != len(p.Captures) {
-				t.Errorf("Expected len of catures to be '%v'. Got '%v'", tc.expectedLen, len(p.Captures))
-			}
+			var b branch.Branch
+			err := b.UnmarshalJSON(tc.payload)
+			require.Nil(t, err)
+			assert.Len(t, b, len(tc.result))
 		})
 	}
 }
 
-func getCapture(lat, lng float64, date string, payload interface{}) *capture.Capture {
+func getBranch(captures ...*capture.Capture) branch.Branch {
+	var b branch.Branch
+	b = append(b, captures...)
+	return b
+}
+
+func getCapture(lat, lng float64, date string, payload payload.ArrayNumberPayload) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
-	parsedDate, _ := time.Parse(time.RFC3339, date)
-	ts := timestamp.NewTimestamp(parsedDate)
+	t, _ := time.Parse(time.RFC3339, date)
+	ts := timestamp.NewTimestamp(t)
 
 	return capture.NewCapture(p, ts, payload)
 }

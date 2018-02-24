@@ -11,16 +11,7 @@ import (
 const WorkersNumber = 4
 
 // Branch represent a collection of captures.
-type Branch struct {
-	Captures []*capture.Capture `json:"captures"`
-}
-
-// AddCapture add new captures into the branch.
-// The new captures will always be added at the end of the road.
-// respecting their insertion order.
-func (p *Branch) AddCapture(captures ...*capture.Capture) {
-	p.Captures = append(p.Captures, captures...)
-}
+type Branch []*capture.Capture
 
 type indexCapture struct {
 	index   int
@@ -34,9 +25,9 @@ type job struct {
 
 func worker(wg *sync.WaitGroup, jobs <-chan job, results chan<- indexCapture) {
 	for job := range jobs {
-		capture := new(capture.Capture)
-		if err := capture.UnmarshalJSON(job.data); err == nil {
-			results <- indexCapture{index: job.index, capture: capture}
+		var c capture.Capture
+		if err := c.UnmarshalJSON(job.data); err == nil {
+			results <- indexCapture{index: job.index, capture: &c}
 		}
 		wg.Done()
 	}
@@ -79,7 +70,7 @@ func (p *Branch) UnmarshalJSON(data []byte) error {
 		return processed[i].index < processed[j].index
 	})
 	for _, v := range processed {
-		p.AddCapture(v.capture)
+		*p = append(*p, v.capture)
 	}
 
 	return nil
