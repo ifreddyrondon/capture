@@ -37,23 +37,21 @@ func NewCapture(point *geocoding.Point, timestamp *timestamp.Timestamp, payload 
 // Throws an error if the body of the date cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
 func (c *Capture) UnmarshalJSON(data []byte) error {
-	p := new(geocoding.Point)
+	var p geocoding.Point
 	if err := p.UnmarshalJSON(data); err != nil {
 		return err
 	}
 
-	t := new(timestamp.Timestamp)
-	if err := t.UnmarshalJSON(data); err != nil {
-		return err
-	}
+	var t timestamp.Timestamp
+	t.UnmarshalJSON(data) // ignore err because timestamp always has a fallback
 
 	// TODO: the payload could be of other types not only array number
-	payloadData := new(payload.ArrayNumberPayload)
+	var payloadData payload.ArrayNumberPayload
 	if err := payloadData.UnmarshalJSON(data); err != nil {
 		return err
 	}
 
-	capture := NewCapture(p, t, *payloadData)
+	capture := NewCapture(&p, &t, payloadData)
 	*c = *capture
 	return nil
 }

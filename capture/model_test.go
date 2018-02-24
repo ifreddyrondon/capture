@@ -77,10 +77,26 @@ func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 	}
 }
 
+func TestCaptureMarshalJSON(t *testing.T) {
+	date := "1989-12-26T06:01:00.00Z"
+	c := getCapture(1, 2, date, []float64{12, 11})
+	// override auto generated fields for test purpose
+	c.ID = "1" // the unmarshal of BsonId is an hexadecimal representation, e.g. "1"->"31"
+	c.CreatedDate, c.LastModified = getDate(date), getDate(date)
+	result, _ := c.MarshalJSON()
+	expected := `{"id":"31","payload":[12,11],"created_date":"1989-12-26T06:01:00Z","last_modified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":1,"lng":2}`
+
+	assert.Equal(t, expected, string(result))
+}
+
 func getCapture(lat, lng float64, date string, payload payload.ArrayNumberPayload) *capture.Capture {
 	p, _ := geocoding.NewPoint(lat, lng)
-	parsedDate, _ := time.Parse(time.RFC3339, date)
-	ts := timestamp.NewTimestamp(parsedDate)
+	ts := timestamp.NewTimestamp(getDate(date))
 
 	return capture.NewCapture(p, ts, payload)
+}
+
+func getDate(date string) time.Time {
+	t, _ := time.Parse(time.RFC3339, date)
+	return t
 }
