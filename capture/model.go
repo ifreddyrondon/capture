@@ -15,8 +15,8 @@ type Captures []Capture
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
-	ID      bson.ObjectId              `json:"id" bson:"_id,omitempty"`
-	Payload payload.ArrayNumberPayload `json:"payload"`
+	ID      bson.ObjectId               `json:"id" bson:"_id,omitempty"`
+	Payload *payload.ArrayNumberPayload `json:"payload"`
 	*geocoding.Point
 	*timestamp.Timestamp
 	CreatedDate  time.Time `json:"created_date" bson:"createdDate"`
@@ -24,7 +24,7 @@ type Capture struct {
 }
 
 // NewCapture returns a new pointer to a Capture composed of the passed Point, Time and payload
-func NewCapture(point *geocoding.Point, timestamp *timestamp.Timestamp, payload payload.ArrayNumberPayload) *Capture {
+func NewCapture(point *geocoding.Point, timestamp *timestamp.Timestamp, payload *payload.ArrayNumberPayload) *Capture {
 	return &Capture{
 		ID:        bson.NewObjectId(),
 		Payload:   payload,
@@ -51,7 +51,7 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	capture := NewCapture(&p, &t, payloadData)
+	capture := NewCapture(&p, &t, &payloadData)
 	*c = *capture
 	return nil
 }

@@ -3,11 +3,11 @@
 package capture
 
 import (
-	"encoding/json"
+	json "encoding/json"
 
-	"github.com/mailru/easyjson"
-	"github.com/mailru/easyjson/jlexer"
-	"github.com/mailru/easyjson/jwriter"
+	easyjson "github.com/mailru/easyjson"
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 // suppress unused package warning
@@ -22,29 +22,25 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
-		const prefix string = ",\"id\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		out.Raw((in.ID).MarshalJSON())
+	if !first {
+		out.RawByte(',')
 	}
-	{
-		const prefix string = ",\"payload\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		if in.Payload == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+	first = false
+	out.RawString("\"id\":")
+	out.Raw((in.ID).MarshalJSON())
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"payload\":")
+	if in.Payload == nil {
+		out.RawString("null")
+	} else {
+		if *in.Payload == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v1, v2 := range in.Payload {
+			for v1, v2 := range *in.Payload {
 				if v1 > 0 {
 					out.RawByte(',')
 				}
@@ -53,55 +49,35 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 			out.RawByte(']')
 		}
 	}
-	{
-		const prefix string = ",\"created_date\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		out.Raw((in.CreatedDate).MarshalJSON())
+	if !first {
+		out.RawByte(',')
 	}
-	{
-		const prefix string = ",\"last_modified\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		out.Raw((in.LastModified).MarshalJSON())
+	first = false
+	out.RawString("\"created_date\":")
+	out.Raw((in.CreatedDate).MarshalJSON())
+	if !first {
+		out.RawByte(',')
 	}
-	{
-		const prefix string = ",\"timestamp\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		out.Raw((in.Timestamp).MarshalJSON())
+	first = false
+	out.RawString("\"last_modified\":")
+	out.Raw((in.LastModified).MarshalJSON())
+	if !first {
+		out.RawByte(',')
 	}
-	{
-		const prefix string = ",\"lat\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		out.Float64(float64(in.Lat))
+	first = false
+	out.RawString("\"timestamp\":")
+	out.Raw((in.Timestamp).MarshalJSON())
+	if !first {
+		out.RawByte(',')
 	}
-	{
-		const prefix string = ",\"lng\":"
-		if first {
-			first = false
-			out.RawString(prefix[1:])
-		} else {
-			out.RawString(prefix)
-		}
-		out.Float64(float64(in.Lng))
+	first = false
+	out.RawString("\"lat\":")
+	out.Float64(float64(in.Lat))
+	if !first {
+		out.RawByte(',')
 	}
+	first = false
+	out.RawString("\"lng\":")
+	out.Float64(float64(in.Lng))
 	out.RawByte('}')
 }

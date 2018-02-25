@@ -88,11 +88,12 @@ func TestMarshalBranch(t *testing.T) {
 	assert.Equal(t, expected, string(result))
 }
 
-func getCapture(lat, lng float64, date string, payload payload.ArrayNumberPayload) *capture.Capture {
-	p, _ := geocoding.NewPoint(lat, lng)
+func getCapture(lat, lng float64, date string, p []float64) *capture.Capture {
+	point, _ := geocoding.NewPoint(lat, lng)
 	ts := timestamp.NewTimestamp(getDate(date))
+	payloadData := payload.New(p...)
 
-	return capture.NewCapture(p, ts, payload)
+	return capture.NewCapture(point, ts, payloadData)
 }
 
 func getDate(date string) time.Time {
