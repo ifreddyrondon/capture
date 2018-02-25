@@ -13,10 +13,10 @@ import (
 )
 
 func TestNewCapture(t *testing.T) {
-	p, err := geocoding.NewPoint(1, 2)
-	ts := timestamp.NewTimestamp(time.Now())
+	p, err := geocoding.New(1, 2)
+	ts := timestamp.New(time.Now())
 	payloadBody := payload.New(12, 11)
-	result := capture.NewCapture(p, ts, payloadBody)
+	result := capture.New(p, ts, payloadBody)
 	require.Nil(t, err)
 	require.NotNil(t, result)
 }
@@ -91,11 +91,11 @@ func TestCaptureMarshalJSON(t *testing.T) {
 }
 
 func getCapture(lat, lng float64, date string, p []float64) *capture.Capture {
-	point, _ := geocoding.NewPoint(lat, lng)
-	ts := timestamp.NewTimestamp(getDate(date))
+	point, _ := geocoding.New(lat, lng)
+	ts := timestamp.New(getDate(date))
 	payloadData := payload.New(p...)
 
-	return capture.NewCapture(point, ts, payloadData)
+	return capture.New(point, ts, payloadData)
 }
 
 func getDate(date string) time.Time {

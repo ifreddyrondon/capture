@@ -27,9 +27,9 @@ type Point struct {
 	Lng float64 `json:"lng"`
 }
 
-// NewPoint returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
+// New returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
 // For a valid latitude, longitude pair: -90<=latitude<=+90 and -180<=longitude<=180
-func NewPoint(lat float64, lng float64) (*Point, error) {
+func New(lat float64, lng float64) (*Point, error) {
 	if lat < -90 || lat > 90 {
 		return nil, ErrorLATRange
 	}
@@ -76,7 +76,7 @@ func (po *Point) UnmarshalJSON(data []byte) error {
 		return ErrorLNGMissing
 	}
 
-	point, err := NewPoint(lat, lng)
+	point, err := New(lat, lng)
 	if err != nil {
 		log.Print(err)
 		return err

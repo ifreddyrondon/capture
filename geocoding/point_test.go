@@ -24,7 +24,7 @@ func TestNewPointSuccess(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := geocoding.NewPoint(tc.lat, tc.lng)
+			result, err := geocoding.New(tc.lat, tc.lng)
 			require.Nil(t, err)
 			require.NotNil(t, result)
 			assert.Equal(t, tc.lng, result.Lng)
@@ -48,7 +48,7 @@ func TestNewPointFailure(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			point, err := geocoding.NewPoint(tc.lat, tc.lng)
+			point, err := geocoding.New(tc.lat, tc.lng)
 			require.Nil(t, point)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -129,6 +129,6 @@ func TestUnmarshalJSONFailure(t *testing.T) {
 }
 
 func getPoint(lat, lng float64) *geocoding.Point {
-	p, _ := geocoding.NewPoint(lat, lng)
+	p, _ := geocoding.New(lat, lng)
 	return p
 }

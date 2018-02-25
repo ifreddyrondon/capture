@@ -11,7 +11,7 @@ import (
 
 func TestNewDate(t *testing.T) {
 	date := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	ts := timestamp.NewTimestamp(date)
+	ts := timestamp.New(date)
 	expected := "1989-12-26 06:01:00 +0000 UTC"
 	assert.Equal(t, expected, ts.Timestamp.String())
 }
@@ -93,6 +93,6 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 func TestDateMarshalJSON(t *testing.T) {
 	date, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
 	expected := `"1989-12-26T06:01:00Z"`
-	result, _ := timestamp.NewTimestamp(date).MarshalJSON()
+	result, _ := timestamp.New(date).MarshalJSON()
 	assert.Equal(t, expected, string(result))
 }

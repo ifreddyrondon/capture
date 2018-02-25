@@ -15,7 +15,8 @@ type Timestamp struct {
 	clock     *Clock
 }
 
-func NewTimestamp(date time.Time) *Timestamp {
+// New returns a new pointer to a Timestamp composed by time.Time
+func New(date time.Time) *Timestamp {
 	return &Timestamp{Timestamp: date}
 }
 
