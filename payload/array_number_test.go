@@ -10,6 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestNew(t *testing.T) {
+	data := []float64{1, 2, 5.3, 4, 8}
+	p := payload.New(data...)
+	require.NotNil(t, p)
+	require.Len(t, *p, len(data))
+}
+
 func TestArrayNumberPayloadUnmarshalJSONSuccess(t *testing.T) {
 	tt := []struct {
 		name     string

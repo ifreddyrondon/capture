@@ -13,6 +13,26 @@ var (
 	ErrorUnmarshalPayload = errors.New("cannot unmarshal json into Payload valid value")
 )
 
+// ArrayNumberPayload represent an association of float numbers
+type ArrayNumberPayload []float64
+
+// New returns a new pointer to a ArrayNumberPayload composed of the passed float64
+func New(data ...float64) *ArrayNumberPayload {
+	p := new(ArrayNumberPayload)
+	*p = data
+	return p
+}
+
+func (pp *ArrayNumberPayload) UnmarshalJSON(data []byte) error {
+	model := new(unmarshalMap)
+	if err := json.Unmarshal(data, model); err != nil {
+		log.Print(err)
+		return ErrorUnmarshalPayload
+	}
+	*pp = model.getPayload()
+	return nil
+}
+
 type unmarshalMap struct {
 	Cap      []float64 `json:"cap"`
 	Captures []float64 `json:"captures"`
@@ -36,17 +56,4 @@ func (v *unmarshalMap) getPayload() []float64 {
 		return v.Data
 	}
 	return v.Payload
-}
-
-// ArrayNumberPayload represent an association of float numbers
-type ArrayNumberPayload []float64
-
-func (pp *ArrayNumberPayload) UnmarshalJSON(data []byte) error {
-	model := new(unmarshalMap)
-	if err := json.Unmarshal(data, model); err != nil {
-		log.Print(err)
-		return ErrorUnmarshalPayload
-	}
-	*pp = model.getPayload()
-	return nil
 }
