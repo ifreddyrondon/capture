@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 		Responder: responder,
 	}
 
-	bastion = app.New([]app.Router{&handler}).Bastion
+	bastion = app.Mount([]app.Router{&handler}).Bastion
 	db = ds.DB()
 	code := m.Run()
 	clearCollection()
