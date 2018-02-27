@@ -5,12 +5,12 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/gobastion"
-	"gopkg.in/mgo.v2"
 )
 
 const Domain = "captures"
 
 type Handler struct {
+	Service Service
 	gobastion.Reader
 	gobastion.Responder
 }
@@ -29,12 +29,9 @@ func (h *Handler) Router() chi.Router {
 }
 
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
-	capture := new(Capture)
-
 	count := 10
 	start := 0
-	ctx := r.Context()
-	captures, err := capture.list(ctx.Value("DataSource").(*mgo.Database), start, count)
+	captures, err := h.Service.List(start, count)
 	if err != nil {
 		h.InternalServerError(w, err)
 		return
@@ -45,19 +42,18 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	capture := new(Capture)
-	if err := h.Read(r.Body, capture); err != nil {
+	captureIn := new(Capture)
+	if err := h.Read(r.Body, captureIn); err != nil {
 		h.BadRequest(w, err)
 		return
 	}
 
-	ctx := r.Context()
-	err := capture.create(ctx.Value("DataSource").(*mgo.Database))
+	captureOut, err := h.Service.Create(captureIn.Point, captureIn.Timestamp, captureIn.Payload)
 	if err != nil {
 		h.InternalServerError(w, err)
 		return
 	}
 
-	h.Created(w, capture)
+	h.Created(w, captureOut)
 	return
 }

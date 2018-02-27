@@ -7,7 +7,6 @@ import (
 	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/mailru/easyjson/jwriter"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -61,18 +60,4 @@ func (c Capture) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(&w, c)
 	return w.Buffer.BuildBytes(), w.Error
-}
-
-func (c *Capture) create(DB *mgo.Database) error {
-	now := time.Now()
-	c.CreatedDate, c.LastModified = now, now
-	return DB.C(Domain).Insert(c)
-}
-
-func (c *Capture) list(DB *mgo.Database, start, count int) (Captures, error) {
-	results := Captures{}
-	if err := DB.C(Domain).Find(nil).All(&results); err != nil {
-		return nil, err
-	}
-	return results, nil
 }

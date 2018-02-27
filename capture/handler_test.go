@@ -32,11 +32,14 @@ func TestMain(m *testing.M) {
 		log.Panic(err)
 	}
 
-	handler := new(capture.Handler)
-	handler.Reader = reader
-	handler.Responder = responder
+	service := capture.MgoService{DB: ds.DB()}
+	handler := capture.Handler{
+		Service:   &service,
+		Reader:    reader,
+		Responder: responder,
+	}
 
-	bastion = app.New(ds, []app.Router{handler}).Bastion
+	bastion = app.New(ds, []app.Router{&handler}).Bastion
 	db = ds.DB()
 	code := m.Run()
 	clearCollection()
