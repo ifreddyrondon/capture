@@ -31,7 +31,7 @@ func main() {
 
 	routers := []app.Router{&captureHandler, &branchHandler}
 
-	err = app.New(db, routers).Bastion.Serve()
+	err = app.New(routers).Bastion.Serve()
 	if err != nil {
 		log.Printf("%v", err)
 	}

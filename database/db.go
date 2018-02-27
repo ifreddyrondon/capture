@@ -1,9 +1,6 @@
 package database
 
 import (
-	"context"
-	"net/http"
-
 	"log"
 
 	"gopkg.in/mgo.v2"
@@ -20,22 +17,7 @@ func (ds *DataSource) Finalize() error {
 	return nil
 }
 
-// GetCtx implements the DataSource interface.
-func (ds *DataSource) Ctx() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if ds.session == nil {
-				return
-			}
-			session := ds.session.Copy()
-			defer session.Close()
-			ctx := context.WithValue(r.Context(), "DataSource", session.DB(""))
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
-}
-
-// Finalize implements the Finalizer interface from bastion to be executed as graceful shutdown.
+// DB returns a value representing the named database
 func (ds *DataSource) DB() *mgo.Database {
 	return ds.session.DB("")
 }
