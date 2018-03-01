@@ -3,16 +3,15 @@ package capture
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/gobastion"
+	"github.com/ifreddyrondon/bastion"
 )
 
 const Domain = "captures"
 
 type Handler struct {
 	Service Service
-	gobastion.Reader
-	gobastion.Responder
+	bastion.Reader
+	bastion.Responder
 }
 
 func (h *Handler) Pattern() string {
@@ -20,8 +19,8 @@ func (h *Handler) Pattern() string {
 }
 
 // Routes creates a REST router for the capture resource
-func (h *Handler) Router() chi.Router {
-	r := gobastion.NewRouter()
+func (h *Handler) Router() http.Handler {
+	r := bastion.NewRouter()
 
 	r.Get("/", h.list)
 	r.Post("/", h.create)

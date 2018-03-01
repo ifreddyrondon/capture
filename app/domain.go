@@ -1,8 +1,9 @@
 package app
 
 import (
-	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/gobastion"
+	"net/http"
+
+	"github.com/ifreddyrondon/bastion"
 )
 
 // Router is the interface implemented by the controllers.
@@ -10,11 +11,11 @@ import (
 // as a subrouter along a routing Pattern()
 type Router interface {
 	Pattern() string
-	Router() chi.Router
+	Router() http.Handler
 }
 
 type Handler interface {
 	Router
-	gobastion.Reader
-	gobastion.Responder
+	bastion.Reader
+	bastion.Responder
 }

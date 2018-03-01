@@ -9,14 +9,15 @@ import (
 
 	"time"
 
-	"github.com/ifreddyrondon/gobastion"
-	"github.com/ifreddyrondon/gocapture/app"
+	"fmt"
+
+	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
 	"gopkg.in/mgo.v2"
 )
 
-var bastion *gobastion.Bastion
+var app *bastion.Bastion
 var db *mgo.Database
 
 func clearCollection() {
@@ -24,14 +25,14 @@ func clearCollection() {
 }
 
 func TestMain(m *testing.M) {
-	reader := new(gobastion.JsonReader)
-	responder := new(gobastion.JsonResponder)
-
 	ds, err := database.Open("localhost/captures_test")
 	if err != nil {
 		log.Panic(err)
 	}
+	db = ds.DB()
 
+	reader := new(bastion.JsonReader)
+	responder := new(bastion.JsonResponder)
 	service := capture.MgoService{DB: ds.DB()}
 	handler := capture.Handler{
 		Service:   &service,
@@ -39,8 +40,8 @@ func TestMain(m *testing.M) {
 		Responder: responder,
 	}
 
-	bastion = app.Mount([]app.Router{&handler}).Bastion
-	db = ds.DB()
+	app = bastion.New(nil)
+	app.APIRouter.Mount(fmt.Sprintf("/%v/", handler.Pattern()), handler.Router())
 	code := m.Run()
 	clearCollection()
 	os.Exit(code)
@@ -103,7 +104,7 @@ func TestCreateValidCapture(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			clearCollection()
 
-			e := gobastion.Tester(t, bastion)
+			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
 				Expect().
@@ -157,7 +158,7 @@ func TestCreateInValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			e := gobastion.Tester(t, bastion)
+			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
 				Expect().
@@ -174,7 +175,7 @@ func TestCreateInValidPayloadCapture(t *testing.T) {
 		"message": "cannot unmarshal json into Point value",
 	}
 
-	e := gobastion.Tester(t, bastion)
+	e := bastion.Tester(t, app)
 	e.POST("/captures/").
 		WithJSON("{").
 		Expect().
@@ -184,7 +185,7 @@ func TestCreateInValidPayloadCapture(t *testing.T) {
 
 func TestListCapturesWhenEmpty(t *testing.T) {
 	clearCollection()
-	e := gobastion.Tester(t, bastion)
+	e := bastion.Tester(t, app)
 	e.GET("/captures/").Expect().JSON().Array().Empty()
 }
 
@@ -194,7 +195,7 @@ func TestListCapturesWithValues(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	e := gobastion.Tester(t, bastion)
+	e := bastion.Tester(t, app)
 	array := e.GET("/captures/").
 		Expect().
 		Status(http.StatusOK).

@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ifreddyrondon/gobastion"
+	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
 )
 
 type App struct {
-	Bastion *gobastion.Bastion
+	Bastion *bastion.Bastion
 }
 
 func Mount(routes []Router) *App {
 	server := &App{
-		Bastion: gobastion.New(nil),
+		Bastion: bastion.New(nil),
 	}
 
 	for _, v := range routes {
@@ -35,17 +35,17 @@ func New() *App {
 		log.Panic(err)
 	}
 
-	reader := new(gobastion.JsonReader)
+	reader := new(bastion.JsonReader)
 	captureService := capture.MgoService{DB: ds.DB()}
 	captureHandler := capture.Handler{
 		Service:   &captureService,
 		Reader:    reader,
-		Responder: gobastion.DefaultResponder,
+		Responder: bastion.DefaultResponder,
 	}
 
 	branchHandler := branch.Handler{
 		Reader:    reader,
-		Responder: gobastion.DefaultResponder,
+		Responder: bastion.DefaultResponder,
 	}
 
 	return Mount([]Router{&captureHandler, &branchHandler})
