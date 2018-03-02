@@ -10,8 +10,9 @@ type DataSource struct {
 	session *mgo.Session
 }
 
+// TODO: load this func into bastion RegisterOnShutdown
 // Finalize implements the Finalizer interface from bastion to be executed as graceful shutdown.
-func (ds *DataSource) Finalize() error {
+func (ds *DataSource) OnShutdown() error {
 	log.Printf("[finalizer:data source] closing the main session")
 	ds.session.Close()
 	return nil
