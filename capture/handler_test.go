@@ -12,6 +12,8 @@ import (
 )
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
+	t.Parallel()
+
 	ds, err := database.Open("localhost/captures_test")
 	if err != nil {
 		t.Fatalf("could not create database, err: %v", err)
