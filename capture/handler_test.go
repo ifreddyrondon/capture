@@ -1,50 +1,37 @@
 package capture_test
 
 import (
-	"log"
 	"net/http"
 	"testing"
-
-	"os"
-
-	"time"
 
 	"fmt"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
-	"gopkg.in/mgo.v2"
 )
 
-var app *bastion.Bastion
-var db *mgo.Database
-
-func clearCollection() {
-	db.DropDatabase()
-}
-
-func TestMain(m *testing.M) {
+func setup(t *testing.T) (*bastion.Bastion, func()) {
 	ds, err := database.Open("localhost/captures_test")
 	if err != nil {
-		log.Panic(err)
+		t.Fatalf("could not create database, err: %v", err)
 	}
-	db = ds.DB()
-
+	db := ds.DB()
 	reader := new(bastion.JsonReader)
 	responder := new(bastion.JsonResponder)
-	service := capture.MgoService{DB: ds.DB()}
+	service := capture.MgoService{DB: db}
 	handler := capture.Handler{
 		Service:   &service,
 		Reader:    reader,
 		Responder: responder,
 	}
 
-	app = bastion.New(nil)
+	app := bastion.New(nil)
 	app.APIRouter.Mount(fmt.Sprintf("/%v/", handler.Pattern()), handler.Router())
-	code := m.Run()
-	clearCollection()
-	os.Exit(code)
+
+	teardown := func() { ds.DB().DropDatabase() }
+
+	return app, teardown
 }
 
 func TestCreateValidCapture(t *testing.T) {
@@ -102,7 +89,8 @@ func TestCreateValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			clearCollection()
+			app, teardown := setup(t)
+			defer teardown()
 
 			e := bastion.Tester(t, app)
 			e.POST("/captures/").
@@ -158,6 +146,9 @@ func TestCreateInValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			app, teardown := setup(t)
+			defer teardown()
+
 			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
@@ -175,6 +166,8 @@ func TestCreateInValidPayloadCapture(t *testing.T) {
 		"message": "cannot unmarshal json into Point value",
 	}
 
+	app, teardown := setup(t)
+	defer teardown()
 	e := bastion.Tester(t, app)
 	e.POST("/captures/").
 		WithJSON("{").
@@ -184,18 +177,21 @@ func TestCreateInValidPayloadCapture(t *testing.T) {
 }
 
 func TestListCapturesWhenEmpty(t *testing.T) {
-	clearCollection()
+	app, teardown := setup(t)
+	defer teardown()
+
 	e := bastion.Tester(t, app)
 	e.GET("/captures/").Expect().JSON().Array().Empty()
 }
 
 func TestListCapturesWithValues(t *testing.T) {
-	clearCollection()
-	if err := createCapture(); err != nil {
-		log.Fatal(err)
-	}
+	app, teardown := setup(t)
+	defer teardown()
 
+	payload := map[string]interface{}{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"}
 	e := bastion.Tester(t, app)
+	e.POST("/captures/").WithJSON(payload).Expect().Status(http.StatusCreated)
+
 	array := e.GET("/captures/").
 		Expect().
 		Status(http.StatusOK).
@@ -210,12 +206,4 @@ func TestListCapturesWithValues(t *testing.T) {
 		ContainsKey("id").
 		ContainsKey("created_date").
 		ContainsKey("last_modified")
-}
-
-func createCapture() error {
-	c := getCapture(1, 1, "1989-12-26T06:01:00.00Z", []float64{})
-	now := time.Now()
-	c.CreatedDate, c.LastModified = now, now
-
-	return db.C(capture.Domain).Insert(c)
 }
