@@ -3,15 +3,17 @@ package capture
 import (
 	"net/http"
 
+	"encoding/json"
+
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/bastion/render"
 )
 
 const Domain = "captures"
 
 type Handler struct {
 	Service Service
-	bastion.Reader
-	bastion.Responder
+	render.Render
 }
 
 func (h *Handler) Pattern() string {
@@ -32,27 +34,27 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	start := 0
 	captures, err := h.Service.List(start, count)
 	if err != nil {
-		h.InternalServerError(w, err)
+		h.Render(w).InternalServerError(err)
 		return
 	}
 
-	h.Send(w, captures)
+	h.Render(w).Send(captures)
 	return
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	captureIn := new(Capture)
-	if err := h.Read(r.Body, captureIn); err != nil {
-		h.BadRequest(w, err)
+	if err := json.NewDecoder(r.Body).Decode(captureIn); err != nil {
+		h.Render(w).BadRequest(err)
 		return
 	}
 
 	captureOut, err := h.Service.Create(captureIn.Point, captureIn.Timestamp, captureIn.Payload)
 	if err != nil {
-		h.InternalServerError(w, err)
+		h.Render(w).InternalServerError(err)
 		return
 	}
 
-	h.Created(w, captureOut)
+	h.Render(w).Created(captureOut)
 	return
 }

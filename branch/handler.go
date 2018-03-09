@@ -1,16 +1,17 @@
 package branch
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/bastion/render"
 )
 
 const Domain = "branches"
 
 type Handler struct {
-	bastion.Reader
-	bastion.Responder
+	render.Render
 }
 
 func (h *Handler) Pattern() string {
@@ -25,10 +26,11 @@ func (h *Handler) Router() http.Handler {
 }
 
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
+	// the branch must be initialized to return an empty list when there are no captures.
 	path := new(Branch)
-	if err := h.Read(r.Body, path); err != nil {
-		h.BadRequest(w, err)
+	if err := json.NewDecoder(r.Body).Decode(path); err != nil {
+		h.Render(w).BadRequest(err)
 	}
-	h.Send(w, path)
+	h.Render(w).Send(path)
 	return
 }

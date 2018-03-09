@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
@@ -35,17 +36,14 @@ func New() *App {
 		log.Panic(err)
 	}
 
-	reader := new(bastion.JsonReader)
 	captureService := capture.MgoService{DB: ds.DB()}
 	captureHandler := capture.Handler{
-		Service:   &captureService,
-		Reader:    reader,
-		Responder: bastion.DefaultResponder,
+		Service: &captureService,
+		Render:  json.NewRender,
 	}
 
 	branchHandler := branch.Handler{
-		Reader:    reader,
-		Responder: bastion.DefaultResponder,
+		Render: json.NewRender,
 	}
 
 	return Mount([]Router{&captureHandler, &branchHandler})

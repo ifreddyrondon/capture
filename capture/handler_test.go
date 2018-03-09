@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
 )
@@ -19,13 +20,10 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 		t.Fatalf("could not create database, err: %v", err)
 	}
 	db := ds.DB()
-	reader := new(bastion.JsonReader)
-	responder := new(bastion.JsonResponder)
 	service := capture.MgoService{DB: db}
 	handler := capture.Handler{
-		Service:   &service,
-		Reader:    reader,
-		Responder: responder,
+		Service: &service,
+		Render:  json.NewRender,
 	}
 
 	app := bastion.New(nil)
