@@ -26,12 +26,6 @@
   revision = "6f8212e8d10df7383609d3c377ca08884d8f3ec0"
 
 [[projects]]
-  name = "github.com/ghodss/yaml"
-  packages = ["."]
-  revision = "0ca9ea5df5451ffdf184b4428c902747c2c11cd7"
-  version = "v1.0.0"
-
-[[projects]]
   name = "github.com/go-chi/chi"
   packages = [
     ".",
@@ -56,12 +50,11 @@
   name = "github.com/ifreddyrondon/bastion"
   packages = [
     ".",
-    "config",
     "render",
     "render/json"
   ]
-  revision = "2bc84ffdf42317e23e4c71e1c7695dcd65d3d384"
-  version = "v1.3.2"
+  revision = "1619571b68b01770f8f8908c76e07b99827fceb8"
+  version = "v1.3.3"
 
 [[projects]]
   name = "github.com/imkira/go-interpol"
@@ -277,6 +270,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b9b4634efbbbfb39888566b56f6c22416ed76f9c7933e39b30e2669489a6429a"
+  inputs-digest = "81af958aa2fc702aaeed7b7ff57f7a1218b6151ad6acd71891a4259d67513f62"
   solver-name = "gps-cdcl"
   solver-version = 1

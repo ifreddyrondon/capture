@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"fmt"
 
 	"github.com/ifreddyrondon/bastion"
@@ -16,9 +18,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	t.Parallel()
 
 	ds, err := database.Open("localhost/captures_test")
-	if err != nil {
-		t.Fatalf("could not create database, err: %v", err)
-	}
+	require.Nil(t, err)
 	db := ds.DB()
 	service := capture.MgoService{DB: db}
 	handler := capture.Handler{
@@ -26,7 +26,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 		Render:  json.NewRender,
 	}
 
-	app := bastion.New(nil)
+	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount(fmt.Sprintf("/%v/", handler.Pattern()), handler.Router())
 
 	teardown := func() { ds.DB().DropDatabase() }

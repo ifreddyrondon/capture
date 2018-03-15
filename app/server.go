@@ -1,50 +1,27 @@
 package app
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/ifreddyrondon/bastion"
+	"gopkg.in/mgo.v2"
+
 	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/database"
 )
 
-type App struct {
-	Bastion *bastion.Bastion
-}
+func New(db *mgo.Database) *bastion.Bastion {
+	app := bastion.New(bastion.Options{})
 
-func Mount(routes []Router) *App {
-	server := &App{
-		Bastion: bastion.New(nil),
-	}
-
-	for _, v := range routes {
-		server.Bastion.APIRouter.Mount(
-			fmt.Sprintf("/%v/", v.Pattern()),
-			v.Router(),
-		)
-	}
-
-	return server
-}
-
-func New() *App {
-	ds, err := database.Open("localhost/captures")
-	if err != nil {
-		log.Panic(err)
-	}
-
-	captureService := capture.MgoService{DB: ds.DB()}
-	captureHandler := capture.Handler{
-		Service: &captureService,
+	capService := capture.MgoService{DB: db}
+	capH := capture.Handler{
+		Service: &capService,
 		Render:  json.NewRender,
 	}
+	app.APIRouter.Mount(capH.Pattern(), capH.Router())
 
-	branchHandler := branch.Handler{
+	branchH := branch.Handler{
 		Render: json.NewRender,
 	}
-
-	return Mount([]Router{&captureHandler, &branchHandler})
+	app.APIRouter.Mount(branchH.Pattern(), branchH.Router())
+	return app
 }
