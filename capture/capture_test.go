@@ -7,16 +7,14 @@ import (
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/ifreddyrondon/gocapture/payload"
-	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewCapture(t *testing.T) {
 	p, err := geocoding.New(1, 2)
-	ts := timestamp.New(time.Now())
 	payloadBody := payload.New(12, 11)
-	result := capture.New(p, ts, payloadBody)
+	result := capture.New(p, time.Now(), payloadBody)
 	require.Nil(t, err)
 	require.NotNil(t, result)
 }
@@ -92,7 +90,7 @@ func TestCaptureMarshalJSON(t *testing.T) {
 
 func getCapture(lat, lng float64, date string, p []float64) *capture.Capture {
 	point, _ := geocoding.New(lat, lng)
-	ts := timestamp.New(getDate(date))
+	ts := getDate(date)
 	payloadData := payload.New(p...)
 
 	return capture.New(point, ts, payloadData)

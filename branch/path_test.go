@@ -11,7 +11,6 @@ import (
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/ifreddyrondon/gocapture/payload"
-	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -90,10 +89,9 @@ func TestMarshalBranch(t *testing.T) {
 
 func getCapture(lat, lng float64, date string, p []float64) *capture.Capture {
 	point, _ := geocoding.New(lat, lng)
-	ts := timestamp.New(getDate(date))
 	payloadData := payload.New(p...)
 
-	return capture.New(point, ts, payloadData)
+	return capture.New(point, getDate(date), payloadData)
 }
 
 func getDate(date string) time.Time {

@@ -20,7 +20,7 @@ func (h *Handler) Pattern() string {
 	return Domain
 }
 
-// Routes creates a REST router for the capture resource
+// Router creates a REST router for the capture resource
 func (h *Handler) Router() http.Handler {
 	r := bastion.NewRouter()
 

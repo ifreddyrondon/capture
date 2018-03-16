@@ -17,13 +17,13 @@ type Capture struct {
 	ID      bson.ObjectId               `json:"id" bson:"_id,omitempty"`
 	Payload *payload.ArrayNumberPayload `json:"payload"`
 	*geocoding.Point
-	*timestamp.Timestamp
+	Timestamp    time.Time
 	CreatedDate  time.Time `json:"created_date" bson:"createdDate"`
 	LastModified time.Time `json:"last_modified" bson:"lastModified"`
 }
 
 // New returns a new pointer to a Capture composed of the passed Point, Time and payload
-func New(point *geocoding.Point, timestamp *timestamp.Timestamp, payload *payload.ArrayNumberPayload) *Capture {
+func New(point *geocoding.Point, timestamp time.Time, payload *payload.ArrayNumberPayload) *Capture {
 	return &Capture{
 		ID:        bson.NewObjectId(),
 		Payload:   payload,
@@ -50,7 +50,7 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	capture := New(&p, &t, &payloadData)
+	capture := New(&p, t.Timestamp, &payloadData)
 	*c = *capture
 	return nil
 }

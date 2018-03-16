@@ -20,7 +20,7 @@ func New(date time.Time) *Timestamp {
 	return &Timestamp{Timestamp: date}
 }
 
-type timestampJSON struct {
+type jsonTimestamp struct {
 	Date      json.Number `json:"date"`
 	Timestamp json.Number `json:"timestamp"`
 }
@@ -31,7 +31,7 @@ type timestampJSON struct {
 func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	t.Timestamp = t.clock.Now()
 
-	var model timestampJSON
+	var model jsonTimestamp
 	if err := json.Unmarshal(data, &model); err != nil {
 		log.Print(err)
 		return nil
@@ -46,7 +46,7 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func getDate(model *timestampJSON) string {
+func getDate(model *jsonTimestamp) string {
 	if model.Date == "" {
 		return model.Timestamp.String()
 	}
