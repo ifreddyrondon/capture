@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/markbates/going/defaults"
+
 	"github.com/simplereach/timeutils"
 )
 
@@ -36,7 +38,7 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 		log.Print(err)
 		return nil
 	}
-	date := getDate(&model)
+	date := defaults.String(model.Date.String(), model.Timestamp.String())
 	parsedTime, err := timeutils.ParseDateString(date)
 	if err != nil {
 		return nil
@@ -44,13 +46,6 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 
 	t.Timestamp = parsedTime.UTC()
 	return nil
-}
-
-func getDate(model *jsonTimestamp) string {
-	if model.Date == "" {
-		return model.Timestamp.String()
-	}
-	return model.Date.String()
 }
 
 // MarshalJSON implements the json.Marshaler interface.

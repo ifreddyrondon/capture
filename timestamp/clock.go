@@ -11,6 +11,7 @@ type Clock struct {
 	instant time.Time
 }
 
+// Now returns the current time.Now() is the instance is nil or return the istance.
 func (c *Clock) Now() time.Time {
 	if c == nil {
 		return time.Now()
