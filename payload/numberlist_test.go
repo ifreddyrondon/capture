@@ -1,18 +1,19 @@
-package payload_test
+package numberlist_test
 
 import (
 	"testing"
 
+	"github.com/ifreddyrondon/gocapture/payload"
+
 	"encoding/json"
 
-	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
 	data := []float64{1, 2, 5.3, 4, 8}
-	p := payload.New(data...)
+	p := numberlist.New(data...)
 	require.NotNil(t, p)
 	require.Len(t, *p, len(data))
 }
@@ -21,7 +22,7 @@ func TestArrayNumberPayloadUnmarshalJSONSuccess(t *testing.T) {
 	tt := []struct {
 		name     string
 		payload  []byte
-		expected payload.ArrayNumberPayload
+		expected numberlist.Payload
 	}{
 		{
 			"unmarshal with cap",
@@ -57,7 +58,7 @@ func TestArrayNumberPayloadUnmarshalJSONSuccess(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := payload.ArrayNumberPayload{}
+			result := numberlist.Payload{}
 			err := result.UnmarshalJSON(tc.payload)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expected, result)
@@ -74,13 +75,13 @@ func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
 		{
 			"unmarshal error",
 			[]byte(`'`),
-			payload.ErrorUnmarshalPayload,
+			numberlist.ErrorUnmarshalPayload,
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := payload.ArrayNumberPayload{}
+			result := numberlist.Payload{}
 			err := result.UnmarshalJSON(tc.payload)
 			assert.Equal(t, tc.expected, err)
 		})
@@ -90,13 +91,13 @@ func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
 func TestArrayNumberPayloadMarshalJSON(t *testing.T) {
 	tt := []struct {
 		name     string
-		payload  payload.ArrayNumberPayload
+		payload  numberlist.Payload
 		expected string
 	}{
-		{"empty payload", payload.ArrayNumberPayload{}, `[]`},
+		{"empty payload", numberlist.Payload{}, `[]`},
 		{
 			"payload with valid data",
-			payload.ArrayNumberPayload{1, 2, 3}, `[1,2,3]`,
+			numberlist.Payload{1, 2, 3}, `[1,2,3]`,
 		},
 	}
 

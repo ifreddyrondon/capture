@@ -11,7 +11,7 @@ import (
 // Service is the interface implemented by capture
 // that can make CRUD operations over captures.
 type Service interface {
-	Create(*geocoding.Point, time.Time, *payload.ArrayNumberPayload) (*Capture, error)
+	Create(*geocoding.Point, time.Time, *numberlist.Payload) (*Capture, error)
 	List(start, count int) (Captures, error)
 }
 
@@ -22,7 +22,7 @@ type MgoService struct {
 }
 
 // Create generate a capture into the database.
-func (s *MgoService) Create(p *geocoding.Point, t time.Time, payload *payload.ArrayNumberPayload) (*Capture, error) {
+func (s *MgoService) Create(p *geocoding.Point, t time.Time, payload *numberlist.Payload) (*Capture, error) {
 	c := New(p, t, payload)
 	now := time.Now()
 	c.CreatedDate, c.LastModified = now, now

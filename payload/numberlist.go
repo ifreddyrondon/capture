@@ -1,9 +1,8 @@
-package payload
+package numberlist
 
 import (
 	"errors"
 
-	"encoding/json"
 	"log"
 
 	"github.com/mailru/easyjson/jlexer"
@@ -13,27 +12,17 @@ var (
 	ErrorUnmarshalPayload = errors.New("cannot unmarshal json into Payload valid value")
 )
 
-// ArrayNumberPayload represent an association of float numbers
-type ArrayNumberPayload []float64
+// Payload represent an association of float numbers
+type Payload []float64
 
 // New returns a new pointer to a ArrayNumberPayload composed of the passed float64
-func New(data ...float64) *ArrayNumberPayload {
-	p := new(ArrayNumberPayload)
+func New(data ...float64) *Payload {
+	p := new(Payload)
 	*p = data
 	return p
 }
 
-func (pp *ArrayNumberPayload) UnmarshalJSON(data []byte) error {
-	model := new(unmarshalMap)
-	if err := json.Unmarshal(data, model); err != nil {
-		log.Print(err)
-		return ErrorUnmarshalPayload
-	}
-	*pp = model.getPayload()
-	return nil
-}
-
-type unmarshalMap struct {
+type jsonPayload struct {
 	Cap      []float64 `json:"cap"`
 	Captures []float64 `json:"captures"`
 	Data     []float64 `json:"data"`
@@ -41,13 +30,23 @@ type unmarshalMap struct {
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *unmarshalMap) UnmarshalJSON(data []byte) error {
+func (p *Payload) UnmarshalJSON(data []byte) error {
+	model := new(jsonPayload)
+	if err := model.unmarshalJSON(data); err != nil {
+		log.Print(err)
+		return ErrorUnmarshalPayload
+	}
+	*p = model.getPayload()
+	return nil
+}
+
+func (v *jsonPayload) unmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjsonC80ae7adDecodeGithubComIfreddyrondonGocapturePayload(&r, v)
 	return r.Error()
 }
 
-func (v *unmarshalMap) getPayload() []float64 {
+func (v *jsonPayload) getPayload() []float64 {
 	if v.Cap != nil {
 		return v.Cap
 	} else if v.Captures != nil {

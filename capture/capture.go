@@ -3,8 +3,9 @@ package capture
 import (
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/ifreddyrondon/gocapture/payload"
+
+	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/mailru/easyjson/jwriter"
 	"gopkg.in/mgo.v2/bson"
@@ -14,8 +15,8 @@ type Captures []Capture
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
-	ID      bson.ObjectId               `json:"id" bson:"_id,omitempty"`
-	Payload *payload.ArrayNumberPayload `json:"payload"`
+	ID                  bson.ObjectId `json:"id" bson:"_id,omitempty"`
+	*numberlist.Payload `json:"payload"`
 	*geocoding.Point
 	Timestamp    time.Time
 	CreatedDate  time.Time `json:"created_date" bson:"createdDate"`
@@ -23,7 +24,7 @@ type Capture struct {
 }
 
 // New returns a new pointer to a Capture composed of the passed Point, Time and payload
-func New(point *geocoding.Point, timestamp time.Time, payload *payload.ArrayNumberPayload) *Capture {
+func New(point *geocoding.Point, timestamp time.Time, payload *numberlist.Payload) *Capture {
 	return &Capture{
 		ID:        bson.NewObjectId(),
 		Payload:   payload,
@@ -45,12 +46,12 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 	t.UnmarshalJSON(data) // ignore err because timestamp always has a fallback
 
 	// TODO: the payload could be of other types not only array number
-	var payloadData payload.ArrayNumberPayload
-	if err := payloadData.UnmarshalJSON(data); err != nil {
+	var payload numberlist.Payload
+	if err := payload.UnmarshalJSON(data); err != nil {
 		return err
 	}
 
-	capture := New(&p, t.Timestamp, &payloadData)
+	capture := New(&p, t.Timestamp, &payload)
 	*c = *capture
 	return nil
 }
