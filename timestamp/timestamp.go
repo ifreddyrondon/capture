@@ -22,11 +22,6 @@ func New(date time.Time) *Timestamp {
 	return &Timestamp{Timestamp: date}
 }
 
-type jsonTimestamp struct {
-	Date      json.Number `json:"date"`
-	Timestamp json.Number `json:"timestamp"`
-}
-
 // UnmarshalJSON decodes the Timestamp of the capture from a JSON body.
 // Throws an error if the body of the Timestamp cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
