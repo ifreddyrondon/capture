@@ -3,9 +3,8 @@ package capture
 import (
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/payload"
-
 	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/gocapture/payload/numberlist"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/mailru/easyjson/jwriter"
 	"gopkg.in/mgo.v2/bson"

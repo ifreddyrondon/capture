@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/gocapture/payload/numberlist"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/stretchr/testify/assert"

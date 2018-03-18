@@ -4,11 +4,10 @@ import (
 	"errors"
 
 	"log"
-
-	"github.com/mailru/easyjson/jlexer"
 )
 
 var (
+	// ErrorUnmarshalPayload expected error when fails to unmarshal a payload
 	ErrorUnmarshalPayload = errors.New("cannot unmarshal json into Payload valid value")
 )
 
@@ -22,28 +21,15 @@ func New(data ...float64) *Payload {
 	return p
 }
 
-type jsonPayload struct {
-	Cap      []float64 `json:"cap"`
-	Captures []float64 `json:"captures"`
-	Data     []float64 `json:"data"`
-	Payload  []float64 `json:"payload"`
-}
-
 // UnmarshalJSON supports json.Unmarshaler interface
 func (p *Payload) UnmarshalJSON(data []byte) error {
-	model := new(jsonPayload)
+	var model jsonPayload
 	if err := model.unmarshalJSON(data); err != nil {
 		log.Print(err)
 		return ErrorUnmarshalPayload
 	}
 	*p = model.getPayload()
 	return nil
-}
-
-func (v *jsonPayload) unmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjsonC80ae7adDecodeGithubComIfreddyrondonGocapturePayload(&r, v)
-	return r.Error()
 }
 
 func (v *jsonPayload) getPayload() []float64 {

@@ -10,7 +10,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/gocapture/payload/numberlist"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

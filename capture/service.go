@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/gocapture/payload/numberlist"
 	"gopkg.in/mgo.v2"
 )
 

@@ -3,10 +3,9 @@ package numberlist_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/payload"
-
 	"encoding/json"
 
+	"github.com/ifreddyrondon/gocapture/payload/numberlist"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
