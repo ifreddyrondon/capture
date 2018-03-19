@@ -34,10 +34,6 @@
   name = "github.com/mailru/easyjson"
 
 [[constraint]]
-  name = "github.com/simplereach/timeutils"
-  version = "1.2.0"
-
-[[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.2.1"
 
@@ -56,3 +52,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/markbates/going"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/araddon/dateparse"

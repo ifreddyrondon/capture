@@ -8,6 +8,12 @@
   version = "v1.5"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/araddon/dateparse"
+  packages = ["."]
+  revision = "f58c961370c5e74008eb4147e8926e8c036393f9"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -144,12 +150,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/simplereach/timeutils"
-  packages = ["."]
-  revision = "1a719258b86a08630289b86902ab16817ba641e9"
-  version = "v1.2.0"
-
-[[projects]]
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
@@ -270,6 +270,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f6240df9c29fc88654db33e14e14fc62df4011b367e70b7ba09921ee30ed31f6"
+  inputs-digest = "ed82848015af074be814ec15c1646237abd7091308b7b18f391cc20c9fa9c898"
   solver-name = "gps-cdcl"
   solver-version = 1

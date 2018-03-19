@@ -6,9 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/markbates/going/defaults"
-
-	"github.com/simplereach/timeutils"
 )
 
 // Timestamp represents the specific moment at which the capture was taken.
@@ -34,7 +33,7 @@ func (t *Timestamp) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	date := defaults.String(model.Date.String(), model.Timestamp.String())
-	parsedTime, err := timeutils.ParseDateString(date)
+	parsedTime, err := dateparse.ParseAny(date)
 	if err != nil {
 		return nil
 	}
