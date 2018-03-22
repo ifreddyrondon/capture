@@ -8,14 +8,8 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
-const Domain = "branches"
-
 type Handler struct {
 	render.Render
-}
-
-func (h *Handler) Pattern() string {
-	return Domain
 }
 
 // Routes creates a REST router for the branch resource

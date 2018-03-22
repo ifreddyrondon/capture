@@ -2,39 +2,58 @@ package capture_test
 
 import (
 	"net/http"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	mgo "gopkg.in/mgo.v2"
 
 	"fmt"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
 )
 
+var once sync.Once
+var db *mgo.Database
+
+func getDB(t *testing.T) *mgo.Database {
+	once.Do(func() {
+		ds, err := database.Open("localhost/captures_test")
+		db = ds.DB()
+		require.Nil(t, err)
+	})
+	return db
+}
+
 func setup(t *testing.T) (*bastion.Bastion, func()) {
 	t.Parallel()
 
-	ds, err := database.Open("localhost/captures_test")
-	require.Nil(t, err)
-	db := ds.DB()
-	service := capture.MgoService{DB: db}
+	// get a random collection to allow parallel execution
+	collection := getDB(t).C(fmt.Sprintf("captures.%v", time.Now().UnixNano()))
+	teardown := func() { collection.DropCollection() }
+
+	service := capture.MgoService{Collection: collection}
 	handler := capture.Handler{
 		Service: &service,
 		Render:  json.NewRender,
+		CtxKey:  app.ContextKey("capture"),
 	}
 
 	app := bastion.New(bastion.Options{})
-	app.APIRouter.Mount(fmt.Sprintf("/%v/", handler.Pattern()), handler.Router())
-
-	teardown := func() { ds.DB().DropDatabase() }
+	app.APIRouter.Mount("/captures/", handler.Router())
 
 	return app, teardown
 }
 
 func TestCreateValidCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
 	tt := []struct {
 		name     string
 		payload  map[string]interface{}
@@ -89,9 +108,6 @@ func TestCreateValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			app, teardown := setup(t)
-			defer teardown()
-
 			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
@@ -110,6 +126,9 @@ func TestCreateValidCapture(t *testing.T) {
 }
 
 func TestCreateInValidCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
 	tt := []struct {
 		name     string
 		payload  map[string]interface{}
@@ -146,9 +165,6 @@ func TestCreateInValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			app, teardown := setup(t)
-			defer teardown()
-
 			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
@@ -206,4 +222,46 @@ func TestListCapturesWithValues(t *testing.T) {
 		ContainsKey("id").
 		ContainsKey("created_date").
 		ContainsKey("last_modified")
+}
+
+func TestGetCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	capPayload := map[string]interface{}{
+		"lat":       1.0,
+		"lng":       12.0,
+		"timestamp": "1989-12-26T06:01:00Z",
+		"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+	}
+	e := bastion.Tester(t, app)
+	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
+		JSON().Object().Raw()
+
+	e.GET(fmt.Sprintf("/captures/%v", obj["id"])).Expect().
+		Status(http.StatusOK).
+		JSON().Object().
+		ContainsKey("payload").ValueEqual("payload", capPayload["payload"]).
+		ContainsKey("lat").ValueEqual("lat", capPayload["lat"]).
+		ContainsKey("lng").ValueEqual("lng", capPayload["lng"]).
+		ContainsKey("timestamp").NotEmpty().
+		ContainsKey("id").NotEmpty().
+		ContainsKey("created_date").NotEmpty().
+		ContainsKey("last_modified").NotEmpty()
+}
+
+func TestGetMissingCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	response := map[string]interface{}{
+		"status":  404.0,
+		"error":   "Not Found",
+		"message": "not found",
+	}
+
+	e := bastion.Tester(t, app)
+	e.GET(fmt.Sprint("/captures/5ab3a603841d0925708a6ea7")).Expect().
+		Status(http.StatusNotFound).
+		JSON().Object().Equal(response)
 }

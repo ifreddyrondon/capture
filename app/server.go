@@ -9,19 +9,27 @@ import (
 	"github.com/ifreddyrondon/gocapture/capture"
 )
 
+// ContextKey represent a key in a context.ContextValue
+type ContextKey string
+
+func (c ContextKey) String() string {
+	return string(c)
+}
+
 func New(db *mgo.Database) *bastion.Bastion {
 	app := bastion.New(bastion.Options{})
 
-	capService := capture.MgoService{DB: db}
+	capService := capture.MgoService{Collection: db.C("captures")}
 	capH := capture.Handler{
 		Service: &capService,
 		Render:  json.NewRender,
+		CtxKey:  ContextKey("capture"),
 	}
-	app.APIRouter.Mount(capH.Pattern(), capH.Router())
+	app.APIRouter.Mount("/captures/", capH.Router())
 
 	branchH := branch.Handler{
 		Render: json.NewRender,
 	}
-	app.APIRouter.Mount(branchH.Pattern(), branchH.Router())
+	app.APIRouter.Mount("/branches/", branchH.Router())
 	return app
 }

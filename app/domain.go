@@ -6,8 +6,7 @@ import (
 
 // Router is the interface implemented by the controllers.
 // It allows the auto attach of the Router() (http.Handler)
-// as a subrouter along a routing Pattern()
+// as a subrouter along a routing path
 type Router interface {
-	Pattern() string
 	Router() http.Handler
 }
