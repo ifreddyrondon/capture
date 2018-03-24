@@ -119,8 +119,8 @@ func TestCreateValidCapture(t *testing.T) {
 				ContainsKey("lng").ValueEqual("lng", tc.response["lng"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.response["timestamp"]).
 				ContainsKey("id").NotEmpty().
-				ContainsKey("created_date").NotEmpty().
-				ContainsKey("last_modified").NotEmpty()
+				ContainsKey("createdDate").NotEmpty().
+				ContainsKey("lastModified").NotEmpty()
 		})
 	}
 }
@@ -220,8 +220,8 @@ func TestListCapturesWithValues(t *testing.T) {
 		ContainsKey("lng").
 		ContainsKey("timestamp").
 		ContainsKey("id").
-		ContainsKey("created_date").
-		ContainsKey("last_modified")
+		ContainsKey("createdDate").
+		ContainsKey("lastModified")
 }
 
 func TestGetCapture(t *testing.T) {
@@ -246,8 +246,8 @@ func TestGetCapture(t *testing.T) {
 		ContainsKey("lng").ValueEqual("lng", capPayload["lng"]).
 		ContainsKey("timestamp").NotEmpty().
 		ContainsKey("id").NotEmpty().
-		ContainsKey("created_date").NotEmpty().
-		ContainsKey("last_modified").NotEmpty()
+		ContainsKey("createdDate").NotEmpty().
+		ContainsKey("lastModified").NotEmpty()
 }
 
 func TestGetMissingCapture(t *testing.T) {
@@ -264,4 +264,25 @@ func TestGetMissingCapture(t *testing.T) {
 	e.GET(fmt.Sprint("/captures/5ab3a603841d0925708a6ea7")).Expect().
 		Status(http.StatusNotFound).
 		JSON().Object().Equal(response)
+}
+
+func TestDeleteCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	capPayload := map[string]interface{}{
+		"lat":       1.0,
+		"lng":       12.0,
+		"timestamp": "1989-12-26T06:01:00Z",
+		"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+	}
+	e := bastion.Tester(t, app)
+	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
+		JSON().Object().Raw()
+
+	id := obj["id"]
+
+	e.GET(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusOK)
+	e.DELETE(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusNoContent)
+	e.GET(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusNotFound)
 }

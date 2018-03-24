@@ -14,12 +14,13 @@ type Captures []Capture
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
-	ID                  bson.ObjectId `json:"id" bson:"_id,omitempty"`
-	*numberlist.Payload `json:"payload"`
+	ID bson.ObjectId `json:"id" bson:"_id,omitempty"`
 	*geocoding.Point
-	Timestamp    time.Time
-	CreatedDate  time.Time `json:"created_date" bson:"createdDate"`
-	LastModified time.Time `json:"last_modified" bson:"lastModified"`
+	*numberlist.Payload `json:"payload"`
+	Timestamp           time.Time `json:"timestamp"`
+	Visible             bool      `json:"-" bson:"visible"`
+	CreatedDate         time.Time `json:"createdDate"`
+	LastModified        time.Time `json:"lastModified"`
 }
 
 // New returns a new pointer to a Capture composed of the passed Point, Time and payload
@@ -29,6 +30,7 @@ func New(point *geocoding.Point, timestamp time.Time, payload *numberlist.Payloa
 		Payload:   payload,
 		Point:     point,
 		Timestamp: timestamp,
+		Visible:   true,
 	}
 }
 

@@ -82,7 +82,7 @@ func TestMarshalBranch(t *testing.T) {
 
 	p := branch.Branch{c1, c2}
 	result, _ := json.Marshal(p)
-	expected := `[{"id":"31","payload":[12,11],"created_date":"1989-12-26T06:01:00Z","last_modified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":1,"lng":2},{"id":"31","payload":[1,2],"created_date":"1989-12-26T06:01:00Z","last_modified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":5,"lng":6}]`
+	expected := `[{"id":"31","payload":[12,11],"createdDate":"1989-12-26T06:01:00Z","lastModified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":1,"lng":2},{"id":"31","payload":[1,2],"createdDate":"1989-12-26T06:01:00Z","lastModified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":5,"lng":6}]`
 
 	assert.Equal(t, expected, string(result))
 }

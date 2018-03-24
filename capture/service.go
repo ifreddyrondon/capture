@@ -19,6 +19,8 @@ type Service interface {
 	List(start, count int) (Captures, error)
 	// Get retrive a capture by id
 	Get(string) (*Capture, error)
+	// Delete a capture by id
+	Delete(string) error
 }
 
 // MgoService implementation of capture.Service for
@@ -28,30 +30,40 @@ type MgoService struct {
 }
 
 // Create a capture into the database.
-func (s *MgoService) Create(p *geocoding.Point, t time.Time, payload *numberlist.Payload) (*Capture, error) {
+func (m *MgoService) Create(p *geocoding.Point, t time.Time, payload *numberlist.Payload) (*Capture, error) {
 	c := New(p, t, payload)
 	now := time.Now()
 	c.CreatedDate, c.LastModified = now, now
-	if err := s.Collection.Insert(c); err != nil {
+	if err := m.Collection.Insert(c); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
 // List retrieve the count captures from start index.
-func (s *MgoService) List(start, count int) (Captures, error) {
+func (m *MgoService) List(start, count int) (Captures, error) {
 	results := Captures{}
-	if err := s.Collection.Find(nil).All(&results); err != nil {
+	if err := m.Collection.Find(bson.M{"visible": true}).All(&results); err != nil {
 		return nil, err
 	}
 	return results, nil
 }
 
 // Get retrive a capture by id
-func (s *MgoService) Get(id string) (*Capture, error) {
+func (m *MgoService) Get(id string) (*Capture, error) {
 	var result Capture
-	if err := s.Collection.FindId(bson.ObjectIdHex(id)).One(&result); err != nil {
+	query := bson.M{"_id": bson.ObjectIdHex(id), "visible": true}
+	if err := m.Collection.Find(query).One(&result); err != nil {
 		return nil, err
 	}
 	return &result, nil
+}
+
+// Delete a capture by id
+func (m *MgoService) Delete(id string) error {
+	change := bson.M{"$set": bson.M{"visible": false, "lastModified": time.Now()}}
+	if err := m.Collection.UpdateId(bson.ObjectIdHex(id), change); err != nil {
+		return err
+	}
+	return nil
 }

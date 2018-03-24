@@ -84,7 +84,7 @@ func TestCaptureMarshalJSON(t *testing.T) {
 	c.ID = "1" // the unmarshal of BsonId is an hexadecimal representation, e.g. "1"->"31"
 	c.CreatedDate, c.LastModified = getDate(date), getDate(date)
 	result, _ := c.MarshalJSON()
-	expected := `{"id":"31","payload":[12,11],"created_date":"1989-12-26T06:01:00Z","last_modified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":1,"lng":2}`
+	expected := `{"id":"31","payload":[12,11],"createdDate":"1989-12-26T06:01:00Z","lastModified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":1,"lng":2}`
 
 	assert.Equal(t, expected, string(result))
 }

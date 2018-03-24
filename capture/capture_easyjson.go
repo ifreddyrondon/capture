@@ -53,13 +53,13 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"created_date\":")
+	out.RawString("\"createdDate\":")
 	out.Raw((in.CreatedDate).MarshalJSON())
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"last_modified\":")
+	out.RawString("\"lastModified\":")
 	out.Raw((in.LastModified).MarshalJSON())
 	if !first {
 		out.RawByte(',')
