@@ -25,12 +25,15 @@ type Capture struct {
 
 // New returns a new pointer to a Capture composed of the passed Point, Time and payload
 func New(point *geocoding.Point, timestamp time.Time, payload *numberlist.Payload) *Capture {
+	now := time.Now()
 	return &Capture{
-		ID:        bson.NewObjectId(),
-		Payload:   payload,
-		Point:     point,
-		Timestamp: timestamp,
-		Visible:   true,
+		ID:           bson.NewObjectId(),
+		Payload:      payload,
+		Point:        point,
+		Timestamp:    timestamp,
+		Visible:      true,
+		CreatedDate:  now,
+		LastModified: now,
 	}
 }
 

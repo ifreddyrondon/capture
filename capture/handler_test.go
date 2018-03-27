@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/araddon/dateparse"
 	"github.com/stretchr/testify/require"
 	mgo "gopkg.in/mgo.v2"
 
@@ -54,6 +57,7 @@ func TestCreateValidCapture(t *testing.T) {
 	app, teardown := setup(t)
 	defer teardown()
 
+	e := bastion.Tester(t, app)
 	tt := []struct {
 		name     string
 		payload  map[string]interface{}
@@ -108,7 +112,6 @@ func TestCreateValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
 				Expect().
@@ -129,6 +132,7 @@ func TestCreateInValidCapture(t *testing.T) {
 	app, teardown := setup(t)
 	defer teardown()
 
+	e := bastion.Tester(t, app)
 	tt := []struct {
 		name     string
 		payload  map[string]interface{}
@@ -165,7 +169,6 @@ func TestCreateInValidCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			e := bastion.Tester(t, app)
 			e.POST("/captures/").
 				WithJSON(tc.payload).
 				Expect().
@@ -285,4 +288,97 @@ func TestDeleteCapture(t *testing.T) {
 	e.GET(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusOK)
 	e.DELETE(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusNoContent)
 	e.GET(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusNotFound)
+}
+
+func TestUpdateCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	capPayload := map[string]interface{}{
+		"lat":       1.0,
+		"lng":       12.0,
+		"timestamp": "1989-12-26T06:01:00Z",
+		"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+	}
+
+	tt := []struct {
+		name          string
+		updatePayload map[string]interface{}
+	}{
+		{
+			"update lat",
+			map[string]interface{}{
+				"lat":       89.0,
+				"lng":       capPayload["lng"],
+				"timestamp": capPayload["timestamp"],
+				"payload":   capPayload["payload"],
+			},
+		},
+		{
+			"update lng",
+			map[string]interface{}{
+				"lat":       capPayload["lat"],
+				"lng":       30,
+				"timestamp": capPayload["timestamp"],
+				"payload":   capPayload["payload"],
+			},
+		},
+		{
+			"update timestamp",
+			map[string]interface{}{
+				"lat":       capPayload["lat"],
+				"lng":       capPayload["lng"],
+				"timestamp": "2006-07-12T06:01:00Z",
+				"payload":   capPayload["payload"],
+			},
+		},
+		{
+			"update payload",
+			map[string]interface{}{
+				"lat":       capPayload["lat"],
+				"lng":       capPayload["lng"],
+				"timestamp": capPayload["timestamp"],
+				"payload":   []float32{1},
+			},
+		},
+		{
+			"do not update id",
+			map[string]interface{}{
+				"id":        "123",
+				"lat":       capPayload["lat"],
+				"lng":       capPayload["lng"],
+				"timestamp": capPayload["timestamp"],
+				"payload":   capPayload["payload"],
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			createdObj := e.POST("/captures/").WithJSON(capPayload).Expect().
+				Status(http.StatusCreated).JSON().Object().Raw()
+			e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
+			tc.updatePayload["id"] = createdObj["id"]
+			updatedObj := e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
+				Status(http.StatusOK).
+				JSON().Object().
+				ContainsKey("id").ValueEqual("id", tc.updatePayload["id"]).
+				ContainsKey("lat").ValueEqual("lat", tc.updatePayload["lat"]).
+				ContainsKey("lng").ValueEqual("lng", tc.updatePayload["lng"]).
+				ContainsKey("timestamp").ValueEqual("timestamp", tc.updatePayload["timestamp"]).
+				ContainsKey("payload").ValueEqual("payload", tc.updatePayload["payload"]).
+				ContainsKey("createdDate").NotEmpty().
+				ContainsKey("lastModified").NotEmpty().
+				Raw()
+
+			// TODO: createdDate should be equal
+
+			lastModifiedFromCreate, err := dateparse.ParseAny(createdObj["lastModified"].(string))
+			assert.Nil(t, err)
+			lastModifiedFromUpdate, err := dateparse.ParseAny(updatedObj["lastModified"].(string))
+			assert.Nil(t, err)
+			lastModifiedFromUpdate.After(lastModifiedFromCreate)
+		})
+	}
 }

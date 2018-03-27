@@ -21,6 +21,8 @@ type Service interface {
 	Get(string) (*Capture, error)
 	// Delete a capture by id
 	Delete(string) error
+	// Update a capture
+	Update(*Capture) error
 }
 
 // MgoService implementation of capture.Service for
@@ -32,8 +34,6 @@ type MgoService struct {
 // Create a capture into the database.
 func (m *MgoService) Create(p *geocoding.Point, t time.Time, payload *numberlist.Payload) (*Capture, error) {
 	c := New(p, t, payload)
-	now := time.Now()
-	c.CreatedDate, c.LastModified = now, now
 	if err := m.Collection.Insert(c); err != nil {
 		return nil, err
 	}
@@ -63,6 +63,14 @@ func (m *MgoService) Get(id string) (*Capture, error) {
 func (m *MgoService) Delete(id string) error {
 	change := bson.M{"$set": bson.M{"visible": false, "lastModified": time.Now()}}
 	if err := m.Collection.UpdateId(bson.ObjectIdHex(id), change); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Update a capture
+func (m *MgoService) Update(captureSRC *Capture) error {
+	if err := m.Collection.UpdateId(captureSRC.ID, captureSRC); err != nil {
 		return err
 	}
 	return nil

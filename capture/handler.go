@@ -3,13 +3,14 @@ package capture
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
-	bastionJSON "github.com/ifreddyrondon/bastion/render/json"
 )
 
 type Handler struct {
@@ -27,7 +28,7 @@ func (h *Handler) Router() http.Handler {
 	r.Route("/{id}", func(r chi.Router) {
 		r.Use(h.captureCtx)
 		r.Get("/", h.get)
-		// r.Put("/", h.update)    // PUT /todos/{id} - update a single todo by :id
+		r.Put("/", h.update)
 		r.Delete("/", h.delete)
 	})
 	return r
@@ -46,19 +47,19 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	captureIn := new(Capture)
-	if err := json.NewDecoder(r.Body).Decode(captureIn); err != nil {
+	var captureIN Capture
+	if err := json.NewDecoder(r.Body).Decode(&captureIN); err != nil {
 		h.Render(w).BadRequest(err)
 		return
 	}
 
-	captureOut, err := h.Service.Create(captureIn.Point, captureIn.Timestamp, captureIn.Payload)
+	captureOUT, err := h.Service.Create(captureIN.Point, captureIN.Timestamp, captureIN.Payload)
 	if err != nil {
 		h.Render(w).InternalServerError(err)
 		return
 	}
 
-	h.Render(w).Created(captureOut)
+	h.Render(w).Created(captureOUT)
 }
 
 func (h *Handler) captureCtx(next http.Handler) http.Handler {
@@ -82,11 +83,8 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cap, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
-		message := bastionJSON.HTTPError{
-			Status: http.StatusUnprocessableEntity,
-			Errors: http.StatusText(http.StatusUnprocessableEntity),
-		}
-		h.Render(w).Response(http.StatusUnprocessableEntity, message)
+		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+		h.Render(w).InternalServerError(err)
 		return
 	}
 	h.Render(w).Send(cap)
@@ -96,11 +94,8 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	cap, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
-		message := bastionJSON.HTTPError{
-			Status: http.StatusUnprocessableEntity,
-			Errors: http.StatusText(http.StatusUnprocessableEntity),
-		}
-		h.Render(w).Response(http.StatusUnprocessableEntity, message)
+		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+		h.Render(w).InternalServerError(err)
 		return
 	}
 	if err := h.Service.Delete(cap.ID.Hex()); err != nil {
@@ -108,4 +103,32 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	h.Render(w).NoContent()
+}
+
+func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	cap, ok := ctx.Value(h.CtxKey).(*Capture)
+	if !ok {
+		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+		h.Render(w).InternalServerError(err)
+		return
+	}
+
+	var captureDST Capture
+	if err := json.NewDecoder(r.Body).Decode(&captureDST); err != nil {
+		h.Render(w).BadRequest(err)
+		return
+	}
+
+	captureDST.ID = cap.ID
+	captureDST.Visible = cap.Visible
+	captureDST.CreatedDate = cap.CreatedDate
+	captureDST.LastModified = time.Now()
+
+	err := h.Service.Update(&captureDST)
+	if err != nil {
+		h.Render(w).InternalServerError(err)
+		return
+	}
+	h.Render(w).Send(captureDST)
 }
