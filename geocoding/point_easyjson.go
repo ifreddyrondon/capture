@@ -3,10 +3,22 @@
 package geocoding
 
 import (
+	json "encoding/json"
+
+	easyjson "github.com/mailru/easyjson"
+	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
-func easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding1(out *jwriter.Writer, in Point) {
+// suppress unused package warning
+var (
+	_ *json.RawMessage
+	_ *jlexer.Lexer
+	_ *jwriter.Writer
+	_ easyjson.Marshaler
+)
+
+func easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding(out *jwriter.Writer, in Point) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -15,12 +27,20 @@ func easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding1(out *jwrite
 	}
 	first = false
 	out.RawString("\"lat\":")
-	out.Float64(float64(in.Lat))
+	if in.Lat == nil {
+		out.RawString("null")
+	} else {
+		out.Float64(float64(*in.Lat))
+	}
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
 	out.RawString("\"lng\":")
-	out.Float64(float64(in.Lng))
+	if in.Lng == nil {
+		out.RawString("null")
+	} else {
+		out.Float64(float64(*in.Lng))
+	}
 	out.RawByte('}')
 }

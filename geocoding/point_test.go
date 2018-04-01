@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewPointSuccess(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name     string
 		lat, lng float64
@@ -27,13 +29,15 @@ func TestNewPointSuccess(t *testing.T) {
 			result, err := geocoding.New(tc.lat, tc.lng)
 			require.Nil(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.lng, result.Lng)
-			assert.Equal(t, tc.lat, result.Lat)
+			assert.Equal(t, tc.lng, *result.Lng)
+			assert.Equal(t, tc.lat, *result.Lat)
 		})
 	}
 }
 
 func TestNewPointFailure(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name     string
 		lat, lng float64
@@ -56,6 +60,8 @@ func TestNewPointFailure(t *testing.T) {
 }
 
 func TestPointMarshalJSON(t *testing.T) {
+	t.Parallel()
+
 	p := getPoint(1, 1)
 	expected := `{"lat":1,"lng":1}`
 	result, err := p.MarshalJSON()
@@ -64,6 +70,8 @@ func TestPointMarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalJSONSuccess(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name     string
 		payload  []byte
@@ -104,12 +112,13 @@ func TestUnmarshalJSONSuccess(t *testing.T) {
 }
 
 func TestUnmarshalJSONFailure(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name     string
 		payload  []byte
 		expected error
 	}{
-		{"invalid empty json", []byte("{}"), geocoding.ErrorLATMissing},
 		{"invalid lat", []byte(`{"lat":100, "lng": 1}`), geocoding.ErrorLATRange},
 		{"invalid lng", []byte(`{"lat":1, "lng": 190}`), geocoding.ErrorLONRange},
 		{"invalid json", []byte("`"), geocoding.ErrorUnmarshalPoint},
@@ -126,6 +135,16 @@ func TestUnmarshalJSONFailure(t *testing.T) {
 			assert.Equal(t, tc.expected, err)
 		})
 	}
+}
+
+func TestUnmarshalJSONMissingBody(t *testing.T) {
+	t.Parallel()
+
+	result := geocoding.Point{}
+	err := result.UnmarshalJSON([]byte("{}"))
+	require.Nil(t, err)
+	require.Nil(t, result.Lat)
+	require.Nil(t, result.Lng)
 }
 
 func getPoint(lat, lng float64) *geocoding.Point {

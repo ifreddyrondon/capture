@@ -2,15 +2,23 @@ package capture
 
 import (
 	"context"
-	"encoding/json"
+	json "encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+)
+
+var (
+	// ErrorNotFound expected error when capture is missing
+	ErrorNotFound = errors.New("not found capture")
+	// ErrorBadRequest expected error when capture id is invalid
+	ErrorBadRequest = errors.New("invalid capture id")
 )
 
 type Handler struct {
@@ -53,20 +61,28 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	captureOUT, err := h.Service.Create(captureIN.Point, captureIN.Timestamp, captureIN.Payload)
+	captureOUT, err := h.Service.Create(captureIN.Payload, captureIN.Timestamp, captureIN.Point)
 	if err != nil {
 		h.Render(w).InternalServerError(err)
 		return
 	}
 
-	h.Render(w).Created(captureOUT)
+	if err := h.Render(w).Created(captureOUT); err != nil {
+		h.Render(w).InternalServerError(err)
+	}
 }
 
 func (h *Handler) captureCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		captureID := chi.URLParam(r, "id")
-		cap, err := h.Service.Get(captureID)
-		if cap == nil {
+		captureID, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		if err != nil {
+			log.Println(err)
+			h.Render(w).BadRequest(ErrorBadRequest)
+			return
+		}
+		var capt *Capture
+		capt, err = h.Service.Get(captureID)
+		if capt == nil {
 			h.Render(w).NotFound(err)
 			return
 		}
@@ -74,31 +90,31 @@ func (h *Handler) captureCtx(next http.Handler) http.Handler {
 			h.Render(w).InternalServerError(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), h.CtxKey, cap)
+		ctx := context.WithValue(r.Context(), h.CtxKey, capt)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	cap, ok := ctx.Value(h.CtxKey).(*Capture)
+	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		h.Render(w).InternalServerError(err)
 		return
 	}
-	h.Render(w).Send(cap)
+	h.Render(w).Send(capt)
 }
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	cap, ok := ctx.Value(h.CtxKey).(*Capture)
+	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		h.Render(w).InternalServerError(err)
 		return
 	}
-	if err := h.Service.Delete(cap.ID.Hex()); err != nil {
+	if err := h.Service.Delete(capt); err != nil {
 		h.Render(w).InternalServerError(err)
 		return
 	}
@@ -107,28 +123,22 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	cap, ok := ctx.Value(h.CtxKey).(*Capture)
+	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		h.Render(w).InternalServerError(err)
 		return
 	}
 
-	var captureDST Capture
-	if err := json.NewDecoder(r.Body).Decode(&captureDST); err != nil {
+	var updatedCapt Capture
+	if err := json.NewDecoder(r.Body).Decode(&updatedCapt); err != nil {
 		h.Render(w).BadRequest(err)
 		return
 	}
 
-	captureDST.ID = cap.ID
-	captureDST.Visible = cap.Visible
-	captureDST.CreatedDate = cap.CreatedDate
-	captureDST.LastModified = time.Now()
-
-	err := h.Service.Update(&captureDST)
-	if err != nil {
+	if err := h.Service.Update(capt, updatedCapt); err != nil {
 		h.Render(w).InternalServerError(err)
 		return
 	}
-	h.Render(w).Send(captureDST)
+	h.Render(w).Send(capt)
 }

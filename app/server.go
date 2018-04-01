@@ -2,11 +2,10 @@ package app
 
 import (
 	"github.com/ifreddyrondon/bastion"
-	"gopkg.in/mgo.v2"
-
 	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
+	"github.com/jinzhu/gorm"
 )
 
 // ContextKey represent a key in a context.ContextValue
@@ -16,10 +15,12 @@ func (c ContextKey) String() string {
 	return string(c)
 }
 
-func New(db *mgo.Database) *bastion.Bastion {
+func New(db *gorm.DB) *bastion.Bastion {
 	app := bastion.New(bastion.Options{})
 
-	capService := capture.MgoService{Collection: db.C("captures")}
+	capService := capture.PGService{DB: db}
+	capService.Drop()
+	capService.Migrate()
 	capH := capture.Handler{
 		Service: &capService,
 		Render:  json.NewRender,

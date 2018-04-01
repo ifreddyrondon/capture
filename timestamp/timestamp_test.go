@@ -10,6 +10,8 @@ import (
 )
 
 func TestNewDate(t *testing.T) {
+	t.Parallel()
+
 	date := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
 	ts := timestamp.New(date)
 	expected := "1989-12-26 06:01:00 +0000 UTC"
@@ -17,6 +19,8 @@ func TestNewDate(t *testing.T) {
 }
 
 func TestUnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
 	expected := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
 	tt := []struct {
 		name    string
@@ -66,6 +70,8 @@ func TestUnmarshalJSON(t *testing.T) {
 }
 
 func TestUnmarshalJSONWhenFails(t *testing.T) {
+	t.Parallel()
+
 	expected := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
 	mockClock := timestamp.NewMockClock(expected)
 
@@ -91,6 +97,8 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 }
 
 func TestDateMarshalJSON(t *testing.T) {
+	t.Parallel()
+
 	date, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
 	expected := `"1989-12-26T06:01:00Z"`
 	result, _ := timestamp.New(date).MarshalJSON()

@@ -8,12 +8,8 @@ import (
 )
 
 func main() {
-	ds, err := database.Open("localhost/captures")
-	if err != nil {
-		log.Panic(err)
-	}
-
-	err = app.New(ds.DB()).Serve()
+	ds := database.Open("postgres://localhost/captures_app?sslmode=disable")
+	err := app.New(ds.DB).Serve()
 	if err != nil {
 		log.Printf("%v", err)
 	}

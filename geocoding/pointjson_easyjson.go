@@ -2,9 +2,23 @@
 
 package geocoding
 
-import jlexer "github.com/mailru/easyjson/jlexer"
+import (
+	json "encoding/json"
 
-func easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.Lexer, out *pointJSON) {
+	easyjson "github.com/mailru/easyjson"
+	jlexer "github.com/mailru/easyjson/jlexer"
+	jwriter "github.com/mailru/easyjson/jwriter"
+)
+
+// suppress unused package warning
+var (
+	_ *json.RawMessage
+	_ *jlexer.Lexer
+	_ *jwriter.Writer
+	_ easyjson.Marshaler
+)
+
+func easyjsonA2deb046DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.Lexer, out *pointJSON) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -24,13 +38,45 @@ func easyjson3844eb60DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.L
 		}
 		switch key {
 		case "lat":
-			out.Lat = float64(in.Float64())
+			if in.IsNull() {
+				in.Skip()
+				out.Lat = nil
+			} else {
+				if out.Lat == nil {
+					out.Lat = new(float64)
+				}
+				*out.Lat = float64(in.Float64())
+			}
 		case "latitude":
-			out.Latitude = float64(in.Float64())
+			if in.IsNull() {
+				in.Skip()
+				out.Latitude = nil
+			} else {
+				if out.Latitude == nil {
+					out.Latitude = new(float64)
+				}
+				*out.Latitude = float64(in.Float64())
+			}
 		case "lng":
-			out.Lng = float64(in.Float64())
+			if in.IsNull() {
+				in.Skip()
+				out.Lng = nil
+			} else {
+				if out.Lng == nil {
+					out.Lng = new(float64)
+				}
+				*out.Lng = float64(in.Float64())
+			}
 		case "longitude":
-			out.Longitude = float64(in.Float64())
+			if in.IsNull() {
+				in.Skip()
+				out.Longitude = nil
+			} else {
+				if out.Longitude == nil {
+					out.Longitude = new(float64)
+				}
+				*out.Longitude = float64(in.Float64())
+			}
 		default:
 			in.SkipRecursive()
 		}

@@ -1,34 +1,29 @@
 package capture_test
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/araddon/dateparse"
-	"github.com/stretchr/testify/require"
-	mgo "gopkg.in/mgo.v2"
-
-	"fmt"
-
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/database"
+	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/assert"
 )
 
 var once sync.Once
-var db *mgo.Database
+var db *gorm.DB
 
-func getDB(t *testing.T) *mgo.Database {
+func getDB() *gorm.DB {
 	once.Do(func() {
-		ds, err := database.Open("localhost/captures_test")
-		db = ds.DB()
-		require.Nil(t, err)
+		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
+		db = ds.DB
 	})
 	return db
 }
@@ -36,11 +31,12 @@ func getDB(t *testing.T) *mgo.Database {
 func setup(t *testing.T) (*bastion.Bastion, func()) {
 	t.Parallel()
 
-	// get a random collection to allow parallel execution
-	collection := getDB(t).C(fmt.Sprintf("captures.%v", time.Now().UnixNano()))
-	teardown := func() { collection.DropCollection() }
+	// get a random table to allow parallel execution
+	schemaName := fmt.Sprintf("captures_%v", time.Now().UnixNano())
+	service := capture.PGService{DB: getDB().Table(schemaName)}
+	service.Migrate()
+	teardown := func() { service.Drop() }
 
-	service := capture.MgoService{Collection: collection}
 	handler := capture.Handler{
 		Service: &service,
 		Render:  json.NewRender,
@@ -64,48 +60,31 @@ func TestCreateValidCapture(t *testing.T) {
 		response map[string]interface{}
 	}{
 		{
-			"create capture with date name",
-			map[string]interface{}{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"},
-			map[string]interface{}{
-				"payload":   nil,
-				"lat":       1.0,
-				"lng":       12.0,
-				"timestamp": "1989-12-26T06:01:00Z",
-			},
-		},
-		{
-			name:    "create capture with timestamp name",
-			payload: map[string]interface{}{"lat": 1, "lng": 12, "timestamp": "630655260"},
-			response: map[string]interface{}{
-				"payload":   nil,
-				"lat":       1.0,
-				"lng":       12.0,
-				"timestamp": "1989-12-26T06:01:00Z",
-			},
-		},
-		{
-			name:    "create capture with latitude, longitude and data names",
-			payload: map[string]interface{}{"latitude": 1, "longitude": 12, "date": "630655260"},
-			response: map[string]interface{}{
-				"payload":   nil,
-				"lat":       1.0,
-				"lng":       12.0,
-				"timestamp": "1989-12-26T06:01:00Z",
-			},
-		},
-		{
-			name: "create capture with payload",
+			name: "create capture with payload, date and point",
 			payload: map[string]interface{}{
 				"latitude":  1,
 				"longitude": 12,
-				"date":      "630655260",
-				"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+				"timestamp": "630655260",
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 			},
 			response: map[string]interface{}{
 				"lat":       1.0,
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
-				"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+		},
+		{
+			name: "create capture with payload and date without point",
+			payload: map[string]interface{}{
+				"date":    "630655260",
+				"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+			response: map[string]interface{}{
+				"lat":       nil,
+				"lng":       nil,
+				"timestamp": "1989-12-26T06:01:00Z",
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 			},
 		},
 	}
@@ -122,13 +101,38 @@ func TestCreateValidCapture(t *testing.T) {
 				ContainsKey("lng").ValueEqual("lng", tc.response["lng"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.response["timestamp"]).
 				ContainsKey("id").NotEmpty().
-				ContainsKey("createdDate").NotEmpty().
-				ContainsKey("lastModified").NotEmpty()
+				ContainsKey("createdAt").NotEmpty().
+				ContainsKey("updatedAt").NotEmpty()
 		})
 	}
 }
 
-func TestCreateInValidCapture(t *testing.T) {
+func TestCreateOnlyPayloadCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	payload := map[string]interface{}{
+		"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+	}
+	response := map[string]interface{}{
+		"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+	}
+	e := bastion.Tester(t, app)
+	e.POST("/captures/").
+		WithJSON(payload).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().Object().
+		ContainsKey("payload").ValueEqual("payload", response["payload"]).
+		ContainsKey("lat").ValueEqual("lat", nil).
+		ContainsKey("lng").ValueEqual("lng", nil).
+		ContainsKey("timestamp").NotEmpty().
+		ContainsKey("id").NotEmpty().
+		ContainsKey("createdAt").NotEmpty().
+		ContainsKey("updatedAt").NotEmpty()
+}
+
+func TestCreateInvalidCapture(t *testing.T) {
 	app, teardown := setup(t)
 	defer teardown()
 
@@ -144,7 +148,7 @@ func TestCreateInValidCapture(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "missing latitude",
+				"message": "missing payload value",
 			},
 		},
 		{
@@ -178,11 +182,11 @@ func TestCreateInValidCapture(t *testing.T) {
 	}
 }
 
-func TestCreateInValidPayloadCapture(t *testing.T) {
+func TestCreateInvalidPayloadCapture(t *testing.T) {
 	response := map[string]interface{}{
 		"status":  400.0,
 		"error":   "Bad Request",
-		"message": "cannot unmarshal json into Point value",
+		"message": "cannot unmarshal json into valid capture",
 	}
 
 	app, teardown := setup(t)
@@ -207,7 +211,9 @@ func TestListCapturesWithValues(t *testing.T) {
 	app, teardown := setup(t)
 	defer teardown()
 
-	payload := map[string]interface{}{"lat": 1, "lng": 12, "date": "1989-12-26T06:01:00.00Z"}
+	payload := map[string]interface{}{
+		"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+	}
 	e := bastion.Tester(t, app)
 	e.POST("/captures/").WithJSON(payload).Expect().Status(http.StatusCreated)
 
@@ -223,8 +229,8 @@ func TestListCapturesWithValues(t *testing.T) {
 		ContainsKey("lng").
 		ContainsKey("timestamp").
 		ContainsKey("id").
-		ContainsKey("createdDate").
-		ContainsKey("lastModified")
+		ContainsKey("createdAt").
+		ContainsKey("updatedAt")
 }
 
 func TestGetCapture(t *testing.T) {
@@ -235,7 +241,7 @@ func TestGetCapture(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
-		"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 	}
 	e := bastion.Tester(t, app)
 	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
@@ -249,8 +255,8 @@ func TestGetCapture(t *testing.T) {
 		ContainsKey("lng").ValueEqual("lng", capPayload["lng"]).
 		ContainsKey("timestamp").NotEmpty().
 		ContainsKey("id").NotEmpty().
-		ContainsKey("createdDate").NotEmpty().
-		ContainsKey("lastModified").NotEmpty()
+		ContainsKey("createdAt").NotEmpty().
+		ContainsKey("updatedAt").NotEmpty()
 }
 
 func TestGetMissingCapture(t *testing.T) {
@@ -260,12 +266,28 @@ func TestGetMissingCapture(t *testing.T) {
 	response := map[string]interface{}{
 		"status":  404.0,
 		"error":   "Not Found",
-		"message": "not found",
+		"message": "not found capture",
 	}
 
 	e := bastion.Tester(t, app)
-	e.GET(fmt.Sprint("/captures/5ab3a603841d0925708a6ea7")).Expect().
+	e.GET(fmt.Sprint("/captures/123123")).Expect().
 		Status(http.StatusNotFound).
+		JSON().Object().Equal(response)
+}
+
+func TestGetCaptureBadRequest(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	response := map[string]interface{}{
+		"status":  400.0,
+		"error":   "Bad Request",
+		"message": "invalid capture id",
+	}
+
+	e := bastion.Tester(t, app)
+	e.GET(fmt.Sprint("/captures/ads")).Expect().
+		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
 }
 
@@ -277,7 +299,7 @@ func TestDeleteCapture(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
-		"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 	}
 	e := bastion.Tester(t, app)
 	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
@@ -299,7 +321,7 @@ func TestUpdateCapture(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
-		"payload":   []float32{-78.75, -80.5, -73.75, -70.75, -72},
+		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 	}
 
 	tt := []struct {
@@ -339,7 +361,7 @@ func TestUpdateCapture(t *testing.T) {
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
 				"timestamp": capPayload["timestamp"],
-				"payload":   []float32{1},
+				"payload":   map[string]interface{}{"power": []interface{}{1}},
 			},
 		},
 		{
@@ -368,17 +390,17 @@ func TestUpdateCapture(t *testing.T) {
 				ContainsKey("lng").ValueEqual("lng", tc.updatePayload["lng"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.updatePayload["timestamp"]).
 				ContainsKey("payload").ValueEqual("payload", tc.updatePayload["payload"]).
-				ContainsKey("createdDate").NotEmpty().
-				ContainsKey("lastModified").NotEmpty().
+				ContainsKey("createdAt").NotEmpty().
+				ContainsKey("updatedAt").NotEmpty().
 				Raw()
 
-			// TODO: createdDate should be equal
+			// TODO: createdAt should be equal
 
-			lastModifiedFromCreate, err := dateparse.ParseAny(createdObj["lastModified"].(string))
+			updatedAtFromCreate, err := dateparse.ParseAny(createdObj["updatedAt"].(string))
 			assert.Nil(t, err)
-			lastModifiedFromUpdate, err := dateparse.ParseAny(updatedObj["lastModified"].(string))
+			updatedAtFromUpdate, err := dateparse.ParseAny(updatedObj["updatedAt"].(string))
 			assert.Nil(t, err)
-			lastModifiedFromUpdate.After(lastModifiedFromCreate)
+			updatedAtFromUpdate.After(updatedAtFromCreate)
 		})
 	}
 }

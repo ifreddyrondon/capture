@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.Writer, in Capture) {
+func easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.Writer, in Capture) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -27,40 +27,34 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 	}
 	first = false
 	out.RawString("\"id\":")
-	out.Raw((in.ID).MarshalJSON())
+	out.Uint(uint(in.ID))
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
 	out.RawString("\"payload\":")
-	if in.Payload == nil {
-		out.RawString("null")
+	if in.Payload == nil && (out.Flags&jwriter.NilMapAsEmpty) == 0 {
+		out.RawString(`null`)
 	} else {
-		if *in.Payload == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
-		} else {
-			out.RawByte('[')
-			for v1, v2 := range *in.Payload {
-				if v1 > 0 {
-					out.RawByte(',')
-				}
-				out.Float64(float64(v2))
+		out.RawByte('{')
+		v1First := true
+		for v1Name, v1Value := range in.Payload {
+			if !v1First {
+				out.RawByte(',')
 			}
-			out.RawByte(']')
+			v1First = false
+			out.String(string(v1Name))
+			out.RawByte(':')
+			if m, ok := v1Value.(easyjson.Marshaler); ok {
+				m.MarshalEasyJSON(out)
+			} else if m, ok := v1Value.(json.Marshaler); ok {
+				out.Raw(m.MarshalJSON())
+			} else {
+				out.Raw(json.Marshal(v1Value))
+			}
 		}
+		out.RawByte('}')
 	}
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"createdDate\":")
-	out.Raw((in.CreatedDate).MarshalJSON())
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"lastModified\":")
-	out.Raw((in.LastModified).MarshalJSON())
 	if !first {
 		out.RawByte(',')
 	}
@@ -71,13 +65,33 @@ func easyjsonC80ae7adEncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 		out.RawByte(',')
 	}
 	first = false
+	out.RawString("\"createdAt\":")
+	out.Raw((in.CreatedAt).MarshalJSON())
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"updatedAt\":")
+	out.Raw((in.UpdatedAt).MarshalJSON())
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
 	out.RawString("\"lat\":")
-	out.Float64(float64(in.Lat))
+	if in.Lat == nil {
+		out.RawString("null")
+	} else {
+		out.Float64(float64(*in.Lat))
+	}
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
 	out.RawString("\"lng\":")
-	out.Float64(float64(in.Lng))
+	if in.Lng == nil {
+		out.RawString("null")
+	} else {
+		out.Float64(float64(*in.Lng))
+	}
 	out.RawByte('}')
 }

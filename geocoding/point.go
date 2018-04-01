@@ -4,9 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/markbates/going/defaults"
-
-	"github.com/mailru/easyjson/jwriter"
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 var (
@@ -24,8 +22,8 @@ var (
 
 // Point represents a physical Point in geographic notation [lat, lng].
 type Point struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Lat *float64 `json:"lat"`
+	Lng *float64 `json:"lng"`
 }
 
 // New returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
@@ -39,14 +37,14 @@ func New(lat float64, lng float64) (*Point, error) {
 		return nil, ErrorLONRange
 	}
 
-	return &Point{Lat: lat, Lng: lng}, nil
+	return &Point{Lat: &lat, Lng: &lng}, nil
 }
 
 // MarshalJSON decode current Point to JSON.
 // It supports json.Marshaler interface.
-func (po Point) MarshalJSON() ([]byte, error) {
+func (p Point) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding1(&w, po)
+	easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding(&w, p)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
@@ -59,16 +57,25 @@ func (po *Point) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	lat := defaults.Float64(model.Lat, model.Latitude)
-	if lat == 0 {
+	lat := model.Lat
+	if lat == nil {
+		lat = model.Latitude
+	}
+	lng := model.Lng
+	if lng == nil {
+		lng = model.Longitude
+	}
+	if lat == nil && lng == nil {
+		return nil
+	}
+	if lng != nil && lat == nil {
 		return ErrorLATMissing
 	}
-	lng := defaults.Float64(model.Lng, model.Longitude)
-	if lng == 0 {
+	if lat != nil && lng == nil {
 		return ErrorLNGMissing
 	}
 
-	point, err := New(lat, lng)
+	point, err := New(*lat, *lng)
 	if err != nil {
 		log.Print(err)
 		return err

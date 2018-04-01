@@ -3,74 +3,84 @@ package capture
 import (
 	"time"
 
-	"gopkg.in/mgo.v2/bson"
+	"github.com/jinzhu/gorm"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
-	"github.com/ifreddyrondon/gocapture/payload/numberlist"
-	"gopkg.in/mgo.v2"
+	"github.com/ifreddyrondon/gocapture/payload"
 )
 
 // Service is the interface implemented by capture
-// that can make CRUD operations over captures.
+// It make CRUD operations over captures.
 type Service interface {
 	// Create a capture into the database.
-	Create(*geocoding.Point, time.Time, *numberlist.Payload) (*Capture, error)
+	Create(payload.Payload, time.Time, geocoding.Point) (*Capture, error)
 	// List retrieve the count captures from start index.
 	List(start, count int) (Captures, error)
 	// Get retrive a capture by id
-	Get(string) (*Capture, error)
+	Get(uint64) (*Capture, error)
 	// Delete a capture by id
-	Delete(string) error
-	// Update a capture
-	Update(*Capture) error
+	Delete(*Capture) error
+	// Update a capture from an updated one, will only update those changed & non blank fields.
+	Update(original *Capture, updated Capture) error
 }
 
-// MgoService implementation of capture.Service for
-// Mongo database.
-type MgoService struct {
-	*mgo.Collection
+// PGService implementation of capture.Service for Postgres database.
+type PGService struct {
+	DB *gorm.DB
+}
+
+// Migrate (panic) runs schema migration.
+func (pgs *PGService) Migrate() {
+	pgs.DB.AutoMigrate(Capture{})
+}
+
+// Drop (panic) delete schema.
+func (pgs *PGService) Drop() {
+	pgs.DB.DropTableIfExists(Capture{})
 }
 
 // Create a capture into the database.
-func (m *MgoService) Create(p *geocoding.Point, t time.Time, payload *numberlist.Payload) (*Capture, error) {
-	c := New(p, t, payload)
-	if err := m.Collection.Insert(c); err != nil {
+func (pgs *PGService) Create(payl payload.Payload, t time.Time, p geocoding.Point) (*Capture, error) {
+	c, err := New(payl, t, p)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := pgs.DB.Create(c).Error; err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
 // List retrieve the count captures from start index.
-func (m *MgoService) List(start, count int) (Captures, error) {
+func (pgs *PGService) List(start, count int) (Captures, error) {
 	results := Captures{}
-	if err := m.Collection.Find(bson.M{"visible": true}).All(&results); err != nil {
+	if err := pgs.DB.Order("updated_at").Offset(start).Limit(count).Find(&results).Error; err != nil {
 		return nil, err
 	}
 	return results, nil
 }
 
 // Get retrive a capture by id
-func (m *MgoService) Get(id string) (*Capture, error) {
+func (pgs *PGService) Get(id uint64) (*Capture, error) {
 	var result Capture
-	query := bson.M{"_id": bson.ObjectIdHex(id), "visible": true}
-	if err := m.Collection.Find(query).One(&result); err != nil {
-		return nil, err
+	if pgs.DB.First(&result, id).RecordNotFound() {
+		return nil, ErrorNotFound
 	}
 	return &result, nil
 }
 
 // Delete a capture by id
-func (m *MgoService) Delete(id string) error {
-	change := bson.M{"$set": bson.M{"visible": false, "lastModified": time.Now()}}
-	if err := m.Collection.UpdateId(bson.ObjectIdHex(id), change); err != nil {
+func (pgs *PGService) Delete(capt *Capture) error {
+	if err := pgs.DB.Delete(capt).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // Update a capture
-func (m *MgoService) Update(captureSRC *Capture) error {
-	if err := m.Collection.UpdateId(captureSRC.ID, captureSRC); err != nil {
+func (pgs *PGService) Update(original *Capture, updated Capture) error {
+	if err := pgs.DB.Model(original).Updates(updated).Error; err != nil {
 		return err
 	}
 	return nil

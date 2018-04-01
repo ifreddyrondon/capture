@@ -3,31 +3,35 @@ package database
 import (
 	"log"
 
-	"gopkg.in/mgo.v2"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
+type Schemator interface {
+	// Create (panic) runs schema migration.
+	Create()
+	// Drop (panic) delete schema.
+	Drop()
+}
+
 type DataSource struct {
-	session *mgo.Session
+	DB *gorm.DB
 }
 
 // TODO: load this func into bastion RegisterOnShutdown
 // Finalize implements the Finalizer interface from bastion to be executed as graceful shutdown.
-func (ds *DataSource) OnShutdown() error {
+func (ds *DataSource) OnShutdown() {
 	log.Printf("[finalizer:data source] closing the main session")
-	ds.session.Close()
-	return nil
+	ds.DB.Close()
 }
 
-// DB returns a value representing the named database
-func (ds *DataSource) DB() *mgo.Database {
-	return ds.session.DB("")
-}
+// Open establishes a connection with the database server and verify with a ping.
+// it returns a *DataSource
+func Open(url string) *DataSource {
+	db, err := gorm.Open("postgres", url)
+	if err != nil {
+		log.Panic(err)
+	}
 
-// Open establishes a new session with the mongod server, it returns a *DataSource
-// [mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]
-func Open(url string) (*DataSource, error) {
-	var err error
-	db := new(DataSource)
-	db.session, err = mgo.Dial(url)
-	return db, err
+	return &DataSource{DB: db}
 }

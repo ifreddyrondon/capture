@@ -4,34 +4,95 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/payload/numberlist"
+	"github.com/ifreddyrondon/gocapture/payload"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
+
+	"github.com/ifreddyrondon/gocapture/capture"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewCapture(t *testing.T) {
-	p, err := geocoding.New(1, 2)
-	payload := numberlist.New(12, 11)
-	result := capture.New(p, time.Now(), payload)
+	t.Parallel()
+	point, _ := geocoding.New(1, 2)
+	tt := []struct {
+		name      string
+		payload   payload.Payload
+		timestamp time.Time
+		point     geocoding.Point
+	}{
+		{
+			"simple capture: payload and timestamp",
+			map[string]interface{}{"power": []float64{1, 2, 3}},
+			time.Now(),
+			geocoding.Point{},
+		},
+		{
+			"capture with point",
+			map[string]interface{}{"power": []float64{1, 2, 3}},
+			time.Now(),
+			*point,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := capture.New(tc.payload, tc.timestamp, tc.point)
+			require.Nil(t, err)
+			require.NotNil(t, result)
+			require.Equal(t, tc.payload, result.Payload)
+			require.Equal(t, tc.point, result.Point)
+			require.NotNil(t, result.Timestamp)
+		})
+	}
+}
+
+func TestNewCaptureFail(t *testing.T) {
+	t.Parallel()
+
+	point, _ := geocoding.New(1, 2)
+	_, err := capture.New(nil, time.Now(), *point)
+	assert.EqualError(t, err, "missing payload value")
+}
+
+func TestCaptureUnmarshalWithOnlyPayload(t *testing.T) {
+	t.Parallel()
+
+	payloadData := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
+	expected, _ := capture.New(payloadData, time.Now(), geocoding.Point{})
+
+	result := capture.Capture{}
+	err := result.UnmarshalJSON([]byte(`{"payload":{"power":[-70, -100.1, 3.1]}}`))
 	require.Nil(t, err)
-	require.NotNil(t, result)
+	assert.Nil(t, result.Lat)
+	assert.Nil(t, result.Lng)
+	assert.NotNil(t, result.Timestamp)
+	assert.Equal(t, expected.Payload, result.Payload)
 }
 
 func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
+	t.Parallel()
+
+	payl := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
 	tt := []struct {
 		name    string
 		payload []byte
 		result  *capture.Capture
 	}{
 		{
-			"success without payload",
-			[]byte(`{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			getCapture(1, 1, "1989-12-26T06:01:00.00Z", nil),
+			"capture with payload timestamp",
+			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "date": "1989-12-26T06:01:00.00Z"}`),
+			getCaptureWithoutPoint(payl, "1989-12-26T06:01:00.00Z"),
+		},
+		{
+			"success with payload timestamp and point",
+			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1),
 		},
 	}
+
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			result := capture.Capture{}
@@ -46,6 +107,8 @@ func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
 }
 
 func TestCaptureUnmarshalJSONFailure(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name    string
 		payload []byte
@@ -62,9 +125,14 @@ func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 			geocoding.ErrorLATMissing,
 		},
 		{
+			"missing payload",
+			[]byte(`{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			payload.ErrorMissingPayload,
+		},
+		{
 			"bad payload",
 			[]byte(`{`),
-			geocoding.ErrorUnmarshalPoint,
+			capture.ErrorBadPayload,
 		},
 	}
 
@@ -78,23 +146,51 @@ func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 }
 
 func TestCaptureMarshalJSON(t *testing.T) {
-	date := "1989-12-26T06:01:00.00Z"
-	c := getCapture(1, 2, date, []float64{12, 11})
-	// override auto generated fields for test purpose
-	c.ID = "1" // the unmarshal of BsonId is an hexadecimal representation, e.g. "1"->"31"
-	c.CreatedDate, c.LastModified = getDate(date), getDate(date)
-	result, _ := c.MarshalJSON()
-	expected := `{"id":"31","payload":[12,11],"createdDate":"1989-12-26T06:01:00Z","lastModified":"1989-12-26T06:01:00Z","timestamp":"1989-12-26T06:01:00Z","lat":1,"lng":2}`
+	t.Parallel()
 
-	assert.Equal(t, expected, string(result))
+	payl := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
+	date := "1989-12-26T06:01:00.00Z"
+	tt := []struct {
+		name     string
+		capture  *capture.Capture
+		expected string
+	}{
+		{
+			"capture with point",
+			getCapture(payl, date, 1, 2),
+			`{"id":1,"payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2}`,
+		},
+		{
+			"capture without a point",
+			getCaptureWithoutPoint(payl, date),
+			`{"id":1,"payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null}`,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c := tc.capture
+			// override auto generated fields for test purpose
+			c.ID = 1
+			c.CreatedAt, c.UpdatedAt = getDate(date), getDate(date)
+			result, _ := c.MarshalJSON()
+
+			assert.Equal(t, tc.expected, string(result))
+		})
+	}
 }
 
-func getCapture(lat, lng float64, date string, p []float64) *capture.Capture {
+func getCapture(p map[string]interface{}, date string, lat, lng float64) *capture.Capture {
 	point, _ := geocoding.New(lat, lng)
 	ts := getDate(date)
-	payloadData := numberlist.New(p...)
+	capt, _ := capture.New(p, ts, *point)
+	return capt
+}
 
-	return capture.New(point, ts, payloadData)
+func getCaptureWithoutPoint(p map[string]interface{}, date string) *capture.Capture {
+	ts := getDate(date)
+	capt, _ := capture.New(p, ts, geocoding.Point{})
+	return capt
 }
 
 func getDate(date string) time.Time {
