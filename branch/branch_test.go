@@ -20,7 +20,7 @@ func TestEmptyBranch(t *testing.T) {
 	var b branch.Branch
 	err := b.UnmarshalJSON(p)
 	require.Nil(t, err)
-	require.Empty(t, b, "Expected len of branch to be 0. Got '%v'", len(b))
+	require.Empty(t, b.Captures)
 }
 
 func TestPathUnmarshalJSON(t *testing.T) {
@@ -30,39 +30,37 @@ func TestPathUnmarshalJSON(t *testing.T) {
 	tt := []struct {
 		name    string
 		payload []byte
-		result  branch.Branch
+		result  *branch.Branch
 	}{
 		{
 			"path of len 1",
 			[]byte(`[{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.Branch{getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1)},
+			branch.New("", getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1)),
 		},
 		{
 			"path of len 2",
 			[]byte(`[
 				{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
 				{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.Branch{
-				getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1),
-				getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 2),
-			},
+			branch.New("", getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1), getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 2)),
 		},
+
 		{
 			"invalid capture (lat) into path of len 1",
 			[]byte(`[{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.Branch{},
+			&branch.Branch{},
 		},
 		{
 			"invalid capture (missing payload) into path of len 1",
 			[]byte(`[{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.Branch{},
+			&branch.Branch{},
 		},
 		{
 			"invalid capture into path of len 2",
 			[]byte(`[
 				{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
 				{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.Branch{getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 2)},
+			branch.New("", getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 2)),
 		},
 	}
 
@@ -71,7 +69,7 @@ func TestPathUnmarshalJSON(t *testing.T) {
 			var b branch.Branch
 			err := b.UnmarshalJSON(tc.payload)
 			require.Nil(t, err)
-			assert.Len(t, b, len(tc.result))
+			assert.Len(t, b.Captures, len(tc.result.Captures))
 		})
 	}
 }
@@ -90,9 +88,9 @@ func TestMarshalBranch(t *testing.T) {
 	c2.ID = 2
 	c2.CreatedAt, c2.UpdatedAt = getDate(date), getDate(date)
 
-	p := branch.Branch{c1, c2}
+	p := branch.New("", c1, c2)
 	result, _ := json.Marshal(p)
-	expected := `[{"id":1,"payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2},{"id":2,"payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2}]`
+	expected := `{"id":"","name":"master","captures":[{"id":1,"payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2},{"id":2,"payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2}]}`
 
 	assert.Equal(t, expected, string(result))
 }

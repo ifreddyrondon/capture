@@ -5,13 +5,30 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/markbates/going/defaults"
+
 	"github.com/ifreddyrondon/gocapture/capture"
 )
 
-const WorkersNumber = 4
+const (
+	workersNumber     = 4
+	defaultBranchName = "master"
+)
 
 // Branch represent a collection of captures.
-type Branch []*capture.Capture
+type Branch struct {
+	ID       string             `json:"id"`
+	Name     string             `json:"name"`
+	Captures []*capture.Capture `json:"captures"`
+}
+
+func New(name string, captures ...*capture.Capture) *Branch {
+	b := Branch{
+		Name:     defaults.String(name, defaultBranchName),
+		Captures: captures,
+	}
+	return &b
+}
 
 type indexCapture struct {
 	index   int
@@ -36,7 +53,7 @@ func worker(wg *sync.WaitGroup, jobs <-chan job, results chan<- indexCapture) {
 // UnmarshalJSON decodes a branch from a JSON body.
 // Throws an error if the body of the branch cannot be interpreted as JSON.
 // Implements the json.Unmarshaler Interface
-func (p *Branch) UnmarshalJSON(data []byte) error {
+func (b *Branch) UnmarshalJSON(data []byte) error {
 	var pj []json.RawMessage
 	if err := json.Unmarshal(data, &pj); err != nil {
 		return err
@@ -51,7 +68,7 @@ func (p *Branch) UnmarshalJSON(data []byte) error {
 	jobs := make(chan job, len(pj))
 	results := make(chan indexCapture, len(pj))
 
-	for w := 0; w < WorkersNumber; w++ {
+	for w := 0; w < workersNumber; w++ {
 		go worker(&wg, jobs, results)
 	}
 
@@ -70,7 +87,7 @@ func (p *Branch) UnmarshalJSON(data []byte) error {
 		return processed[i].index < processed[j].index
 	})
 	for _, v := range processed {
-		*p = append(*p, v.capture)
+		b.Captures = append(b.Captures, v.capture)
 	}
 
 	return nil
