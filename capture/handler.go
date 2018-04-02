@@ -130,13 +130,13 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var updatedCapt Capture
-	if err := json.NewDecoder(r.Body).Decode(&updatedCapt); err != nil {
+	var updates Capture
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
 		h.Render(w).BadRequest(err)
 		return
 	}
 
-	if err := h.Service.Update(capt, updatedCapt); err != nil {
+	if err := h.Service.Update(capt, updates); err != nil {
 		h.Render(w).InternalServerError(err)
 		return
 	}

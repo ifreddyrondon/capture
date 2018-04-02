@@ -21,7 +21,7 @@ type Service interface {
 	// Delete a capture by id
 	Delete(*Capture) error
 	// Update a capture from an updated one, will only update those changed & non blank fields.
-	Update(original *Capture, updated Capture) error
+	Update(original *Capture, updates Capture) error
 }
 
 // PGService implementation of capture.Service for Postgres database.
@@ -79,8 +79,8 @@ func (pgs *PGService) Delete(capt *Capture) error {
 }
 
 // Update a capture
-func (pgs *PGService) Update(original *Capture, updated Capture) error {
-	if err := pgs.DB.Model(original).Updates(updated).Error; err != nil {
+func (pgs *PGService) Update(original *Capture, updates Capture) error {
+	if err := pgs.DB.Model(original).Updates(updates).Error; err != nil {
 		return err
 	}
 	return nil
