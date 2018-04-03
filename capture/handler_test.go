@@ -404,3 +404,66 @@ func TestUpdateCapture(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateCaptureFailsBadRequest(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	okPayload := map[string]interface{}{
+		"lat":       1.0,
+		"lng":       12.0,
+		"timestamp": "1989-12-26T06:01:00Z",
+		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+	}
+
+	tt := []struct {
+		name           string
+		updatePayload  map[string]interface{}
+		responseStatus int
+		response       map[string]interface{}
+	}{
+		{
+			"lat out of range",
+			map[string]interface{}{
+				"lat":       200.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00Z",
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "latitude out of boundaries, may range from -90.0 to 90.0",
+			},
+		},
+		{
+			"missing payload",
+			map[string]interface{}{
+				"lat":       1.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00Z",
+			},
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "missing payload value",
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			createdObj := e.POST("/captures/").WithJSON(okPayload).Expect().
+				Status(http.StatusCreated).JSON().Object().Raw()
+			e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
+			tc.updatePayload["id"] = createdObj["id"]
+			e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
+				Status(tc.responseStatus).
+				JSON().Object().Equal(tc.response)
+		})
+	}
+
+}
