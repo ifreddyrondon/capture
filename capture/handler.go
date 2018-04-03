@@ -55,20 +55,23 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
-	var captureIN Capture
-	if err := json.NewDecoder(r.Body).Decode(&captureIN); err != nil {
+	var capts Captures
+	if err := json.NewDecoder(r.Body).Decode(&capts); err != nil {
 		h.Render(w).BadRequest(err)
 		return
 	}
 
-	captureOUT, err := h.Service.Create(captureIN.Payload, captureIN.Timestamp, captureIN.Point)
-	if err != nil {
-		h.Render(w).InternalServerError(err)
-		return
-	}
+	// Single upload
+	if len(capts) == 1 {
+		captureOUT, err := h.Service.Create(capts[0].Payload, capts[0].Timestamp, capts[0].Point)
+		if err != nil {
+			h.Render(w).InternalServerError(err)
+			return
+		}
 
-	if err := h.Render(w).Created(captureOUT); err != nil {
-		h.Render(w).InternalServerError(err)
+		if err := h.Render(w).Created(captureOUT); err != nil {
+			h.Render(w).InternalServerError(err)
+		}
 	}
 }
 

@@ -12,8 +12,6 @@ import (
 	"github.com/ifreddyrondon/gocapture/geocoding"
 )
 
-type Captures []Capture
-
 var (
 	// ErrorBadPayload expected error when fails to unmarshal a capture
 	ErrorBadPayload = errors.New("cannot unmarshal json into valid capture")

@@ -418,10 +418,9 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 	}
 
 	tt := []struct {
-		name           string
-		updatePayload  map[string]interface{}
-		responseStatus int
-		response       map[string]interface{}
+		name          string
+		updatePayload map[string]interface{}
+		response      map[string]interface{}
 	}{
 		{
 			"lat out of range",
@@ -431,7 +430,6 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 				"timestamp": "1989-12-26T06:01:00Z",
 				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 			},
-			http.StatusBadRequest,
 			map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
@@ -445,7 +443,6 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
 			},
-			http.StatusBadRequest,
 			map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
@@ -461,9 +458,40 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 			e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
 			tc.updatePayload["id"] = createdObj["id"]
 			e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
-				Status(tc.responseStatus).
+				Status(http.StatusBadRequest).
 				JSON().Object().Equal(tc.response)
 		})
 	}
+}
 
+func TestUnmarshalCapturesFail(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	tt := []struct {
+		name     string
+		payload  []interface{}
+		response map[string]interface{}
+	}{
+		{
+			name:    "bad request, missing body",
+			payload: []interface{}{},
+			response: map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "cannot unmarshal json into valid captures, it needs at least one capture",
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			e.POST("/captures/").
+				WithJSON(tc.payload).
+				Expect().
+				Status(http.StatusBadRequest).
+				JSON().Object().Equal(tc.response)
+		})
+	}
 }

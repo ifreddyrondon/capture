@@ -10,69 +10,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/geocoding"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func TestEmptyBranch(t *testing.T) {
-	t.Parallel()
-
-	p := []byte(`[]`)
-	var b branch.Branch
-	err := b.UnmarshalJSON(p)
-	require.Nil(t, err)
-	require.Empty(t, b.Captures)
-}
-
-func TestPathUnmarshalJSON(t *testing.T) {
-	t.Parallel()
-
-	payl := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
-	tt := []struct {
-		name    string
-		payload []byte
-		result  *branch.Branch
-	}{
-		{
-			"path of len 1",
-			[]byte(`[{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.New("", getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1)),
-		},
-		{
-			"path of len 2",
-			[]byte(`[
-				{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
-				{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.New("", getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1), getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 2)),
-		},
-
-		{
-			"invalid capture (lat) into path of len 1",
-			[]byte(`[{"lat": -101, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			&branch.Branch{},
-		},
-		{
-			"invalid capture (missing payload) into path of len 1",
-			[]byte(`[{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}]`),
-			&branch.Branch{},
-		},
-		{
-			"invalid capture into path of len 2",
-			[]byte(`[
-				{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"},
-				{"lat": 1, "lng": 2, "date": "1989-12-26T06:01:00.00Z"}]`),
-			branch.New("", getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 2)),
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			var b branch.Branch
-			err := b.UnmarshalJSON(tc.payload)
-			require.Nil(t, err)
-			assert.Len(t, b.Captures, len(tc.result.Captures))
-		})
-	}
-}
 
 func TestMarshalBranch(t *testing.T) {
 	t.Parallel()
