@@ -33,10 +33,7 @@
 
 [[projects]]
   name = "github.com/go-chi/chi"
-  packages = [
-    ".",
-    "middleware"
-  ]
+  packages = ["."]
   revision = "e83ac2304db3c50cf03d96a2fcd39009d458bc35"
   version = "v3.3.2"
 
@@ -59,8 +56,8 @@
     "render",
     "render/json"
   ]
-  revision = "1619571b68b01770f8f8908c76e07b99827fceb8"
-  version = "v1.3.3"
+  revision = "42ac7fc8b7aa65d2864d49ebad78efed461aae65"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/imkira/go-interpol"
@@ -169,6 +166,24 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/rs/xid"
+  packages = ["."]
+  revision = "02dd45c33376f85d1064355dc790dcc4850596b1"
+  version = "v1.1"
+
+[[projects]]
+  name = "github.com/rs/zerolog"
+  packages = [
+    ".",
+    "hlog",
+    "internal/cbor",
+    "internal/json",
+    "log"
+  ]
+  revision = "05eafee0eb17d0150591a8f30f0fa592cc9b7471"
+  version = "v1.6.0"
+
+[[projects]]
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
   revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
@@ -239,6 +254,12 @@
   revision = "ecda9a501e8220fae3b4b600c3db4b0ba22cfc68"
 
 [[projects]]
+  name = "github.com/zenazn/goji"
+  packages = ["web/mutil"]
+  revision = "64eb34159fe53473206c2b3e70fe396a639452f2"
+  version = "v1.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = [
@@ -283,6 +304,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "25edb58b69bbbcbe33854b84bec4388741bb1008a48bb7dab406e2674c26048e"
+  inputs-digest = "35fd3279d1599564887fdc24857abc878dfc3dd5497475fb51be14409f6c2dca"
   solver-name = "gps-cdcl"
   solver-version = 1
