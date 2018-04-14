@@ -1,22 +1,17 @@
 package capture
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
-
-	"github.com/ifreddyrondon/gocapture/geocoding"
-	"github.com/ifreddyrondon/gocapture/payload"
 )
 
 // Service is the interface implemented by capture
 // It make CRUD operations over captures.
 type Service interface {
-	// Create a capture into the database.
-	Create(payload.Payload, time.Time, geocoding.Point) (*Capture, error)
+	// Save captures into the database.
+	Save(...*Capture) (Captures, error)
 	// List retrieve the count captures from start index.
 	List(start, count int) (Captures, error)
-	// Get retrive a capture by id
+	// Get a capture by id
 	Get(uint64) (*Capture, error)
 	// Delete a capture by id
 	Delete(*Capture) error
@@ -39,17 +34,15 @@ func (pgs *PGService) Drop() {
 	pgs.DB.DropTableIfExists(Capture{})
 }
 
-// Create a capture into the database.
-func (pgs *PGService) Create(payl payload.Payload, t time.Time, p geocoding.Point) (*Capture, error) {
-	c, err := New(payl, t, p)
-	if err != nil {
-		return nil, err
+// Save captures into the database.
+func (pgs *PGService) Save(captures ...*Capture) (Captures, error) {
+	// TODO: bash create
+	for _, c := range captures {
+		if err := pgs.DB.Create(c).Error; err != nil {
+			continue
+		}
 	}
-
-	if err := pgs.DB.Create(c).Error; err != nil {
-		return nil, err
-	}
-	return c, nil
+	return captures, nil
 }
 
 // List retrieve the count captures from start index.
@@ -61,7 +54,7 @@ func (pgs *PGService) List(start, count int) (Captures, error) {
 	return results, nil
 }
 
-// Get retrive a capture by id
+// Get a capture by id
 func (pgs *PGService) Get(id uint64) (*Capture, error) {
 	var result Capture
 	if pgs.DB.First(&result, id).RecordNotFound() {
