@@ -10,7 +10,6 @@ import (
 const workersNumber = 4
 
 var (
-
 	// ErrorNoCapturesPayload expected error when not found captures when try to unmarshal it.
 	ErrorNoCapturesPayload = errors.New("cannot unmarshal json into valid captures, it needs at least one capture")
 )

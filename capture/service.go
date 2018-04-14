@@ -1,14 +1,14 @@
 package capture
 
-import (
-	"github.com/jinzhu/gorm"
-)
+import "github.com/jinzhu/gorm"
 
 // Service is the interface implemented by capture
 // It make CRUD operations over captures.
 type Service interface {
-	// Save captures into the database.
-	Save(...*Capture) (Captures, error)
+	// Save capture into the database.
+	Save(*Capture) (*Capture, error)
+	// SaveBulk captures into the database.
+	SaveBulk(...*Capture) (Captures, error)
 	// List retrieve the count captures from start index.
 	List(start, count int) (Captures, error)
 	// Get a capture by id
@@ -34,8 +34,16 @@ func (pgs *PGService) Drop() {
 	pgs.DB.DropTableIfExists(Capture{})
 }
 
-// Save captures into the database.
-func (pgs *PGService) Save(captures ...*Capture) (Captures, error) {
+// Save capture into the database.
+func (pgs *PGService) Save(capt *Capture) (*Capture, error) {
+	if err := pgs.DB.Create(capt).Error; err != nil {
+		return nil, err
+	}
+	return capt, nil
+}
+
+// SaveBulk captures into the database.
+func (pgs *PGService) SaveBulk(captures ...*Capture) (Captures, error) {
 	// TODO: bash create
 	for _, c := range captures {
 		if err := pgs.DB.Create(c).Error; err != nil {

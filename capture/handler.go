@@ -47,37 +47,36 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	start := 0
 	captures, err := h.Service.List(start, count)
 	if err != nil {
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).InternalServerError(err)
 		return
 	}
 
-	h.Render(w).Send(captures)
+	_ = h.Render(w).Send(captures)
 }
 
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var captures Captures
 	if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
-		h.Render(w).BadRequest(err)
-		return
-	}
-
-	captures, err := h.Service.Save(captures...)
-	if err != nil {
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).BadRequest(err)
 		return
 	}
 
 	if len(captures) == 1 {
-		if err := h.Render(w).Created(captures[0]); err != nil {
-			h.Render(w).InternalServerError(err)
+		capt, err := h.Service.Save(captures[0])
+		if err != nil {
+			_ = h.Render(w).InternalServerError(err)
 			return
 		}
+		_ = h.Render(w).Created(capt)
 		return
 	}
 
-	if err := h.Render(w).Created(captures); err != nil {
-		h.Render(w).InternalServerError(err)
+	captures, err := h.Service.SaveBulk(captures...)
+	if err != nil {
+		_ = h.Render(w).InternalServerError(err)
+		return
 	}
+	_ = h.Render(w).Created(captures)
 }
 
 func (h *Handler) captureCtx(next http.Handler) http.Handler {
@@ -85,17 +84,17 @@ func (h *Handler) captureCtx(next http.Handler) http.Handler {
 		captureID, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
 			log.Println(err)
-			h.Render(w).BadRequest(ErrorBadRequest)
+			_ = h.Render(w).BadRequest(ErrorBadRequest)
 			return
 		}
 		var capt *Capture
 		capt, err = h.Service.Get(captureID)
 		if capt == nil {
-			h.Render(w).NotFound(err)
+			_ = h.Render(w).NotFound(err)
 			return
 		}
 		if err != nil {
-			h.Render(w).InternalServerError(err)
+			_ = h.Render(w).InternalServerError(err)
 			return
 		}
 		ctx := context.WithValue(r.Context(), h.CtxKey, capt)
@@ -108,10 +107,10 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).InternalServerError(err)
 		return
 	}
-	h.Render(w).Send(capt)
+	_ = h.Render(w).Send(capt)
 }
 
 func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
@@ -119,11 +118,11 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).InternalServerError(err)
 		return
 	}
 	if err := h.Service.Delete(capt); err != nil {
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).InternalServerError(err)
 		return
 	}
 	h.Render(w).NoContent()
@@ -134,19 +133,19 @@ func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
 	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).InternalServerError(err)
 		return
 	}
 
 	var updates Capture
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-		h.Render(w).BadRequest(err)
+		_ = h.Render(w).BadRequest(err)
 		return
 	}
 
 	if err := h.Service.Update(capt, updates); err != nil {
-		h.Render(w).InternalServerError(err)
+		_ = h.Render(w).InternalServerError(err)
 		return
 	}
-	h.Render(w).Send(capt)
+	_ = h.Render(w).Send(capt)
 }

@@ -54,7 +54,7 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 	}
 
 	var t timestamp.Timestamp
-	t.UnmarshalJSON(data) // ignore err because timestamp always has a fallback
+	_ = t.UnmarshalJSON(data) // ignore err because timestamp always has a fallback
 
 	var payl payload.Payload
 	if err := json.Unmarshal(data, &payl); err != nil {
