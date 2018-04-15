@@ -2,6 +2,8 @@ package capture_test
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"net/http"
 	"sync"
 	"testing"
@@ -197,6 +199,227 @@ func TestCreateInvalidPayloadCapture(t *testing.T) {
 		Expect().
 		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
+}
+
+func TestBulkCreateValidCapture(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	tt := []struct {
+		name     string
+		payload  []map[string]interface{}
+		response []map[string]interface{}
+	}{
+		{
+			name: "create capture with payload, date and point",
+			payload: []map[string]interface{}{
+				{
+					"latitude":  1,
+					"longitude": 12,
+					"timestamp": "630655260",
+					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				},
+				{
+					"latitude":  2,
+					"longitude": 3,
+					"timestamp": "630655260",
+					"payload":   map[string]interface{}{"power": []interface{}{-45.0, -32.1, 34.1}},
+				},
+			},
+			response: []map[string]interface{}{
+				{
+					"lat":       1.0,
+					"lng":       12.0,
+					"timestamp": "1989-12-26T06:01:00Z",
+					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				},
+				{
+					"lat":       2.0,
+					"lng":       3.0,
+					"timestamp": "1989-12-26T06:01:00Z",
+					"payload":   map[string]interface{}{"power": []interface{}{-45.0, -32.1, 34.1}},
+				},
+			},
+		},
+		{
+			name: "create capture with payload and date without point",
+			payload: []map[string]interface{}{
+				{
+					"date":    "630655260",
+					"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				},
+				{
+					"date":    "630655260",
+					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+				},
+			},
+			response: []map[string]interface{}{
+				{
+					"lat":       nil,
+					"lng":       nil,
+					"timestamp": "1989-12-26T06:01:00Z",
+					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				},
+				{
+					"lat":       nil,
+					"lng":       nil,
+					"timestamp": "1989-12-26T06:01:00Z",
+					"payload":   map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+				},
+			},
+		},
+		{
+			name: "payload with three capture but one is invalid",
+			payload: []map[string]interface{}{
+				{
+					"date":    "630655260",
+					"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				},
+				{
+					"date":    "630655260",
+					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+				},
+				{
+					"lat":     -10001.0,
+					"lng":     12.0,
+					"date":    "630655260",
+					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+				},
+			},
+			response: []map[string]interface{}{
+				{
+					"lat":       nil,
+					"lng":       nil,
+					"timestamp": "1989-12-26T06:01:00Z",
+					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				},
+				{
+					"lat":       nil,
+					"lng":       nil,
+					"timestamp": "1989-12-26T06:01:00Z",
+					"payload":   map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			array := e.POST("/captures/").
+				WithJSON(tc.payload).
+				Expect().
+				Status(http.StatusCreated).
+				JSON().Array().NotEmpty()
+
+			array.Length().Equal(len(tc.response))
+			for n, val := range array.Iter() {
+				val.Object().
+					ContainsKey("payload").ValueEqual("payload", tc.response[n]["payload"]).
+					ContainsKey("lat").ValueEqual("lat", tc.response[n]["lat"]).
+					ContainsKey("lng").ValueEqual("lng", tc.response[n]["lng"]).
+					ContainsKey("timestamp").ValueEqual("timestamp", tc.response[n]["timestamp"]).
+					ContainsKey("id").NotEmpty().
+					ContainsKey("createdAt").NotEmpty().
+					ContainsKey("updatedAt").NotEmpty()
+			}
+		})
+	}
+}
+
+func TestBulkCreateOnlyOneValidCaptureItShouldReturnObject(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	payload := []map[string]interface{}{
+		{
+			"date":    "630655260",
+			"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		},
+		{
+			"lat":     -10001.0,
+			"lng":     12.0,
+			"date":    "630655260",
+			"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+		},
+	}
+	response := map[string]interface{}{
+		"lat":       nil,
+		"lng":       nil,
+		"timestamp": "1989-12-26T06:01:00Z",
+		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+	}
+
+	e.POST("/captures/").
+		WithJSON(payload).
+		Expect().
+		Status(http.StatusCreated).
+		JSON().Object().
+		ContainsKey("payload").ValueEqual("payload", response["payload"]).
+		ContainsKey("lat").ValueEqual("lat", response["lat"]).
+		ContainsKey("lng").ValueEqual("lng", response["lng"]).
+		ContainsKey("timestamp").ValueEqual("timestamp", response["timestamp"]).
+		ContainsKey("id").NotEmpty().
+		ContainsKey("createdAt").NotEmpty().
+		ContainsKey("updatedAt").NotEmpty()
+}
+
+func TestBulkCreateInValidCapturesItShouldReturnError(t *testing.T) {
+	app, teardown := setup(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	tt := []struct {
+		name     string
+		payload  []map[string]interface{}
+		response map[string]interface{}
+	}{
+		{
+			name: "return error if all the captures are invalid",
+			payload: []map[string]interface{}{
+				{
+					"date": "630655260",
+				},
+				{
+					"lat":     -10001.0,
+					"lng":     12.0,
+					"date":    "630655260",
+					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+				},
+			},
+			response: map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "cannot unmarshal json into valid captures, it needs at least one valid capture",
+			},
+		},
+		{
+			name: "return error if payload contains more than 100 captures",
+			payload: func() []map[string]interface{} {
+				payload := make([]map[string]interface{}, 101)
+				for i := 0; i < 101; i++ {
+					payload = append(payload, randomCapturePayload())
+				}
+				return payload
+			}(),
+			response: map[string]interface{}{
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "limited to 100 calls in a single batch request. If it needs to make more calls than that, use multiple batch requests",
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			e.POST("/captures/").
+				WithJSON(tc.payload).
+				Expect().
+				Status(http.StatusBadRequest).
+				JSON().Object().Equal(tc.response)
+		})
+	}
 }
 
 func TestListCapturesWhenEmpty(t *testing.T) {
@@ -480,7 +703,7 @@ func TestUnmarshalCapturesFail(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "cannot unmarshal json into valid captures, it needs at least one capture",
+				"message": "cannot unmarshal json into valid captures, it needs at least one valid capture",
 			},
 		},
 	}
@@ -494,4 +717,21 @@ func TestUnmarshalCapturesFail(t *testing.T) {
 				JSON().Object().Equal(tc.response)
 		})
 	}
+}
+
+func randomCapturePayload() map[string]interface{} {
+	return map[string]interface{}{
+		"payload": map[string]interface{}{
+			"power": []interface{}{
+				getRandomPower(),
+				getRandomPower(),
+				getRandomPower(),
+			},
+		},
+	}
+}
+
+func getRandomPower() float64 {
+	p := -150 + rand.Float64()*(-10+(-150))
+	return math.Ceil(p*100) / 100
 }

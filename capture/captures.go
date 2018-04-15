@@ -7,11 +7,16 @@ import (
 	"sync"
 )
 
-const workersNumber = 4
+const (
+	maxBulkPayload = 100
+	workersNumber  = 4
+)
 
 var (
 	// ErrorNoCapturesPayload expected error when not found captures when try to unmarshal it.
-	ErrorNoCapturesPayload = errors.New("cannot unmarshal json into valid captures, it needs at least one capture")
+	ErrorNoCapturesPayload = errors.New("cannot unmarshal json into valid captures, it needs at least one valid capture")
+	// ErrorMaxPayloadSize expected error when payload list is greater than 100.
+	ErrorMaxPayloadSize = errors.New("limited to 100 calls in a single batch request. If it needs to make more calls than that, use multiple batch requests")
 )
 
 // Captures represent a collection of capture in any particular order
@@ -34,6 +39,8 @@ func (c *Captures) UnmarshalJSON(data []byte) error {
 
 	if len(raw) == 0 {
 		return ErrorNoCapturesPayload
+	} else if len(raw) > maxBulkPayload {
+		return ErrorMaxPayloadSize
 	}
 
 	var wg sync.WaitGroup
@@ -51,6 +58,10 @@ func (c *Captures) UnmarshalJSON(data []byte) error {
 	close(jobs)
 	wg.Wait()
 	close(results)
+
+	if len(results) == 0 {
+		return ErrorNoCapturesPayload
+	}
 
 	processed := make([]indexCapture, 0, len(results))
 	for data := range results {
