@@ -5,9 +5,9 @@ import (
 )
 
 type pointJSON struct {
-	Lat       *float64 `json:"lat"`
+	LAT       *float64 `json:"lat"`
 	Latitude  *float64 `json:"latitude"`
-	Lng       *float64 `json:"lng"`
+	LNG       *float64 `json:"lng"`
 	Longitude *float64 `json:"longitude"`
 }
 

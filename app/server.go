@@ -15,22 +15,23 @@ func (c ContextKey) String() string {
 	return string(c)
 }
 
+// New returns a bastion ready instance with all the app config
 func New(db *gorm.DB) *bastion.Bastion {
 	app := bastion.New(bastion.Options{})
 
-	capService := capture.PGService{DB: db}
-	capService.Drop()
-	capService.Migrate()
-	capH := capture.Handler{
-		Service: &capService,
+	captureService := capture.PGService{DB: db}
+	captureService.Drop()
+	captureService.Migrate()
+	captureController := capture.Controller{
+		Service: &captureService,
 		Render:  json.NewRender,
 		CtxKey:  ContextKey("capture"),
 	}
-	app.APIRouter.Mount("/captures/", capH.Router())
+	app.APIRouter.Mount("/captures/", captureController.Router())
 
-	branchH := branch.Handler{
+	branchController := branch.Controller{
 		Render: json.NewRender,
 	}
-	app.APIRouter.Mount("/branches/", branchH.Router())
+	app.APIRouter.Mount("/branches/", branchController.Router())
 	return app
 }

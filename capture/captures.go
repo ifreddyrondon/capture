@@ -1,7 +1,7 @@
 package capture
 
 import (
-	json "encoding/json"
+	"encoding/json"
 	"errors"
 	"sort"
 	"sync"

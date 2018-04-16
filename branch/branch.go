@@ -15,6 +15,7 @@ type Branch struct {
 	Captures []*capture.Capture `json:"captures"`
 }
 
+// New returns a new branch
 func New(name string, captures ...*capture.Capture) *Branch {
 	b := Branch{
 		Name:     defaults.String(name, defaultBranchName),

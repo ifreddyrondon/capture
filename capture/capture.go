@@ -7,7 +7,7 @@ import (
 
 	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
-	jwriter "github.com/mailru/easyjson/jwriter"
+	"github.com/mailru/easyjson/jwriter"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
 )

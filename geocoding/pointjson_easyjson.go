@@ -40,12 +40,12 @@ func easyjsonA2deb046DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.L
 		case "lat":
 			if in.IsNull() {
 				in.Skip()
-				out.Lat = nil
+				out.LAT = nil
 			} else {
-				if out.Lat == nil {
-					out.Lat = new(float64)
+				if out.LAT == nil {
+					out.LAT = new(float64)
 				}
-				*out.Lat = float64(in.Float64())
+				*out.LAT = float64(in.Float64())
 			}
 		case "latitude":
 			if in.IsNull() {
@@ -60,12 +60,12 @@ func easyjsonA2deb046DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.L
 		case "lng":
 			if in.IsNull() {
 				in.Skip()
-				out.Lng = nil
+				out.LNG = nil
 			} else {
-				if out.Lng == nil {
-					out.Lng = new(float64)
+				if out.LNG == nil {
+					out.LNG = new(float64)
 				}
-				*out.Lng = float64(in.Float64())
+				*out.LNG = float64(in.Float64())
 			}
 		case "longitude":
 			if in.IsNull() {

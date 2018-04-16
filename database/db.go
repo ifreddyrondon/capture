@@ -4,25 +4,21 @@ import (
 	"log"
 
 	"github.com/jinzhu/gorm"
+	// register postgres drive
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-type Schemator interface {
-	// Create (panic) runs schema migration.
-	Create()
-	// Drop (panic) delete schema.
-	Drop()
-}
-
+// DataSource wrapper over the DB driver
 type DataSource struct {
-	DB *gorm.DB
+	*gorm.DB
 }
 
-// TODO: load this func into bastion RegisterOnShutdown
-// Finalize implements the Finalizer interface from bastion to be executed as graceful shutdown.
+// OnShutdown is executed as graceful shutdown.
 func (ds *DataSource) OnShutdown() {
 	log.Printf("[finalizer:data source] closing the main session")
-	ds.DB.Close()
+	if err := ds.Close(); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Open establishes a connection with the database server and verify with a ping.

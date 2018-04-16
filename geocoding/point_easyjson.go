@@ -27,20 +27,20 @@ func easyjson3844eb60EncodeGithubComIfreddyrondonGocaptureGeocoding(out *jwriter
 	}
 	first = false
 	out.RawString("\"lat\":")
-	if in.Lat == nil {
+	if in.LAT == nil {
 		out.RawString("null")
 	} else {
-		out.Float64(float64(*in.Lat))
+		out.Float64(float64(*in.LAT))
 	}
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
 	out.RawString("\"lng\":")
-	if in.Lng == nil {
+	if in.LNG == nil {
 		out.RawString("null")
 	} else {
-		out.Float64(float64(*in.Lng))
+		out.Float64(float64(*in.LNG))
 	}
 	out.RawByte('}')
 }

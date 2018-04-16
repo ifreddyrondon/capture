@@ -9,7 +9,9 @@ import (
 
 func main() {
 	ds := database.Open("postgres://localhost/captures_app?sslmode=disable")
-	err := app.New(ds.DB).Serve()
+	app := app.New(ds.DB)
+	app.RegisterOnShutdown(ds.OnShutdown)
+	err := app.Serve()
 	if err != nil {
 		log.Printf("%v", err)
 	}

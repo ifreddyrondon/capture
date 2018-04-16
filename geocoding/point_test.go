@@ -29,8 +29,8 @@ func TestNewPointSuccess(t *testing.T) {
 			result, err := geocoding.New(tc.lat, tc.lng)
 			require.Nil(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.lng, *result.Lng)
-			assert.Equal(t, tc.lat, *result.Lat)
+			assert.Equal(t, tc.lng, *result.LNG)
+			assert.Equal(t, tc.lat, *result.LAT)
 		})
 	}
 }
@@ -105,8 +105,8 @@ func TestUnmarshalJSONSuccess(t *testing.T) {
 			err := result.UnmarshalJSON(tc.payload)
 			require.Nil(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tc.expected.Lng, result.Lng)
-			assert.Equal(t, tc.expected.Lat, result.Lat)
+			assert.Equal(t, tc.expected.LNG, result.LNG)
+			assert.Equal(t, tc.expected.LAT, result.LAT)
 		})
 	}
 }
@@ -143,8 +143,8 @@ func TestUnmarshalJSONMissingBody(t *testing.T) {
 	result := geocoding.Point{}
 	err := result.UnmarshalJSON([]byte("{}"))
 	require.Nil(t, err)
-	require.Nil(t, result.Lat)
-	require.Nil(t, result.Lng)
+	require.Nil(t, result.LAT)
+	require.Nil(t, result.LNG)
 }
 
 func getPoint(lat, lng float64) *geocoding.Point {

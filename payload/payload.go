@@ -41,15 +41,17 @@ func (v *jsonPayload) getPayload() Payload {
 	return v.Payload
 }
 
+// Value convert Payload to a driver database Value.
 func (p Payload) Value() (driver.Value, error) {
 	j, err := json.Marshal(p)
 	return j, err
 }
 
+// Scan assigns a value from a database driver
 func (p *Payload) Scan(src interface{}) error {
 	source, ok := src.([]byte)
 	if !ok {
-		return errors.New("type assertion .([]byte) failed.")
+		return errors.New("type assertion .([]byte) failed")
 	}
 
 	var i interface{}
@@ -59,7 +61,7 @@ func (p *Payload) Scan(src interface{}) error {
 
 	*p, ok = i.(map[string]interface{})
 	if !ok {
-		return errors.New("type assertion .(map[string]interface{}) failed.")
+		return errors.New("type assertion .(map[string]interface{}) failed")
 	}
 
 	return nil

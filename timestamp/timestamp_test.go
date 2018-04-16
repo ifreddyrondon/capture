@@ -63,7 +63,8 @@ func TestUnmarshalJSON(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			ts := &timestamp.Timestamp{}
-			ts.UnmarshalJSON(tc.payload)
+			err := ts.UnmarshalJSON(tc.payload)
+			assert.Nil(t, err)
 			assert.Equal(t, expected, ts.Timestamp)
 		})
 	}
@@ -90,7 +91,8 @@ func TestUnmarshalJSONWhenFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ts := &timestamp.Timestamp{}
 			timestamp.SetClockInstance(ts, mockClock)
-			ts.UnmarshalJSON(tc.payload)
+			err := ts.UnmarshalJSON(tc.payload)
+			assert.Nil(t, err)
 			assert.Equal(t, expected, ts.Timestamp)
 		})
 	}

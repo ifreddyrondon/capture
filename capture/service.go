@@ -73,16 +73,10 @@ func (pgs *PGService) Get(id uint64) (*Capture, error) {
 
 // Delete a capture by id
 func (pgs *PGService) Delete(capt *Capture) error {
-	if err := pgs.DB.Delete(capt).Error; err != nil {
-		return err
-	}
-	return nil
+	return pgs.DB.Delete(capt).Error
 }
 
 // Update a capture
 func (pgs *PGService) Update(original *Capture, updates Capture) error {
-	if err := pgs.DB.Model(original).Updates(updates).Error; err != nil {
-		return err
-	}
-	return nil
+	return pgs.DB.Model(original).Updates(updates).Error
 }

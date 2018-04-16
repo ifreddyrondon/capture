@@ -2,7 +2,7 @@ package capture
 
 import (
 	"context"
-	json "encoding/json"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -21,14 +21,15 @@ var (
 	ErrorBadRequest = errors.New("invalid capture id")
 )
 
-type Handler struct {
+// Controller handler all the router for capture
+type Controller struct {
 	Service Service
 	render.Render
 	CtxKey fmt.Stringer
 }
 
 // Router creates a REST router for the capture resource
-func (h *Handler) Router() http.Handler {
+func (h *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
 
 	r.Get("/", h.list)
@@ -42,7 +43,7 @@ func (h *Handler) Router() http.Handler {
 	return r
 }
 
-func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
+func (h *Controller) list(w http.ResponseWriter, r *http.Request) {
 	count := 10
 	start := 0
 	captures, err := h.Service.List(start, count)
@@ -54,7 +55,7 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	_ = h.Render(w).Send(captures)
 }
 
-func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
+func (h *Controller) create(w http.ResponseWriter, r *http.Request) {
 	var captures Captures
 	if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
 		_ = h.Render(w).BadRequest(err)
@@ -79,7 +80,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	_ = h.Render(w).Created(captures)
 }
 
-func (h *Handler) captureCtx(next http.Handler) http.Handler {
+func (h *Controller) captureCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captureID, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 		if err != nil {
@@ -102,7 +103,7 @@ func (h *Handler) captureCtx(next http.Handler) http.Handler {
 	})
 }
 
-func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
+func (h *Controller) get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
@@ -113,7 +114,7 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 	_ = h.Render(w).Send(capt)
 }
 
-func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
+func (h *Controller) delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {
@@ -128,7 +129,7 @@ func (h *Handler) delete(w http.ResponseWriter, r *http.Request) {
 	h.Render(w).NoContent()
 }
 
-func (h *Handler) update(w http.ResponseWriter, r *http.Request) {
+func (h *Controller) update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	capt, ok := ctx.Value(h.CtxKey).(*Capture)
 	if !ok {

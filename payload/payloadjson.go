@@ -1,7 +1,7 @@
 package payload
 
 import (
-	jlexer "github.com/mailru/easyjson/jlexer"
+	"github.com/mailru/easyjson/jlexer"
 )
 
 type jsonPayload struct {

@@ -39,14 +39,14 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	service.Migrate()
 	teardown := func() { service.Drop() }
 
-	handler := capture.Handler{
+	controller := capture.Controller{
 		Service: &service,
 		Render:  json.NewRender,
 		CtxKey:  app.ContextKey("capture"),
 	}
 
 	app := bastion.New(bastion.Options{})
-	app.APIRouter.Mount("/captures/", handler.Router())
+	app.APIRouter.Mount("/captures/", controller.Router())
 
 	return app, teardown
 }
@@ -493,7 +493,7 @@ func TestGetMissingCapture(t *testing.T) {
 	}
 
 	e := bastion.Tester(t, app)
-	e.GET(fmt.Sprint("/captures/123123")).Expect().
+	e.GET("/captures/123123").Expect().
 		Status(http.StatusNotFound).
 		JSON().Object().Equal(response)
 }
@@ -509,7 +509,7 @@ func TestGetCaptureBadRequest(t *testing.T) {
 	}
 
 	e := bastion.Tester(t, app)
-	e.GET(fmt.Sprint("/captures/ads")).Expect().
+	e.GET("/captures/ads").Expect().
 		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
 }

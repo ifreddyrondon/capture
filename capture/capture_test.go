@@ -66,8 +66,8 @@ func TestCaptureUnmarshalWithOnlyPayload(t *testing.T) {
 	result := capture.Capture{}
 	err := result.UnmarshalJSON([]byte(`{"payload":{"power":[-70, -100.1, 3.1]}}`))
 	require.Nil(t, err)
-	assert.Nil(t, result.Lat)
-	assert.Nil(t, result.Lng)
+	assert.Nil(t, result.LAT)
+	assert.Nil(t, result.LNG)
 	assert.NotNil(t, result.Timestamp)
 	assert.Equal(t, expected.Payload, result.Payload)
 }
@@ -98,8 +98,8 @@ func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
 			result := capture.Capture{}
 			err := result.UnmarshalJSON(tc.payload)
 			require.Nil(t, err)
-			assert.Equal(t, tc.result.Lat, result.Lat)
-			assert.Equal(t, tc.result.Lng, result.Lng)
+			assert.Equal(t, tc.result.LAT, result.LAT)
+			assert.Equal(t, tc.result.LNG, result.LNG)
 			assert.Equal(t, tc.result.Timestamp, result.Timestamp)
 			assert.Equal(t, tc.result.Payload, result.Payload)
 		})

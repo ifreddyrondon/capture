@@ -22,8 +22,8 @@ var (
 
 // Point represents a physical Point in geographic notation [lat, lng].
 type Point struct {
-	Lat *float64 `json:"lat"`
-	Lng *float64 `json:"lng"`
+	LAT *float64 `json:"lat"`
+	LNG *float64 `json:"lng"`
 }
 
 // New returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
@@ -37,7 +37,7 @@ func New(lat float64, lng float64) (*Point, error) {
 		return nil, ErrorLONRange
 	}
 
-	return &Point{Lat: &lat, Lng: &lng}, nil
+	return &Point{LAT: &lat, LNG: &lng}, nil
 }
 
 // MarshalJSON decode current Point to JSON.
@@ -51,20 +51,14 @@ func (p Point) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes the current Point from a JSON body.
 // Throws an error if the body of the point cannot be interpreted by the JSON body.
 // Implements the json.Unmarshaler Interface
-func (po *Point) UnmarshalJSON(data []byte) error {
+func (p *Point) UnmarshalJSON(data []byte) error {
 	var model pointJSON
 	if err := model.unmarshalJSON(data); err != nil {
 		return err
 	}
 
-	lat := model.Lat
-	if lat == nil {
-		lat = model.Latitude
-	}
-	lng := model.Lng
-	if lng == nil {
-		lng = model.Longitude
-	}
+	lat := getLAT(&model)
+	lng := getLNG(&model)
 	if lat == nil && lng == nil {
 		return nil
 	}
@@ -81,7 +75,21 @@ func (po *Point) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*po = *point
+	*p = *point
 
 	return nil
+}
+
+func getLAT(model *pointJSON) *float64 {
+	if model.LAT == nil {
+		return model.Latitude
+	}
+	return model.LAT
+}
+
+func getLNG(model *pointJSON) *float64 {
+	if model.LNG == nil {
+		return model.Longitude
+	}
+	return model.LNG
 }
