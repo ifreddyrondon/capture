@@ -493,7 +493,7 @@ func TestGetMissingCapture(t *testing.T) {
 	}
 
 	e := bastion.Tester(t, app)
-	e.GET("/captures/123123").Expect().
+	e.GET("/captures/00000000-0000-0000-0000-000000000000").Expect().
 		Status(http.StatusNotFound).
 		JSON().Object().Equal(response)
 }

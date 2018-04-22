@@ -7,7 +7,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+
+	"gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
@@ -63,12 +64,11 @@ func (h *Controller) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(captures) == 1 {
-		capt, err := h.Service.Save(captures[0])
-		if err != nil {
+		if err := h.Service.Save(captures[0]); err != nil {
 			_ = h.Render(w).InternalServerError(err)
 			return
 		}
-		_ = h.Render(w).Created(capt)
+		_ = h.Render(w).Created(captures[0])
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *Controller) create(w http.ResponseWriter, r *http.Request) {
 
 func (h *Controller) captureCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		captureID, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		captureID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
 		if err != nil {
 			log.Println(err)
 			_ = h.Render(w).BadRequest(ErrorBadRequest)

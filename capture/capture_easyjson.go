@@ -27,7 +27,7 @@ func easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 	}
 	first = false
 	out.RawString("\"id\":")
-	out.Uint(uint(in.ID))
+	out.RawText((in.ID).MarshalText())
 	if !first {
 		out.RawByte(',')
 	}

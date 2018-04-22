@@ -25,7 +25,6 @@ type Captures []*Capture
 // UnmarshalJSON decodes a collection of captures from a JSON body.
 // Throws an error if the body of the branch cannot be interpreted as JSON.
 // Implements the json.Unmarshaler Interface
-// TODO: validate length of payload
 func (c *Captures) UnmarshalJSON(data []byte) error {
 	var raw []json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {

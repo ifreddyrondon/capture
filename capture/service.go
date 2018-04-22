@@ -1,18 +1,21 @@
 package capture
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"gopkg.in/src-d/go-kallax.v1"
+)
 
 // Service is the interface implemented by capture
 // It make CRUD operations over captures.
 type Service interface {
 	// Save capture into the database.
-	Save(*Capture) (*Capture, error)
+	Save(*Capture) error
 	// SaveBulk captures into the database.
 	SaveBulk(...*Capture) (Captures, error)
 	// List retrieve the count captures from start index.
 	List(start, count int) (Captures, error)
 	// Get a capture by id
-	Get(uint64) (*Capture, error)
+	Get(kallax.ULID) (*Capture, error)
 	// Delete a capture by id
 	Delete(*Capture) error
 	// Update a capture from an updated one, will only update those changed & non blank fields.
@@ -35,11 +38,9 @@ func (pgs *PGService) Drop() {
 }
 
 // Save capture into the database.
-func (pgs *PGService) Save(capt *Capture) (*Capture, error) {
-	if err := pgs.DB.Create(capt).Error; err != nil {
-		return nil, err
-	}
-	return capt, nil
+func (pgs *PGService) Save(capt *Capture) error {
+	capt.ID = kallax.NewULID()
+	return pgs.DB.Create(capt).Error
 }
 
 // SaveBulk captures into the database.
@@ -63,9 +64,9 @@ func (pgs *PGService) List(start, count int) (Captures, error) {
 }
 
 // Get a capture by id
-func (pgs *PGService) Get(id uint64) (*Capture, error) {
+func (pgs *PGService) Get(id kallax.ULID) (*Capture, error) {
 	var result Capture
-	if pgs.DB.First(&result, id).RecordNotFound() {
+	if pgs.DB.Where(&Capture{ID: id}).First(&result).RecordNotFound() {
 		return nil, ErrorNotFound
 	}
 	return &result, nil

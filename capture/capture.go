@@ -5,6 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/mailru/easyjson/jwriter"
@@ -19,26 +21,13 @@ var (
 
 // Capture is the representation of data sample of any kind taken at a specific time and location.
 type Capture struct {
-	ID      uint64          `json:"id" gorm:"primary_key"`
-	Payload payload.Payload `json:"payload" sql:"type:jsonb"`
+	ID      kallax.ULID     `json:"id" sql:"type:uuid" gorm:"primary_key"`
+	Payload payload.Payload `json:"payload" sql:"not null;type:jsonb"`
 	geocoding.Point
-	Timestamp time.Time  `json:"timestamp"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `json:"-" sql:"index"`
-}
-
-// New returns a new pointer to a Capture composed by a payload a timestamp and a point.
-func New(payl payload.Payload, timestamp time.Time, point geocoding.Point) (*Capture, error) {
-	if len(payl) == 0 {
-		return nil, payload.ErrorMissingPayload
-	}
-
-	return &Capture{
-		Payload:   payl,
-		Point:     point,
-		Timestamp: timestamp,
-	}, nil
+	Timestamp time.Time  `json:"timestamp" sql:"not null"`
+	CreatedAt time.Time  `json:"createdAt" sql:"not null"`
+	UpdatedAt time.Time  `json:"updatedAt" sql:"not null"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 // UnmarshalJSON decodes the capture from a JSON body.
@@ -52,20 +41,20 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 		}
 		return err
 	}
+	c.Point = p
 
 	var t timestamp.Timestamp
-	_ = t.UnmarshalJSON(data) // ignore err because timestamp always has a fallback
+	if err := t.UnmarshalJSON(data); err != nil {
+		return err
+	}
+	c.Timestamp = t.Timestamp
 
 	var payl payload.Payload
 	if err := json.Unmarshal(data, &payl); err != nil {
 		return err
 	}
+	c.Payload = payl
 
-	capture, err := New(payl, t.Timestamp, p)
-	if err != nil {
-		return err
-	}
-	*c = *capture
 	return nil
 }
 
