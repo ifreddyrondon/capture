@@ -9,6 +9,7 @@ import (
 
 	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/lib/pq"
 	"github.com/mailru/easyjson/jwriter"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
@@ -24,6 +25,8 @@ type Capture struct {
 	ID      kallax.ULID     `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Payload payload.Payload `json:"payload" sql:"not null;type:jsonb"`
 	geocoding.Point
+	Tags pq.StringArray `json:"tags" sql:"type:varchar(64)[]"`
+	// Tags      []string   `json:"tags" sql:"-"`
 	Timestamp time.Time  `json:"timestamp" sql:"not null"`
 	CreatedAt time.Time  `json:"createdAt" sql:"not null"`
 	UpdatedAt time.Time  `json:"updatedAt" sql:"not null"`
@@ -54,6 +57,12 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	c.Payload = payl
+
+	// tags := []string{}
+	// if err := json.Unmarshal(data, &tags); err != nil {
+	// 	return err
+	// }
+	// c.Tags = tags
 
 	return nil
 }

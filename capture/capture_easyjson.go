@@ -37,23 +37,40 @@ func easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 		out.RawString(`null`)
 	} else {
 		out.RawByte('{')
-		v1First := true
-		for v1Name, v1Value := range in.Payload {
-			if !v1First {
+		v2First := true
+		for v2Name, v2Value := range in.Payload {
+			if !v2First {
 				out.RawByte(',')
 			}
-			v1First = false
-			out.String(string(v1Name))
+			v2First = false
+			out.String(string(v2Name))
 			out.RawByte(':')
-			if m, ok := v1Value.(easyjson.Marshaler); ok {
+			if m, ok := v2Value.(easyjson.Marshaler); ok {
 				m.MarshalEasyJSON(out)
-			} else if m, ok := v1Value.(json.Marshaler); ok {
+			} else if m, ok := v2Value.(json.Marshaler); ok {
 				out.Raw(m.MarshalJSON())
 			} else {
-				out.Raw(json.Marshal(v1Value))
+				out.Raw(json.Marshal(v2Value))
 			}
 		}
 		out.RawByte('}')
+	}
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"tags\":")
+	if in.Tags == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v3, v4 := range in.Tags {
+			if v3 > 0 {
+				out.RawByte(',')
+			}
+			out.String(string(v4))
+		}
+		out.RawByte(']')
 	}
 	if !first {
 		out.RawByte(',')
