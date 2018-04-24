@@ -25,12 +25,11 @@ type Capture struct {
 	ID      kallax.ULID     `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Payload payload.Payload `json:"payload" sql:"not null;type:jsonb"`
 	geocoding.Point
-	Tags pq.StringArray `json:"tags" sql:"type:varchar(64)[]"`
-	// Tags      []string   `json:"tags" sql:"-"`
-	Timestamp time.Time  `json:"timestamp" sql:"not null"`
-	CreatedAt time.Time  `json:"createdAt" sql:"not null"`
-	UpdatedAt time.Time  `json:"updatedAt" sql:"not null"`
-	DeletedAt *time.Time `json:"-"`
+	Tags      pq.StringArray `json:"tags" sql:"type:varchar(64)[]"`
+	Timestamp time.Time      `json:"timestamp" sql:"not null"`
+	CreatedAt time.Time      `json:"createdAt" sql:"not null"`
+	UpdatedAt time.Time      `json:"updatedAt" sql:"not null"`
+	DeletedAt *time.Time     `json:"-"`
 }
 
 // UnmarshalJSON decodes the capture from a JSON body.

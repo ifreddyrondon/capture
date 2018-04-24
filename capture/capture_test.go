@@ -159,12 +159,12 @@ func TestCaptureMarshalJSON(t *testing.T) {
 		{
 			"capture with point",
 			getCapture(payl, date, 1, 2),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":null,"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2}`,
 		},
 		{
 			"capture without a point",
 			getCaptureWithoutPoint(payl, date),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":null,"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null}`,
 		},
 	}
 
