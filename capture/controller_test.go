@@ -73,6 +73,7 @@ func TestCreateValidCapture(t *testing.T) {
 				"lat":       1.0,
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
+				"tags":      []string{},
 				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 			},
 		},
@@ -86,6 +87,22 @@ func TestCreateValidCapture(t *testing.T) {
 				"lat":       nil,
 				"lng":       nil,
 				"timestamp": "1989-12-26T06:01:00Z",
+				"tags":      []string{},
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+		},
+		{
+			name: "create capture with payload and tags",
+			payload: map[string]interface{}{
+				"timestamp": "630655260",
+				"tags":      []string{"tag1", "tag2"},
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+			response: map[string]interface{}{
+				"lat":       nil,
+				"lng":       nil,
+				"timestamp": "1989-12-26T06:01:00Z",
+				"tags":      []string{"tag1", "tag2"},
 				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 			},
 		},
@@ -102,6 +119,7 @@ func TestCreateValidCapture(t *testing.T) {
 				ContainsKey("lat").ValueEqual("lat", tc.response["lat"]).
 				ContainsKey("lng").ValueEqual("lng", tc.response["lng"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.response["timestamp"]).
+				ContainsKey("tags").ValueEqual("tags", tc.response["tags"]).
 				ContainsKey("id").NotEmpty().
 				ContainsKey("createdAt").NotEmpty().
 				ContainsKey("updatedAt").NotEmpty()
@@ -126,6 +144,7 @@ func TestCreateOnlyPayloadCapture(t *testing.T) {
 		Status(http.StatusCreated).
 		JSON().Object().
 		ContainsKey("payload").ValueEqual("payload", response["payload"]).
+		ContainsKey("tags").ValueEqual("tags", []string{}).
 		ContainsKey("lat").ValueEqual("lat", nil).
 		ContainsKey("lng").ValueEqual("lng", nil).
 		ContainsKey("timestamp").NotEmpty().
@@ -232,12 +251,14 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"lat":       1.0,
 					"lng":       12.0,
 					"timestamp": "1989-12-26T06:01:00Z",
+					"tags":      []string{},
 					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 				},
 				{
 					"lat":       2.0,
 					"lng":       3.0,
 					"timestamp": "1989-12-26T06:01:00Z",
+					"tags":      []string{},
 					"payload":   map[string]interface{}{"power": []interface{}{-45.0, -32.1, 34.1}},
 				},
 			},
@@ -259,12 +280,14 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"lat":       nil,
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
+					"tags":      []string{},
 					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 				},
 				{
 					"lat":       nil,
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
+					"tags":      []string{},
 					"payload":   map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
 				},
 			},
@@ -292,12 +315,14 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"lat":       nil,
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
+					"tags":      []string{},
 					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 				},
 				{
 					"lat":       nil,
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
+					"tags":      []string{},
 					"payload":   map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
 				},
 			},
@@ -319,6 +344,7 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					ContainsKey("lat").ValueEqual("lat", tc.response[n]["lat"]).
 					ContainsKey("lng").ValueEqual("lng", tc.response[n]["lng"]).
 					ContainsKey("timestamp").ValueEqual("timestamp", tc.response[n]["timestamp"]).
+					ContainsKey("tags").ValueEqual("tags", tc.response[n]["tags"]).
 					ContainsKey("id").NotEmpty().
 					ContainsKey("createdAt").NotEmpty().
 					ContainsKey("updatedAt").NotEmpty()
@@ -348,6 +374,7 @@ func TestBulkCreateOnlyOneValidCaptureItShouldReturnObject(t *testing.T) {
 		"lat":       nil,
 		"lng":       nil,
 		"timestamp": "1989-12-26T06:01:00Z",
+		"tags":      []string{},
 		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 	}
 
@@ -360,6 +387,7 @@ func TestBulkCreateOnlyOneValidCaptureItShouldReturnObject(t *testing.T) {
 		ContainsKey("lat").ValueEqual("lat", response["lat"]).
 		ContainsKey("lng").ValueEqual("lng", response["lng"]).
 		ContainsKey("timestamp").ValueEqual("timestamp", response["timestamp"]).
+		ContainsKey("tags").ValueEqual("tags", response["tags"]).
 		ContainsKey("id").NotEmpty().
 		ContainsKey("createdAt").NotEmpty().
 		ContainsKey("updatedAt").NotEmpty()
@@ -452,6 +480,7 @@ func TestListCapturesWithValues(t *testing.T) {
 		ContainsKey("lng").
 		ContainsKey("timestamp").
 		ContainsKey("id").
+		ContainsKey("tags").
 		ContainsKey("createdAt").
 		ContainsKey("updatedAt")
 }
@@ -464,6 +493,7 @@ func TestGetCapture(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
+		"tags":      []string{"tag1", "tag2"},
 		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 	}
 	e := bastion.Tester(t, app)
@@ -477,6 +507,7 @@ func TestGetCapture(t *testing.T) {
 		ContainsKey("lat").ValueEqual("lat", capPayload["lat"]).
 		ContainsKey("lng").ValueEqual("lng", capPayload["lng"]).
 		ContainsKey("timestamp").NotEmpty().
+		ContainsKey("tags").ValueEqual("tags", capPayload["tags"]).
 		ContainsKey("id").NotEmpty().
 		ContainsKey("createdAt").NotEmpty().
 		ContainsKey("updatedAt").NotEmpty()
@@ -544,6 +575,7 @@ func TestUpdateCapture(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
+		"tags":      []string{},
 		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
 	}
 
@@ -557,6 +589,7 @@ func TestUpdateCapture(t *testing.T) {
 				"lat":       89.0,
 				"lng":       capPayload["lng"],
 				"timestamp": capPayload["timestamp"],
+				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
 			},
 		},
@@ -566,6 +599,7 @@ func TestUpdateCapture(t *testing.T) {
 				"lat":       capPayload["lat"],
 				"lng":       30,
 				"timestamp": capPayload["timestamp"],
+				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
 			},
 		},
@@ -575,6 +609,7 @@ func TestUpdateCapture(t *testing.T) {
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
 				"timestamp": "2006-07-12T06:01:00Z",
+				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
 			},
 		},
@@ -584,7 +619,18 @@ func TestUpdateCapture(t *testing.T) {
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
 				"timestamp": capPayload["timestamp"],
+				"tags":      capPayload["tags"],
 				"payload":   map[string]interface{}{"power": []interface{}{1}},
+			},
+		},
+		{
+			"update tags",
+			map[string]interface{}{
+				"lat":       capPayload["lat"],
+				"lng":       capPayload["lng"],
+				"timestamp": capPayload["timestamp"],
+				"payload":   capPayload["payload"],
+				"tags":      []string{"tag1", "tag2"},
 			},
 		},
 		{
@@ -594,6 +640,7 @@ func TestUpdateCapture(t *testing.T) {
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
 				"timestamp": capPayload["timestamp"],
+				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
 			},
 		},
@@ -613,17 +660,23 @@ func TestUpdateCapture(t *testing.T) {
 				ContainsKey("lng").ValueEqual("lng", tc.updatePayload["lng"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.updatePayload["timestamp"]).
 				ContainsKey("payload").ValueEqual("payload", tc.updatePayload["payload"]).
+				ContainsKey("tags").ValueEqual("tags", tc.updatePayload["tags"]).
 				ContainsKey("createdAt").NotEmpty().
 				ContainsKey("updatedAt").NotEmpty().
 				Raw()
 
-			// TODO: createdAt should be equal
-
+			// createdAt should be equal
+			createdAtFromCreate, err := dateparse.ParseAny(createdObj["createdAt"].(string))
+			assert.Nil(t, err)
+			createdAtFromUpdate, err := dateparse.ParseAny(updatedObj["createdAt"].(string))
+			assert.Nil(t, err)
+			assert.True(t, createdAtFromCreate.Equal(createdAtFromUpdate))
+			// updatedAt from put should be after updatedAt from post
 			updatedAtFromCreate, err := dateparse.ParseAny(createdObj["updatedAt"].(string))
 			assert.Nil(t, err)
 			updatedAtFromUpdate, err := dateparse.ParseAny(updatedObj["updatedAt"].(string))
 			assert.Nil(t, err)
-			updatedAtFromUpdate.After(updatedAtFromCreate)
+			assert.True(t, updatedAtFromUpdate.After(updatedAtFromCreate))
 		})
 	}
 }
