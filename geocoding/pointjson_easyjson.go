@@ -77,6 +77,26 @@ func easyjsonA2deb046DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.L
 				}
 				*out.Longitude = float64(in.Float64())
 			}
+		case "elevation":
+			if in.IsNull() {
+				in.Skip()
+				out.Elevation = nil
+			} else {
+				if out.Elevation == nil {
+					out.Elevation = new(float64)
+				}
+				*out.Elevation = float64(in.Float64())
+			}
+		case "altitude":
+			if in.IsNull() {
+				in.Skip()
+				out.Altitude = nil
+			} else {
+				if out.Altitude == nil {
+					out.Altitude = new(float64)
+				}
+				*out.Altitude = float64(in.Float64())
+			}
 		default:
 			in.SkipRecursive()
 		}

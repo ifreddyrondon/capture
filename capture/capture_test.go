@@ -94,6 +94,11 @@ func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
 			getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1),
 		},
 		{
+			"success with payload timestamp and point with elevation",
+			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "elevation": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			getCaptureWithElevation(payl, "1989-12-26T06:01:00.00Z", 1, 1, 1),
+		},
+		{
 			"success with payload timestamp and tags",
 			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "date": "1989-12-26T06:01:00.00Z", "tags": ["tag1", "tag2"]}`),
 			getCaptureWithTags(payl, "1989-12-26T06:01:00.00Z", "tag1", "tag2"),
@@ -107,6 +112,7 @@ func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
 			require.Nil(t, err)
 			assert.Equal(t, tc.result.LAT, result.LAT)
 			assert.Equal(t, tc.result.LNG, result.LNG)
+			assert.Equal(t, tc.result.Elevation, result.Elevation)
 			assert.Equal(t, tc.result.Timestamp, result.Timestamp)
 			assert.Equal(t, tc.result.Payload, result.Payload)
 			assert.Equal(t, tc.result.Tags, result.Tags)
@@ -166,17 +172,22 @@ func TestCaptureMarshalJSON(t *testing.T) {
 		{
 			"capture with point",
 			getCapture(payl, date, 1, 2),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2,"elevation":null}`,
+		},
+		{
+			"capture with point and elevation",
+			getCaptureWithElevation(payl, date, 1, 2, 3),
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2,"elevation":3}`,
 		},
 		{
 			"capture without a point",
 			getCaptureWithoutPoint(payl, date),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null,"elevation":null}`,
 		},
 		{
 			"capture with tags",
 			getCaptureWithTags(payl, date, "tag1", "tag2"),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":["tag1","tag2"],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":["tag1","tag2"],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null,"elevation":null}`,
 		},
 	}
 
@@ -195,6 +206,13 @@ func TestCaptureMarshalJSON(t *testing.T) {
 
 func getCapture(p map[string]interface{}, date string, lat, lng float64) *capture.Capture {
 	point, _ := geocoding.New(lat, lng)
+	ts := getDate(date)
+	return &capture.Capture{Payload: p, Timestamp: ts, Point: *point, Tags: []string{}}
+}
+
+func getCaptureWithElevation(p map[string]interface{}, date string, lat, lng, elevation float64) *capture.Capture {
+	point, _ := geocoding.New(lat, lng)
+	point.Elevation = &elevation
 	ts := getDate(date)
 	return &capture.Capture{Payload: p, Timestamp: ts, Point: *point, Tags: []string{}}
 }

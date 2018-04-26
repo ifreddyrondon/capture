@@ -110,5 +110,15 @@ func easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.W
 	} else {
 		out.Float64(float64(*in.LNG))
 	}
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"elevation\":")
+	if in.Elevation == nil {
+		out.RawString("null")
+	} else {
+		out.Float64(float64(*in.Elevation))
+	}
 	out.RawByte('}')
 }

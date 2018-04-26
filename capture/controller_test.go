@@ -78,6 +78,24 @@ func TestCreateValidCapture(t *testing.T) {
 			},
 		},
 		{
+			name: "create capture with payload, date and point with altitude",
+			payload: map[string]interface{}{
+				"latitude":  1,
+				"longitude": 12,
+				"altitude":  50,
+				"timestamp": "630655260",
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+			response: map[string]interface{}{
+				"lat":       1.0,
+				"lng":       12.0,
+				"elevation": 50,
+				"timestamp": "1989-12-26T06:01:00Z",
+				"tags":      []string{},
+				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			},
+		},
+		{
 			name: "create capture with payload and date without point",
 			payload: map[string]interface{}{
 				"date":    "630655260",
@@ -118,6 +136,7 @@ func TestCreateValidCapture(t *testing.T) {
 				ContainsKey("payload").ValueEqual("payload", tc.response["payload"]).
 				ContainsKey("lat").ValueEqual("lat", tc.response["lat"]).
 				ContainsKey("lng").ValueEqual("lng", tc.response["lng"]).
+				ContainsKey("elevation").ValueEqual("elevation", tc.response["elevation"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.response["timestamp"]).
 				ContainsKey("tags").ValueEqual("tags", tc.response["tags"]).
 				ContainsKey("id").NotEmpty().
@@ -478,6 +497,7 @@ func TestListCapturesWithValues(t *testing.T) {
 		ContainsKey("payload").
 		ContainsKey("lat").
 		ContainsKey("lng").
+		ContainsKey("elevation").
 		ContainsKey("timestamp").
 		ContainsKey("id").
 		ContainsKey("tags").
@@ -492,6 +512,7 @@ func TestGetCapture(t *testing.T) {
 	capPayload := map[string]interface{}{
 		"lat":       1.0,
 		"lng":       12.0,
+		"elevation": 50,
 		"timestamp": "1989-12-26T06:01:00Z",
 		"tags":      []string{"tag1", "tag2"},
 		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
@@ -506,6 +527,7 @@ func TestGetCapture(t *testing.T) {
 		ContainsKey("payload").ValueEqual("payload", capPayload["payload"]).
 		ContainsKey("lat").ValueEqual("lat", capPayload["lat"]).
 		ContainsKey("lng").ValueEqual("lng", capPayload["lng"]).
+		ContainsKey("elevation").ValueEqual("elevation", capPayload["elevation"]).
 		ContainsKey("timestamp").NotEmpty().
 		ContainsKey("tags").ValueEqual("tags", capPayload["tags"]).
 		ContainsKey("id").NotEmpty().
@@ -574,6 +596,7 @@ func TestUpdateCapture(t *testing.T) {
 	capPayload := map[string]interface{}{
 		"lat":       1.0,
 		"lng":       12.0,
+		"elevation": 30.0,
 		"timestamp": "1989-12-26T06:01:00Z",
 		"tags":      []string{},
 		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
@@ -588,6 +611,7 @@ func TestUpdateCapture(t *testing.T) {
 			map[string]interface{}{
 				"lat":       89.0,
 				"lng":       capPayload["lng"],
+				"elevation": capPayload["elevation"],
 				"timestamp": capPayload["timestamp"],
 				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
@@ -598,6 +622,18 @@ func TestUpdateCapture(t *testing.T) {
 			map[string]interface{}{
 				"lat":       capPayload["lat"],
 				"lng":       30,
+				"elevation": capPayload["elevation"],
+				"timestamp": capPayload["timestamp"],
+				"tags":      capPayload["tags"],
+				"payload":   capPayload["payload"],
+			},
+		},
+		{
+			"update elevation",
+			map[string]interface{}{
+				"lat":       capPayload["lat"],
+				"lng":       capPayload["lng"],
+				"elevation": 100,
 				"timestamp": capPayload["timestamp"],
 				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
@@ -608,6 +644,7 @@ func TestUpdateCapture(t *testing.T) {
 			map[string]interface{}{
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
+				"elevation": capPayload["elevation"],
 				"timestamp": "2006-07-12T06:01:00Z",
 				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
@@ -618,6 +655,7 @@ func TestUpdateCapture(t *testing.T) {
 			map[string]interface{}{
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
+				"elevation": capPayload["elevation"],
 				"timestamp": capPayload["timestamp"],
 				"tags":      capPayload["tags"],
 				"payload":   map[string]interface{}{"power": []interface{}{1}},
@@ -628,6 +666,7 @@ func TestUpdateCapture(t *testing.T) {
 			map[string]interface{}{
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
+				"elevation": capPayload["elevation"],
 				"timestamp": capPayload["timestamp"],
 				"payload":   capPayload["payload"],
 				"tags":      []string{"tag1", "tag2"},
@@ -639,6 +678,7 @@ func TestUpdateCapture(t *testing.T) {
 				"id":        "123",
 				"lat":       capPayload["lat"],
 				"lng":       capPayload["lng"],
+				"elevation": capPayload["elevation"],
 				"timestamp": capPayload["timestamp"],
 				"tags":      capPayload["tags"],
 				"payload":   capPayload["payload"],
@@ -658,6 +698,7 @@ func TestUpdateCapture(t *testing.T) {
 				ContainsKey("id").ValueEqual("id", tc.updatePayload["id"]).
 				ContainsKey("lat").ValueEqual("lat", tc.updatePayload["lat"]).
 				ContainsKey("lng").ValueEqual("lng", tc.updatePayload["lng"]).
+				ContainsKey("elevation").ValueEqual("elevation", tc.updatePayload["elevation"]).
 				ContainsKey("timestamp").ValueEqual("timestamp", tc.updatePayload["timestamp"]).
 				ContainsKey("payload").ValueEqual("payload", tc.updatePayload["payload"]).
 				ContainsKey("tags").ValueEqual("tags", tc.updatePayload["tags"]).

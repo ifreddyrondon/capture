@@ -59,16 +59,6 @@ func TestNewPointFailure(t *testing.T) {
 	}
 }
 
-func TestPointMarshalJSON(t *testing.T) {
-	t.Parallel()
-
-	p := getPoint(1, 1)
-	expected := `{"lat":1,"lng":1}`
-	result, err := p.MarshalJSON()
-	require.Nil(t, err)
-	assert.Equal(t, expected, string(result))
-}
-
 func TestUnmarshalJSONSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -78,24 +68,44 @@ func TestUnmarshalJSONSuccess(t *testing.T) {
 		expected *geocoding.Point
 	}{
 		{
-			"valid lat and lng",
+			"lat and lng",
 			[]byte(`{"lat":40.7486, "lng":-73.9864}`),
 			getPoint(40.7486, -73.9864),
 		},
 		{
-			"valid with latitude and longitude",
+			"latitude and longitude",
 			[]byte(`{"latitude":1, "longitude":1}`),
 			getPoint(1, 1),
 		},
 		{
-			"valid mixed latitude and lng",
+			"mixed latitude and lng",
 			[]byte(`{"latitude":1, "lng":1}`),
 			getPoint(1, 1),
 		},
 		{
-			"valid mixed lat and longitude",
+			"mixed lat and longitude",
 			[]byte(`{"lat":1, "longitude":1}`),
 			getPoint(1, 1),
+		},
+		{
+			"with elevation",
+			[]byte(`{"lat":1, "longitude":1, "elevation": 1}`),
+			func() *geocoding.Point {
+				p := getPoint(1, 1)
+				elevation := 1.0
+				p.Elevation = &elevation
+				return p
+			}(),
+		},
+		{
+			"with altitude",
+			[]byte(`{"lat":1, "longitude":1, "altitude": 1}`),
+			func() *geocoding.Point {
+				p := getPoint(1, 1)
+				elevation := 1.0
+				p.Elevation = &elevation
+				return p
+			}(),
 		},
 	}
 
@@ -107,6 +117,7 @@ func TestUnmarshalJSONSuccess(t *testing.T) {
 			require.NotNil(t, result)
 			assert.Equal(t, tc.expected.LNG, result.LNG)
 			assert.Equal(t, tc.expected.LAT, result.LAT)
+			assert.Equal(t, tc.expected.Elevation, result.Elevation)
 		})
 	}
 }

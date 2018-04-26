@@ -1,14 +1,14 @@
 package geocoding
 
-import (
-	jlexer "github.com/mailru/easyjson/jlexer"
-)
+import jlexer "github.com/mailru/easyjson/jlexer"
 
 type pointJSON struct {
 	LAT       *float64 `json:"lat"`
 	Latitude  *float64 `json:"latitude"`
 	LNG       *float64 `json:"lng"`
 	Longitude *float64 `json:"longitude"`
+	Elevation *float64 `json:"elevation"`
+	Altitude  *float64 `json:"altitude"`
 }
 
 func (p *pointJSON) unmarshalJSON(data []byte) error {
