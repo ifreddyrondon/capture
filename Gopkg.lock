@@ -145,7 +145,7 @@
     "jlexer",
     "jwriter"
   ]
-  revision = "4a8a4c12c4d1b0c0a7de630426ce6dcb07141b17"
+  revision = "8b799c424f57fa123fc63a99d6383bc6e4c02578"
 
 [[projects]]
   branch = "master"
@@ -343,6 +343,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3e9929458bc240a67b60345d59ee2d2d0e792a70aa2444c7d52c9e3c466a541"
+  inputs-digest = "20e0e7a5688698daad5d6bdbd01c10d6dec8bd1c0baa2c82d5617deb4425347a"
   solver-name = "gps-cdcl"
   solver-version = 1
