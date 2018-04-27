@@ -67,14 +67,58 @@ func TestCreateValidCapture(t *testing.T) {
 				"latitude":  1,
 				"longitude": 12,
 				"timestamp": "630655260",
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 			response: map[string]interface{}{
 				"lat":       1.0,
 				"lng":       12.0,
 				"timestamp": "1989-12-26T06:01:00Z",
 				"tags":      []string{},
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
+			},
+		},
+		{
+			name: "create capture with multiple metrics in payload",
+			payload: map[string]interface{}{
+				"latitude":  1,
+				"longitude": 12,
+				"timestamp": "630655260",
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+					{
+						"name":  "frequency",
+						"value": []interface{}{100.0, 200.0, 300.0},
+					},
+				},
+			},
+			response: map[string]interface{}{
+				"lat":       1.0,
+				"lng":       12.0,
+				"timestamp": "1989-12-26T06:01:00Z",
+				"tags":      []string{},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+					{
+						"name":  "frequency",
+						"value": []interface{}{100.0, 200.0, 300.0},
+					},
+				},
 			},
 		},
 		{
@@ -84,7 +128,12 @@ func TestCreateValidCapture(t *testing.T) {
 				"longitude": 12,
 				"altitude":  50,
 				"timestamp": "630655260",
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 			response: map[string]interface{}{
 				"lat":       1.0,
@@ -92,21 +141,36 @@ func TestCreateValidCapture(t *testing.T) {
 				"elevation": 50,
 				"timestamp": "1989-12-26T06:01:00Z",
 				"tags":      []string{},
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 		},
 		{
 			name: "create capture with payload and date without point",
 			payload: map[string]interface{}{
-				"date":    "630655260",
-				"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"date": "630655260",
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 			response: map[string]interface{}{
 				"lat":       nil,
 				"lng":       nil,
 				"timestamp": "1989-12-26T06:01:00Z",
 				"tags":      []string{},
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 		},
 		{
@@ -114,14 +178,24 @@ func TestCreateValidCapture(t *testing.T) {
 			payload: map[string]interface{}{
 				"timestamp": "630655260",
 				"tags":      []string{"tag1", "tag2"},
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 			response: map[string]interface{}{
 				"lat":       nil,
 				"lng":       nil,
 				"timestamp": "1989-12-26T06:01:00Z",
 				"tags":      []string{"tag1", "tag2"},
-				"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{-70.0, -100.1, 3.1},
+					},
+				},
 			},
 		},
 	}
@@ -150,19 +224,21 @@ func TestCreateOnlyPayloadCapture(t *testing.T) {
 	app, teardown := setup(t)
 	defer teardown()
 
-	payload := map[string]interface{}{
-		"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
-	}
-	response := map[string]interface{}{
-		"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+	body := map[string]interface{}{
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 	e := bastion.Tester(t, app)
 	e.POST("/captures/").
-		WithJSON(payload).
+		WithJSON(body).
 		Expect().
 		Status(http.StatusCreated).
 		JSON().Object().
-		ContainsKey("payload").ValueEqual("payload", response["payload"]).
+		ContainsKey("payload").ValueEqual("payload", body["payload"]).
 		ContainsKey("tags").ValueEqual("tags", []string{}).
 		ContainsKey("lat").ValueEqual("lat", nil).
 		ContainsKey("lng").ValueEqual("lng", nil).
@@ -256,13 +332,23 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"latitude":  1,
 					"longitude": 12,
 					"timestamp": "630655260",
-					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-70.0, -100.1, 3.1},
+						},
+					},
 				},
 				{
 					"latitude":  2,
 					"longitude": 3,
 					"timestamp": "630655260",
-					"payload":   map[string]interface{}{"power": []interface{}{-45.0, -32.1, 34.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-45.0, -32.1, 34.1},
+						},
+					},
 				},
 			},
 			response: []map[string]interface{}{
@@ -271,14 +357,24 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"lng":       12.0,
 					"timestamp": "1989-12-26T06:01:00Z",
 					"tags":      []string{},
-					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-70.0, -100.1, 3.1},
+						},
+					},
 				},
 				{
 					"lat":       2.0,
 					"lng":       3.0,
 					"timestamp": "1989-12-26T06:01:00Z",
 					"tags":      []string{},
-					"payload":   map[string]interface{}{"power": []interface{}{-45.0, -32.1, 34.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-45.0, -32.1, 34.1},
+						},
+					},
 				},
 			},
 		},
@@ -286,12 +382,22 @@ func TestBulkCreateValidCapture(t *testing.T) {
 			name: "create capture with payload and date without point",
 			payload: []map[string]interface{}{
 				{
-					"date":    "630655260",
-					"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+					"date": "630655260",
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-70.0, -100.1, 3.1},
+						},
+					},
 				},
 				{
-					"date":    "630655260",
-					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+					"date": "630655260",
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-50.0, -30.1, 10.1},
+						},
+					},
 				},
 			},
 			response: []map[string]interface{}{
@@ -300,14 +406,24 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
 					"tags":      []string{},
-					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-70.0, -100.1, 3.1},
+						},
+					},
 				},
 				{
 					"lat":       nil,
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
 					"tags":      []string{},
-					"payload":   map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-50.0, -30.1, 10.1},
+						},
+					},
 				},
 			},
 		},
@@ -315,18 +431,33 @@ func TestBulkCreateValidCapture(t *testing.T) {
 			name: "payload with three capture but one is invalid",
 			payload: []map[string]interface{}{
 				{
-					"date":    "630655260",
-					"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+					"date": "630655260",
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-70.0, -100.1, 3.1},
+						},
+					},
 				},
 				{
-					"date":    "630655260",
-					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+					"date": "630655260",
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-50.0, -30.1, 10.1},
+						},
+					},
 				},
 				{
-					"lat":     -10001.0,
-					"lng":     12.0,
-					"date":    "630655260",
-					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+					"lat":  -10001.0,
+					"lng":  12.0,
+					"date": "630655260",
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-50.0, -30.1, 10.1},
+						},
+					},
 				},
 			},
 			response: []map[string]interface{}{
@@ -335,14 +466,24 @@ func TestBulkCreateValidCapture(t *testing.T) {
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
 					"tags":      []string{},
-					"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-70.0, -100.1, 3.1},
+						},
+					},
 				},
 				{
 					"lat":       nil,
 					"lng":       nil,
 					"timestamp": "1989-12-26T06:01:00Z",
 					"tags":      []string{},
-					"payload":   map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-50.0, -30.1, 10.1},
+						},
+					},
 				},
 			},
 		},
@@ -379,14 +520,24 @@ func TestBulkCreateOnlyOneValidCaptureItShouldReturnObject(t *testing.T) {
 	e := bastion.Tester(t, app)
 	payload := []map[string]interface{}{
 		{
-			"date":    "630655260",
-			"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+			"date": "630655260",
+			"payload": []map[string]interface{}{
+				{
+					"name":  "power",
+					"value": []interface{}{-70.0, -100.1, 3.1},
+				},
+			},
 		},
 		{
-			"lat":     -10001.0,
-			"lng":     12.0,
-			"date":    "630655260",
-			"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+			"lat":  -10001.0,
+			"lng":  12.0,
+			"date": "630655260",
+			"payload": []map[string]interface{}{
+				{
+					"name":  "power",
+					"value": []interface{}{-50.0, -30.1, 10.1},
+				},
+			},
 		},
 	}
 	response := map[string]interface{}{
@@ -394,7 +545,12 @@ func TestBulkCreateOnlyOneValidCaptureItShouldReturnObject(t *testing.T) {
 		"lng":       nil,
 		"timestamp": "1989-12-26T06:01:00Z",
 		"tags":      []string{},
-		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 
 	e.POST("/captures/").
@@ -429,10 +585,15 @@ func TestBulkCreateInValidCapturesItShouldReturnError(t *testing.T) {
 					"date": "630655260",
 				},
 				{
-					"lat":     -10001.0,
-					"lng":     12.0,
-					"date":    "630655260",
-					"payload": map[string]interface{}{"power": []interface{}{-50.0, -30.1, 10.1}},
+					"lat":  -10001.0,
+					"lng":  12.0,
+					"date": "630655260",
+					"payload": []map[string]interface{}{
+						{
+							"name":  "power",
+							"value": []interface{}{-50.0, -30.1, 10.1},
+						},
+					},
 				},
 			},
 			response: map[string]interface{}{
@@ -482,7 +643,12 @@ func TestListCapturesWithValues(t *testing.T) {
 	defer teardown()
 
 	payload := map[string]interface{}{
-		"payload": map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 	e := bastion.Tester(t, app)
 	e.POST("/captures/").WithJSON(payload).Expect().Status(http.StatusCreated)
@@ -515,7 +681,12 @@ func TestGetCapture(t *testing.T) {
 		"elevation": 50,
 		"timestamp": "1989-12-26T06:01:00Z",
 		"tags":      []string{"tag1", "tag2"},
-		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 	e := bastion.Tester(t, app)
 	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
@@ -575,7 +746,12 @@ func TestDeleteCapture(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
-		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 	e := bastion.Tester(t, app)
 	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
@@ -599,7 +775,12 @@ func TestUpdateCapture(t *testing.T) {
 		"elevation": 30.0,
 		"timestamp": "1989-12-26T06:01:00Z",
 		"tags":      []string{},
-		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 
 	tt := []struct {
@@ -658,7 +839,12 @@ func TestUpdateCapture(t *testing.T) {
 				"elevation": capPayload["elevation"],
 				"timestamp": capPayload["timestamp"],
 				"tags":      capPayload["tags"],
-				"payload":   map[string]interface{}{"power": []interface{}{1}},
+				"payload": []map[string]interface{}{
+					{
+						"name":  "power",
+						"value": []interface{}{1},
+					},
+				},
 			},
 		},
 		{
@@ -731,7 +917,12 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 		"lat":       1.0,
 		"lng":       12.0,
 		"timestamp": "1989-12-26T06:01:00Z",
-		"payload":   map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}},
+		"payload": []map[string]interface{}{
+			{
+				"name":  "power",
+				"value": []interface{}{-70.0, -100.1, 3.1},
+			},
+		},
 	}
 
 	tt := []struct {

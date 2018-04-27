@@ -1,7 +1,7 @@
 package payload_test
 
 import (
-	json "encoding/json"
+	"encoding/json"
 	"testing"
 
 	"github.com/ifreddyrondon/gocapture/payload"
@@ -19,24 +19,48 @@ func TestPayloadUnmarshalJSONSuccess(t *testing.T) {
 		expected payload.Payload
 	}{
 		{
-			"unmarshal with cap",
-			[]byte(`{"cap": {"power": [-78.75, -80.5, -73.75, -70.75, -72]}}`),
-			map[string]interface{}{"power": []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			"with cap",
+			[]byte(`{"cap": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`),
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			},
 		},
 		{
-			"unmarshal with captures",
-			[]byte(`{"captures": {"power": [-78.75, -80.5, -73.75, -70.75, -72]}}`),
-			map[string]interface{}{"power": []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			"with captures",
+			[]byte(`{"captures": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`),
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			},
 		},
 		{
-			"unmarshal with data",
-			[]byte(`{"data": {"power": [-78.75, -80.5, -73.75, -70.75, -72]}}`),
-			map[string]interface{}{"power": []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			"with captures",
+			[]byte(`{"data": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`),
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			},
 		},
 		{
-			"unmarshal with payload",
-			[]byte(`{"payload": {"power": [-78.75, -80.5, -73.75, -70.75, -72]}}`),
-			map[string]interface{}{"power": []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			"with captures",
+			[]byte(`{"payload": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`),
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+			},
+		},
+		{
+			"with 2 simples metrics ",
+			[]byte(`{"payload": [{"name": "temp", "value": 10}, {"name": "power", "value": 30}]}`),
+			payload.Payload{
+				&payload.Metric{Name: "temp", Value: 10.0},
+				&payload.Metric{Name: "power", Value: 30.0},
+			},
+		},
+		{
+			"with 2 metrics as array",
+			[]byte(`{"payload": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}, {"name": "frequencies", "value": [100, 200, 300, 400, 500]}]}`),
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+				&payload.Metric{Name: "frequencies", Value: []interface{}{100.0, 200.0, 300.0, 400.0, 500.0}},
+			},
 		},
 	}
 
@@ -50,7 +74,7 @@ func TestPayloadUnmarshalJSONSuccess(t *testing.T) {
 	}
 }
 
-func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
+func TestPayloadUnmarshalJSONFails(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
@@ -64,9 +88,19 @@ func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
 			payload.ErrorUnmarshalPayload,
 		},
 		{
+			"unmarshal nil payload",
+			[]byte(`{"payload": null`),
+			payload.ErrorUnmarshalPayload,
+		},
+		{
 			"unmarshal empty payload",
-			[]byte(`{"payload": {}}`),
-			payload.ErrorMissingPayload,
+			[]byte(`{"payload": []`),
+			payload.ErrorUnmarshalPayload,
+		},
+		{
+			"unmarshal payload with nulls",
+			[]byte(`{"payload": [null]`),
+			payload.ErrorUnmarshalPayload,
 		},
 		{
 			"unmarshal empty body",
@@ -87,9 +121,46 @@ func TestArrayNumberPayloadUnmarshalJSON(t *testing.T) {
 func TestPayloadMarshalJSON(t *testing.T) {
 	t.Parallel()
 
-	expected := `{"power":[-78.75,-80.5,-73.75,-70.75,-72]}`
-	payl := map[string]interface{}{"power": []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}}
-	result, err := json.Marshal(payl)
-	require.Nil(t, err)
-	assert.Equal(t, expected, string(result))
+	tt := []struct {
+		name     string
+		payl     payload.Payload
+		expected []byte
+	}{
+		{
+			"with number",
+			payload.Payload{
+				&payload.Metric{
+					Name:  "temp",
+					Value: 10,
+				},
+			},
+			[]byte(`[{"name":"temp","value":10}]`),
+		},
+		{
+			"with array",
+			payload.Payload{
+				&payload.Metric{
+					Name:  "power",
+					Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0},
+				},
+			},
+			[]byte(`[{"name":"power","value":[-78.75,-80.5,-73.75,-70.75,-72]}]`),
+		},
+		{
+			"with  2 metrics as array",
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
+				&payload.Metric{Name: "frequencies", Value: []interface{}{100.0, 200.0, 300.0, 400.0, 500.0}},
+			},
+			[]byte(`[{"name":"power","value":[-78.75,-80.5,-73.75,-70.75,-72]},{"name":"frequencies","value":[100,200,300,400,500]}]`),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := json.Marshal(&tc.payl)
+			require.Nil(t, err)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
 }

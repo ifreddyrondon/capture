@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 var (
@@ -13,13 +14,14 @@ var (
 	ErrorMissingPayload = errors.New("missing payload value")
 )
 
-// Payload represent an association of values
-type Payload map[string]interface{}
+// Payload represent an association of metrics
+type Payload []*Metric
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (p *Payload) UnmarshalJSON(data []byte) error {
 	var model jsonPayload
 	if err := model.unmarshalJSON(data); err != nil {
+		fmt.Println(err)
 		return ErrorUnmarshalPayload
 	}
 	payl := model.getPayload()
@@ -43,8 +45,7 @@ func (v *jsonPayload) getPayload() Payload {
 
 // Value convert Payload to a driver database Value.
 func (p Payload) Value() (driver.Value, error) {
-	j, err := json.Marshal(p)
-	return j, err
+	return json.Marshal(p)
 }
 
 // Scan assigns a value from a database driver
@@ -54,15 +55,12 @@ func (p *Payload) Scan(src interface{}) error {
 		return errors.New("type assertion .([]byte) failed")
 	}
 
-	var i interface{}
-	if err := json.Unmarshal(source, &i); err != nil {
+	var payl []*Metric
+	if err := json.Unmarshal(source, &payl); err != nil {
 		return err
 	}
 
-	*p, ok = i.(map[string]interface{})
-	if !ok {
-		return errors.New("type assertion .(map[string]interface{}) failed")
-	}
+	*p = payl
 
 	return nil
 }

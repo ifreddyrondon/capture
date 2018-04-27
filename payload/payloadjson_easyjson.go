@@ -40,106 +40,134 @@ func easyjson6ad23cceDecodeGithubComIfreddyrondonGocapturePayload(in *jlexer.Lex
 		case "cap":
 			if in.IsNull() {
 				in.Skip()
+				out.Cap = nil
 			} else {
-				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Cap = make(map[string]interface{})
-				} else {
-					out.Cap = nil
-				}
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v1 interface{}
-					if m, ok := v1.(easyjson.Unmarshaler); ok {
-						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v1.(json.Unmarshaler); ok {
-						_ = m.UnmarshalJSON(in.Raw())
+				in.Delim('[')
+				if out.Cap == nil {
+					if !in.IsDelim(']') {
+						out.Cap = make([]*Metric, 0, 8)
 					} else {
-						v1 = in.Interface()
+						out.Cap = []*Metric{}
 					}
-					(out.Cap)[key] = v1
+				} else {
+					out.Cap = (out.Cap)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v1 *Metric
+					if in.IsNull() {
+						in.Skip()
+						v1 = nil
+					} else {
+						if v1 == nil {
+							v1 = new(Metric)
+						}
+						if data := in.Raw(); in.Ok() {
+							in.AddError((*v1).UnmarshalJSON(data))
+						}
+					}
+					out.Cap = append(out.Cap, v1)
 					in.WantComma()
 				}
-				in.Delim('}')
+				in.Delim(']')
 			}
 		case "captures":
 			if in.IsNull() {
 				in.Skip()
+				out.Captures = nil
 			} else {
-				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Captures = make(map[string]interface{})
-				} else {
-					out.Captures = nil
-				}
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v2 interface{}
-					if m, ok := v2.(easyjson.Unmarshaler); ok {
-						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v2.(json.Unmarshaler); ok {
-						_ = m.UnmarshalJSON(in.Raw())
+				in.Delim('[')
+				if out.Captures == nil {
+					if !in.IsDelim(']') {
+						out.Captures = make([]*Metric, 0, 8)
 					} else {
-						v2 = in.Interface()
+						out.Captures = []*Metric{}
 					}
-					(out.Captures)[key] = v2
+				} else {
+					out.Captures = (out.Captures)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v2 *Metric
+					if in.IsNull() {
+						in.Skip()
+						v2 = nil
+					} else {
+						if v2 == nil {
+							v2 = new(Metric)
+						}
+						if data := in.Raw(); in.Ok() {
+							in.AddError((*v2).UnmarshalJSON(data))
+						}
+					}
+					out.Captures = append(out.Captures, v2)
 					in.WantComma()
 				}
-				in.Delim('}')
+				in.Delim(']')
 			}
 		case "data":
 			if in.IsNull() {
 				in.Skip()
+				out.Data = nil
 			} else {
-				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Data = make(map[string]interface{})
-				} else {
-					out.Data = nil
-				}
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v3 interface{}
-					if m, ok := v3.(easyjson.Unmarshaler); ok {
-						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v3.(json.Unmarshaler); ok {
-						_ = m.UnmarshalJSON(in.Raw())
+				in.Delim('[')
+				if out.Data == nil {
+					if !in.IsDelim(']') {
+						out.Data = make([]*Metric, 0, 8)
 					} else {
-						v3 = in.Interface()
+						out.Data = []*Metric{}
 					}
-					(out.Data)[key] = v3
+				} else {
+					out.Data = (out.Data)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v3 *Metric
+					if in.IsNull() {
+						in.Skip()
+						v3 = nil
+					} else {
+						if v3 == nil {
+							v3 = new(Metric)
+						}
+						if data := in.Raw(); in.Ok() {
+							in.AddError((*v3).UnmarshalJSON(data))
+						}
+					}
+					out.Data = append(out.Data, v3)
 					in.WantComma()
 				}
-				in.Delim('}')
+				in.Delim(']')
 			}
 		case "payload":
 			if in.IsNull() {
 				in.Skip()
+				out.Payload = nil
 			} else {
-				in.Delim('{')
-				if !in.IsDelim('}') {
-					out.Payload = make(map[string]interface{})
-				} else {
-					out.Payload = nil
-				}
-				for !in.IsDelim('}') {
-					key := string(in.String())
-					in.WantColon()
-					var v4 interface{}
-					if m, ok := v4.(easyjson.Unmarshaler); ok {
-						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v4.(json.Unmarshaler); ok {
-						_ = m.UnmarshalJSON(in.Raw())
+				in.Delim('[')
+				if out.Payload == nil {
+					if !in.IsDelim(']') {
+						out.Payload = make([]*Metric, 0, 8)
 					} else {
-						v4 = in.Interface()
+						out.Payload = []*Metric{}
 					}
-					(out.Payload)[key] = v4
+				} else {
+					out.Payload = (out.Payload)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v4 *Metric
+					if in.IsNull() {
+						in.Skip()
+						v4 = nil
+					} else {
+						if v4 == nil {
+							v4 = new(Metric)
+						}
+						if data := in.Raw(); in.Ok() {
+							in.AddError((*v4).UnmarshalJSON(data))
+						}
+					}
+					out.Payload = append(out.Payload, v4)
 					in.WantComma()
 				}
-				in.Delim('}')
+				in.Delim(']')
 			}
 		default:
 			in.SkipRecursive()

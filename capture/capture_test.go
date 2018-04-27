@@ -27,13 +27,17 @@ func TestNewCapture(t *testing.T) {
 	}{
 		{
 			"simple capture: payload and timestamp",
-			map[string]interface{}{"power": []float64{1, 2, 3}},
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{1, 2, 3}},
+			},
 			time.Now(),
 			geocoding.Point{},
 		},
 		{
 			"capture with point",
-			map[string]interface{}{"power": []float64{1, 2, 3}},
+			payload.Payload{
+				&payload.Metric{Name: "power", Value: []interface{}{1, 2, 3}},
+			},
 			time.Now(),
 			*point,
 		},
@@ -57,7 +61,9 @@ func TestNewCapture(t *testing.T) {
 func TestCaptureUnmarshalWithOnlyPayload(t *testing.T) {
 	t.Parallel()
 
-	payloadData := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
+	payloadData := payload.Payload{
+		&payload.Metric{Name: "power", Value: []interface{}{-70.0, -100.1, 3.1}},
+	}
 	expected := capture.Capture{
 		Payload:   payloadData,
 		Timestamp: time.Now(),
@@ -65,7 +71,7 @@ func TestCaptureUnmarshalWithOnlyPayload(t *testing.T) {
 	}
 
 	result := capture.Capture{}
-	err := result.UnmarshalJSON([]byte(`{"payload":{"power":[-70, -100.1, 3.1]}}`))
+	err := result.UnmarshalJSON([]byte(`{"payload":[{"name": "power", "value": [-70, -100.1, 3.1]}]}`))
 	require.Nil(t, err)
 	assert.Nil(t, result.LAT)
 	assert.Nil(t, result.LNG)
@@ -77,7 +83,9 @@ func TestCaptureUnmarshalWithOnlyPayload(t *testing.T) {
 func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
 	t.Parallel()
 
-	payl := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
+	payl := payload.Payload{
+		&payload.Metric{Name: "power", Value: []interface{}{-70.0, -100.1, 3.1}},
+	}
 	tt := []struct {
 		name    string
 		payload []byte
@@ -85,22 +93,22 @@ func TestCaptureUnmarshalJSONSuccess(t *testing.T) {
 	}{
 		{
 			"capture with payload timestamp",
-			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "date": "1989-12-26T06:01:00.00Z"}`),
+			[]byte(`{"payload":[{"name": "power", "value": [-70, -100.1, 3.1]}], "date": "1989-12-26T06:01:00.00Z"}`),
 			getCaptureWithoutPoint(payl, "1989-12-26T06:01:00.00Z"),
 		},
 		{
 			"success with payload timestamp and point",
-			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			[]byte(`{"payload":[{"name": "power", "value": [-70, -100.1, 3.1]}], "lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
 			getCapture(payl, "1989-12-26T06:01:00.00Z", 1, 1),
 		},
 		{
 			"success with payload timestamp and point with elevation",
-			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "lat": 1, "lng": 1, "elevation": 1, "date": "1989-12-26T06:01:00.00Z"}`),
+			[]byte(`{"payload":[{"name": "power", "value": [-70, -100.1, 3.1]}], "lat": 1, "lng": 1, "elevation": 1, "date": "1989-12-26T06:01:00.00Z"}`),
 			getCaptureWithElevation(payl, "1989-12-26T06:01:00.00Z", 1, 1, 1),
 		},
 		{
 			"success with payload timestamp and tags",
-			[]byte(`{"payload":{"power":[-70, -100.1, 3.1]}, "date": "1989-12-26T06:01:00.00Z", "tags": ["tag1", "tag2"]}`),
+			[]byte(`{"payload":[{"name": "power", "value": [-70, -100.1, 3.1]}], "date": "1989-12-26T06:01:00.00Z", "tags": ["tag1", "tag2"]}`),
 			getCaptureWithTags(payl, "1989-12-26T06:01:00.00Z", "tag1", "tag2"),
 		},
 	}
@@ -162,7 +170,9 @@ func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 func TestCaptureMarshalJSON(t *testing.T) {
 	t.Parallel()
 
-	payl := map[string]interface{}{"power": []interface{}{-70.0, -100.1, 3.1}}
+	payl := payload.Payload{
+		&payload.Metric{Name: "power", Value: []interface{}{-70.0, -100.1, 3.1}},
+	}
 	date := "1989-12-26T06:01:00.00Z"
 	tt := []struct {
 		name     string
@@ -172,22 +182,22 @@ func TestCaptureMarshalJSON(t *testing.T) {
 		{
 			"capture with point",
 			getCapture(payl, date, 1, 2),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2,"elevation":null}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2,"elevation":null}`,
 		},
 		{
 			"capture with point and elevation",
 			getCaptureWithElevation(payl, date, 1, 2, 3),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2,"elevation":3}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":1,"lng":2,"elevation":3}`,
 		},
 		{
 			"capture without a point",
 			getCaptureWithoutPoint(payl, date),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null,"elevation":null}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null,"elevation":null}`,
 		},
 		{
 			"capture with tags",
 			getCaptureWithTags(payl, date, "tag1", "tag2"),
-			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":{"power":[-70,-100.1,3.1]},"tags":["tag1","tag2"],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null,"elevation":null}`,
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"tags":["tag1","tag2"],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","lat":null,"lng":null,"elevation":null}`,
 		},
 	}
 
@@ -204,25 +214,25 @@ func TestCaptureMarshalJSON(t *testing.T) {
 	}
 }
 
-func getCapture(p map[string]interface{}, date string, lat, lng float64) *capture.Capture {
+func getCapture(p payload.Payload, date string, lat, lng float64) *capture.Capture {
 	point, _ := geocoding.New(lat, lng)
 	ts := getDate(date)
 	return &capture.Capture{Payload: p, Timestamp: ts, Point: *point, Tags: []string{}}
 }
 
-func getCaptureWithElevation(p map[string]interface{}, date string, lat, lng, elevation float64) *capture.Capture {
+func getCaptureWithElevation(p payload.Payload, date string, lat, lng, elevation float64) *capture.Capture {
 	point, _ := geocoding.New(lat, lng)
 	point.Elevation = &elevation
 	ts := getDate(date)
 	return &capture.Capture{Payload: p, Timestamp: ts, Point: *point, Tags: []string{}}
 }
 
-func getCaptureWithoutPoint(p map[string]interface{}, date string) *capture.Capture {
+func getCaptureWithoutPoint(p payload.Payload, date string) *capture.Capture {
 	ts := getDate(date)
 	return &capture.Capture{Payload: p, Timestamp: ts, Point: geocoding.Point{}, Tags: []string{}}
 }
 
-func getCaptureWithTags(p map[string]interface{}, date string, tags ...string) *capture.Capture {
+func getCaptureWithTags(p payload.Payload, date string, tags ...string) *capture.Capture {
 	ts := getDate(date)
 	return &capture.Capture{Payload: p, Timestamp: ts, Point: geocoding.Point{}, Tags: tags}
 }

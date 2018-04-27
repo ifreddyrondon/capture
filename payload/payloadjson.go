@@ -1,14 +1,12 @@
 package payload
 
-import (
-	"github.com/mailru/easyjson/jlexer"
-)
+import "github.com/mailru/easyjson/jlexer"
 
 type jsonPayload struct {
-	Cap      map[string]interface{} `json:"cap"`
-	Captures map[string]interface{} `json:"captures"`
-	Data     map[string]interface{} `json:"data"`
-	Payload  map[string]interface{} `json:"payload"`
+	Cap      []*Metric `json:"cap"`
+	Captures []*Metric `json:"captures"`
+	Data     []*Metric `json:"data"`
+	Payload  []*Metric `json:"payload"`
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface

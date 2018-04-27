@@ -1,7 +1,7 @@
 package capture
 
 import (
-	json "encoding/json"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -10,7 +10,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/payload"
 	"github.com/ifreddyrondon/gocapture/timestamp"
 	"github.com/lib/pq"
-	jwriter "github.com/mailru/easyjson/jwriter"
+	"github.com/mailru/easyjson/jwriter"
 
 	"github.com/ifreddyrondon/gocapture/geocoding"
 )
