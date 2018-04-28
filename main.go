@@ -11,8 +11,7 @@ func main() {
 	ds := database.Open("postgres://localhost/captures_app?sslmode=disable")
 	app := app.New(ds.DB)
 	app.RegisterOnShutdown(ds.OnShutdown)
-	err := app.Serve()
-	if err != nil {
+	if err := app.Serve(); err != nil {
 		log.Printf("%v", err)
 	}
 }
