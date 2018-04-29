@@ -7,7 +7,7 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
-// Controller handler all the router for branch
+// Controller handler the branch's routes
 type Controller struct {
 	render.Render
 }

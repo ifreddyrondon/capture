@@ -22,7 +22,7 @@ var (
 	ErrorBadRequest = errors.New("invalid capture id")
 )
 
-// Controller handler all the router for capture
+// Controller handler the capture's routes
 type Controller struct {
 	Service Service
 	render.Render
