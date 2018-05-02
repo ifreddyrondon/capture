@@ -207,8 +207,8 @@ func TestCaptureMarshalJSON(t *testing.T) {
 			// override auto generated fields for test purpose
 			c.ID, _ = kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
 			c.CreatedAt, c.UpdatedAt = getDate(date), getDate(date)
-			result, _ := c.MarshalJSON()
-
+			result, err := c.MarshalJSON()
+			require.Nil(t, err)
 			assert.Equal(t, tc.expected, string(result))
 		})
 	}

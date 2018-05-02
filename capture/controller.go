@@ -30,123 +30,123 @@ type Controller struct {
 }
 
 // Router creates a REST router for the capture resource
-func (h *Controller) Router() http.Handler {
+func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
 
-	r.Get("/", h.list)
-	r.Post("/", h.create)
+	r.Get("/", c.list)
+	r.Post("/", c.create)
 	r.Route("/{id}", func(r chi.Router) {
-		r.Use(h.captureCtx)
-		r.Get("/", h.get)
-		r.Put("/", h.update)
-		r.Delete("/", h.delete)
+		r.Use(c.captureCtx)
+		r.Get("/", c.get)
+		r.Put("/", c.update)
+		r.Delete("/", c.delete)
 	})
 	return r
 }
 
-func (h *Controller) list(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) list(w http.ResponseWriter, r *http.Request) {
 	count := 10
 	start := 0
-	captures, err := h.Service.List(start, count)
+	captures, err := c.Service.List(start, count)
 	if err != nil {
-		_ = h.Render(w).InternalServerError(err)
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
 
-	_ = h.Render(w).Send(captures)
+	_ = c.Render(w).Send(captures)
 }
 
-func (h *Controller) create(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	var captures Captures
 	if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
-		_ = h.Render(w).BadRequest(err)
+		_ = c.Render(w).BadRequest(err)
 		return
 	}
 
 	if len(captures) == 1 {
-		if err := h.Service.Save(captures[0]); err != nil {
-			_ = h.Render(w).InternalServerError(err)
+		if err := c.Service.Save(captures[0]); err != nil {
+			_ = c.Render(w).InternalServerError(err)
 			return
 		}
-		_ = h.Render(w).Created(captures[0])
+		_ = c.Render(w).Created(captures[0])
 		return
 	}
 
-	captures, err := h.Service.SaveBulk(captures...)
+	captures, err := c.Service.SaveBulk(captures...)
 	if err != nil {
-		_ = h.Render(w).InternalServerError(err)
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
-	_ = h.Render(w).Created(captures)
+	_ = c.Render(w).Created(captures)
 }
 
-func (h *Controller) captureCtx(next http.Handler) http.Handler {
+func (c *Controller) captureCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captureID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
 		if err != nil {
 			log.Println(err)
-			_ = h.Render(w).BadRequest(ErrorBadRequest)
+			_ = c.Render(w).BadRequest(ErrorBadRequest)
 			return
 		}
 		var capt *Capture
-		capt, err = h.Service.Get(captureID)
+		capt, err = c.Service.Get(captureID)
 		if capt == nil {
-			_ = h.Render(w).NotFound(err)
+			_ = c.Render(w).NotFound(err)
 			return
 		}
 		if err != nil {
-			_ = h.Render(w).InternalServerError(err)
+			_ = c.Render(w).InternalServerError(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), h.CtxKey, capt)
+		ctx := context.WithValue(r.Context(), c.CtxKey, capt)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (h *Controller) get(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	capt, ok := ctx.Value(h.CtxKey).(*Capture)
+	capt, ok := ctx.Value(c.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
-		_ = h.Render(w).InternalServerError(err)
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
-	_ = h.Render(w).Send(capt)
+	_ = c.Render(w).Send(capt)
 }
 
-func (h *Controller) delete(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	capt, ok := ctx.Value(h.CtxKey).(*Capture)
+	capt, ok := ctx.Value(c.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
-		_ = h.Render(w).InternalServerError(err)
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
-	if err := h.Service.Delete(capt); err != nil {
-		_ = h.Render(w).InternalServerError(err)
+	if err := c.Service.Delete(capt); err != nil {
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
-	h.Render(w).NoContent()
+	c.Render(w).NoContent()
 }
 
-func (h *Controller) update(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	capt, ok := ctx.Value(h.CtxKey).(*Capture)
+	capt, ok := ctx.Value(c.CtxKey).(*Capture)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
-		_ = h.Render(w).InternalServerError(err)
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
 
 	var updates Capture
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-		_ = h.Render(w).BadRequest(err)
+		_ = c.Render(w).BadRequest(err)
 		return
 	}
 
-	if err := h.Service.Update(capt, updates); err != nil {
-		_ = h.Render(w).InternalServerError(err)
+	if err := c.Service.Update(capt, updates); err != nil {
+		_ = c.Render(w).InternalServerError(err)
 		return
 	}
-	_ = h.Render(w).Send(capt)
+	_ = c.Render(w).Send(capt)
 }
