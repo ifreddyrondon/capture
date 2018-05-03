@@ -1,9 +1,12 @@
 package user
 
 import (
+	"github.com/ifreddyrondon/gocapture/postgres"
 	"github.com/jinzhu/gorm"
 	kallax "gopkg.in/src-d/go-kallax.v1"
 )
+
+const uniqueConstraintEmail = "uix_users_email"
 
 // Service is the interface implemented by user
 // It make CRUD operations over users.
@@ -38,5 +41,13 @@ func (pgs *PGService) Drop() {
 // Save capture into the database.
 func (pgs *PGService) Save(user *User) error {
 	user.ID = kallax.NewULID()
-	return pgs.DB.Create(user).Error
+	err := pgs.DB.Create(user).Error
+
+	if err != nil {
+		if postgres.IsUniqueConstraintError(err, uniqueConstraintEmail) {
+			return &emailDuplicateError{Email: user.Email}
+		}
+		return err
+	}
+	return nil
 }

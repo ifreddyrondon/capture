@@ -6,6 +6,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	bastionJSON "github.com/ifreddyrondon/bastion/render/json"
 )
 
 // Controller handler the user's routes
@@ -30,6 +31,16 @@ func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.Service.Save(&user); err != nil {
+		if _, ok := err.(*emailDuplicateError); ok {
+			httpErr := bastionJSON.HTTPError{
+				Status:  http.StatusConflict,
+				Errors:  http.StatusText(http.StatusConflict),
+				Message: err.Error(),
+			}
+			_ = c.Render(w).Response(http.StatusConflict, httpErr)
+			return
+		}
+
 		_ = c.Render(w).InternalServerError(err)
 		return
 	}
