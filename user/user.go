@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	kallax "gopkg.in/src-d/go-kallax.v1"
 )
 
@@ -29,10 +31,10 @@ func (e *emailDuplicateError) Error() string {
 type User struct {
 	ID        kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Email     string      `json:"email" sql:"not null" gorm:"unique_index"`
-	Password  string      `json:"-"`
-	CreatedAt time.Time   `json:"createdAt" sql:"not null"`
-	UpdatedAt time.Time   `json:"updatedAt" sql:"not null"`
-	DeletedAt *time.Time  `json:"-"`
+	password  []byte
+	CreatedAt time.Time  `json:"createdAt" sql:"not null"`
+	UpdatedAt time.Time  `json:"updatedAt" sql:"not null"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 type userAlias User
@@ -57,6 +59,30 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	if !rxEmail.MatchString(user.Email) {
 		return errInvalidEmail
 	}
+
 	*u = User(user.userAlias)
+	if len(user.Password) > 0 {
+		if err := u.SetPassword([]byte(user.Password)); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// SetPassword stores a hashed version of a plain text password into the user.
+func (u *User) SetPassword(pass []byte) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), 10)
+	if err != nil {
+		return err
+	}
+	u.password = hash
+	return nil
+}
+
+// CheckPassword compares a hashed password with its possible plaintext equivalent.
+func (u *User) CheckPassword(pass []byte) bool {
+	if err := bcrypt.CompareHashAndPassword(u.password, pass); err != nil {
+		return false
+	}
+	return true
 }

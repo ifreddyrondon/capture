@@ -55,6 +55,14 @@ func TestCreateValidUser(t *testing.T) {
 			payload:  map[string]interface{}{"email": "test@localhost.com"},
 			response: map[string]interface{}{"email": "test@localhost.com"},
 		},
+		{
+			name: "create user",
+			payload: map[string]interface{}{
+				"email":    "test2@localhost.com",
+				"password": "b4KeHAYy3u9v=ZQX",
+			},
+			response: map[string]interface{}{"email": "test2@localhost.com"},
+		},
 	}
 
 	for _, tc := range tt {

@@ -13,6 +13,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestUserSetPassword(t *testing.T) {
+	t.Parallel()
+
+	plainPassword := []byte("b4KeHAYy3u9v=ZQX")
+	var u user.User
+	err := u.SetPassword(plainPassword)
+	assert.Nil(t, err)
+}
+
+func TestUserCheckPassword(t *testing.T) {
+	t.Parallel()
+
+	var u user.User
+	u.SetPassword([]byte("b4KeHAYy3u9v=ZQX"))
+
+	assert.True(t, u.CheckPassword([]byte("b4KeHAYy3u9v=ZQX")))
+	assert.False(t, u.CheckPassword([]byte("1")))
+}
+
 func TestUnmarshalValidUser(t *testing.T) {
 	t.Parallel()
 
@@ -24,6 +43,16 @@ func TestUnmarshalValidUser(t *testing.T) {
 	err := result.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com"}`))
 	require.Nil(t, err)
 	assert.Equal(t, expected.Email, result.Email)
+}
+
+func TestUnmarshalUserWithPassword(t *testing.T) {
+	t.Parallel()
+	u := user.User{}
+	err := u.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com", "password": "b4KeHAYy3u9v=ZQX"}`))
+	require.Nil(t, err)
+	assert.Equal(t, "ifreddyrondon@gmail.com", u.Email)
+	assert.True(t, u.CheckPassword([]byte("b4KeHAYy3u9v=ZQX")))
+	assert.False(t, u.CheckPassword([]byte("1")))
 }
 
 func TestUnmarshalInValidUser(t *testing.T) {
