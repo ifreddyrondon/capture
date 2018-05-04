@@ -29,13 +29,18 @@ func (e *emailDuplicateError) Error() string {
 type User struct {
 	ID        kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Email     string      `json:"email" sql:"not null" gorm:"unique_index"`
-	password  string
-	CreatedAt time.Time  `json:"createdAt" sql:"not null"`
-	UpdatedAt time.Time  `json:"updatedAt" sql:"not null"`
-	DeletedAt *time.Time `json:"-"`
+	Password  string      `json:"-"`
+	CreatedAt time.Time   `json:"createdAt" sql:"not null"`
+	UpdatedAt time.Time   `json:"updatedAt" sql:"not null"`
+	DeletedAt *time.Time  `json:"-"`
 }
 
-type userJSON User
+type userAlias User
+
+type userJSON struct {
+	userAlias
+	Password string `json:"password"`
+}
 
 // UnmarshalJSON decodes the user from a JSON body.
 // Throws an error if the body cannot be interpreted.
@@ -52,6 +57,6 @@ func (u *User) UnmarshalJSON(data []byte) error {
 	if !rxEmail.MatchString(user.Email) {
 		return errInvalidEmail
 	}
-	*u = User(user)
+	*u = User(user.userAlias)
 	return nil
 }
