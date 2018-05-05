@@ -8,6 +8,11 @@ import (
 	"github.com/markbates/validate"
 )
 
+const (
+	errEmailRequired = "email must not be blank!"
+	errInvalidEmail  = "invalid email"
+)
+
 var errInvalidPayload = errors.New("cannot unmarshal json into valid credentials")
 
 // BasicAuthCrendential represent the user credentials for basic authentication.
@@ -21,9 +26,9 @@ type basicAuthCrendentialJSON BasicAuthCrendential
 
 func (bac *basicAuthCrendentialJSON) IsValid(errors *validate.Errors) {
 	if bac.Email == "" {
-		errors.Add("email", "email must not be blank!")
+		errors.Add("email", errEmailRequired)
 	} else if !govalidator.IsEmail(bac.Email) {
-		errors.Add("email", "invalid email")
+		errors.Add("email", errInvalidEmail)
 	}
 	if bac.Password == "" {
 		errors.Add("password", "password must not be blank!")

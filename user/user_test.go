@@ -61,22 +61,22 @@ func TestUnmarshalInValidUser(t *testing.T) {
 	tt := []struct {
 		name    string
 		payload []byte
-		err     string
+		errs    []string
 	}{
 		{
 			"invalid payload",
 			[]byte(`{`),
-			"cannot unmarshal json into valid user",
+			[]string{"cannot unmarshal json into valid user"},
 		},
 		{
 			"empty email",
 			[]byte(`{"email":""}`),
-			"email required",
+			[]string{"email must not be blank!"},
 		},
 		{
 			"invalid email - abc@abc.",
 			[]byte(`{"email":"abc@abc."}`),
-			"invalid email",
+			[]string{"invalid email"},
 		},
 	}
 
@@ -84,8 +84,10 @@ func TestUnmarshalInValidUser(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := user.User{}
 			err := result.UnmarshalJSON(tc.payload)
-			require.NotNil(t, err)
-			assert.Error(t, err, tc.err)
+			assert.Error(t, err)
+			for _, v := range tc.errs {
+				assert.Contains(t, err.Error(), v)
+			}
 		})
 	}
 }
