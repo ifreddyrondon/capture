@@ -39,22 +39,22 @@ func TestAuthenticationPayloadInvalidUnmarshalJSON(t *testing.T) {
 		{
 			"empty email and empty password",
 			[]byte(`{"email":""}`),
-			[]string{"email must not be blank!", "password must not be blank!"},
+			[]string{"email must not be blank", "password must not be blank"},
 		},
 		{
 			"invalid email and empty password",
 			[]byte(`{"email":"abc@abc."}`),
-			[]string{"invalid email", "password must not be blank!"},
+			[]string{"invalid email", "password must not be blank"},
 		},
 		{
 			"empty password",
 			[]byte(`{"email":"abc@abc.com"}`),
-			[]string{"password must not be blank!"},
+			[]string{"password must not be blank"},
 		},
 		{
 			"empty email",
 			[]byte(`{"password":"b4KeHAYy3u9v=ZQX"}`),
-			[]string{"email must not be blank!"},
+			[]string{"email must not be blank"},
 		},
 	}
 

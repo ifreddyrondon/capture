@@ -2,20 +2,20 @@ package geocoding
 
 import (
 	"errors"
-	"log"
+
+	"github.com/asaskevich/govalidator"
+
+	"github.com/markbates/validate"
 )
 
-var (
-	// ErrorLATRange expected error when latitude is out of boundaries
-	ErrorLATRange = errors.New("latitude out of boundaries, may range from -90.0 to 90.0")
-	// ErrorLONRange expected error when longitude is out of boundaries
-	ErrorLONRange = errors.New("longitude out of boundaries, may range from -180.0 to 180.0")
-	// ErrorLATMissing expected error when latitude is missing
-	ErrorLATMissing = errors.New("missing latitude")
-	// ErrorLNGMissing expected error when longitude is missing
-	ErrorLNGMissing = errors.New("missing longitude")
-	// ErrorUnmarshalPoint expected error when fails to unmarshal a point
-	ErrorUnmarshalPoint = errors.New("cannot unmarshal json into Point value")
+// ErrUnmarshalPoint expected error when fails to unmarshal a point
+var ErrUnmarshalPoint = errors.New("cannot unmarshal json into Point value")
+
+const (
+	// errLATRange expected error when latitude is out of boundaries
+	errLATRange = "latitude out of boundaries, may range from -90.0 to 90.0"
+	// errLNGRange expected error when longitude is out of boundaries
+	errLNGRange = "longitude out of boundaries, may range from -180.0 to 180.0"
 )
 
 // Point represents a physical Point in geographic notation [lat, lng].
@@ -28,15 +28,22 @@ type Point struct {
 // New returns a valid new Point populated by the passed in latitude (lat) and longitude (lng) values.
 // For a valid latitude, longitude pair: -90<=latitude<=+90 and -180<=longitude<=180
 func New(lat float64, lng float64) (*Point, error) {
-	if lat < -90 || lat > 90 {
-		return nil, ErrorLATRange
+	p := &Point{LAT: &lat, LNG: &lng}
+	if err := validate.Validate(p); err.HasAny() {
+		return nil, err
 	}
+	return p, nil
+}
 
-	if lng < -180 || lng > 180 {
-		return nil, ErrorLONRange
+// IsValid validates if a point is valid.
+// It must be -90<=latitude<=+90 and -180<=longitude<=180
+func (p *Point) IsValid(errors *validate.Errors) {
+	if p.LAT != nil && !govalidator.InRangeFloat64(*p.LAT, -90, 90) {
+		errors.Add("lat", errLATRange)
 	}
-
-	return &Point{LAT: &lat, LNG: &lng}, nil
+	if p.LNG != nil && !govalidator.InRangeFloat64(*p.LNG, -180, 180) {
+		errors.Add("lat", errLNGRange)
+	}
 }
 
 // UnmarshalJSON decodes the current Point from a JSON body.
@@ -47,33 +54,16 @@ func (p *Point) UnmarshalJSON(data []byte) error {
 	if err := model.unmarshalJSON(data); err != nil {
 		return err
 	}
-	lat := getFloat(model.LAT, model.Latitude)
-	lng := getFloat(model.LNG, model.Longitude)
-	if lat == nil && lng == nil {
-		return nil
-	}
-	if lng != nil && lat == nil {
-		return ErrorLATMissing
-	}
-	if lat != nil && lng == nil {
-		return ErrorLNGMissing
-	}
 
-	point, err := New(*lat, *lng)
-	if err != nil {
-		log.Print(err)
+	if err := validate.Validate(&model); err.HasAny() {
 		return err
 	}
-	point.Elevation = getFloat(model.Elevation, model.Altitude)
+	point := model.getPoint()
+	if err := validate.Validate(point); err.HasAny() {
+		return err
+	}
 
 	*p = *point
 
 	return nil
-}
-
-func getFloat(data1, data2 *float64) *float64 {
-	if data1 == nil {
-		return data2
-	}
-	return data1
 }

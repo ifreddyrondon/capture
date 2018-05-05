@@ -71,7 +71,7 @@ func TestUnmarshalInValidUser(t *testing.T) {
 		{
 			"empty email",
 			[]byte(`{"email":""}`),
-			[]string{"email must not be blank!"},
+			[]string{"email must not be blank"},
 		},
 		{
 			"invalid email - abc@abc.",

@@ -4,14 +4,13 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"fmt"
+
+	"github.com/markbates/validate"
 )
 
 var (
-	// ErrorUnmarshalPayload expected error when fails to unmarshal a payload
-	ErrorUnmarshalPayload = errors.New("cannot unmarshal json into valid payload value")
-	// ErrorMissingPayload expected error when payload is missing
-	ErrorMissingPayload = errors.New("missing payload value")
+	// errUnmarshalPayload expected error when fails to unmarshal a payload
+	errUnmarshalPayload = errors.New("cannot unmarshal json into valid payload value")
 )
 
 // Payload represent an association of metrics
@@ -21,26 +20,14 @@ type Payload []*Metric
 func (p *Payload) UnmarshalJSON(data []byte) error {
 	var model jsonPayload
 	if err := model.unmarshalJSON(data); err != nil {
-		fmt.Println(err)
-		return ErrorUnmarshalPayload
+		return errUnmarshalPayload
 	}
-	payl := model.getPayload()
-	if len(payl) == 0 {
-		return ErrorMissingPayload
-	}
-	*p = payl
-	return nil
-}
 
-func (v *jsonPayload) getPayload() Payload {
-	if v.Cap != nil {
-		return v.Cap
-	} else if v.Captures != nil {
-		return v.Captures
-	} else if v.Data != nil {
-		return v.Data
+	if err := validate.Validate(&model); err.HasAny() {
+		return err
 	}
-	return v.Payload
+	*p = model.getPayload()
+	return nil
 }
 
 // Value convert Payload to a driver database Value.

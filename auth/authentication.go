@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	errEmailRequired = "email must not be blank!"
-	errInvalidEmail  = "invalid email"
+	errEmailRequired    = "email must not be blank"
+	errInvalidEmail     = "invalid email"
+	errPasswordRequired = "password must not be blank"
 )
 
 var errInvalidPayload = errors.New("cannot unmarshal json into valid credentials")
@@ -31,7 +32,7 @@ func (bac *basicAuthCrendentialJSON) IsValid(errors *validate.Errors) {
 		errors.Add("email", errInvalidEmail)
 	}
 	if bac.Password == "" {
-		errors.Add("password", "password must not be blank!")
+		errors.Add("password", errPasswordRequired)
 	}
 }
 

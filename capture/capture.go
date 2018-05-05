@@ -38,7 +38,7 @@ type Capture struct {
 func (c *Capture) UnmarshalJSON(data []byte) error {
 	var p geocoding.Point
 	if err := p.UnmarshalJSON(data); err != nil {
-		if err == geocoding.ErrorUnmarshalPoint {
+		if err == geocoding.ErrUnmarshalPoint {
 			return ErrorBadPayload
 		}
 		return err

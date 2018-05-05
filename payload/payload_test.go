@@ -78,34 +78,34 @@ func TestPayloadUnmarshalJSONFails(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
-		name     string
-		payload  []byte
-		expected error
+		name    string
+		payload []byte
+		errs    []string
 	}{
 		{
 			"unmarshal error",
 			[]byte(`'`),
-			payload.ErrorUnmarshalPayload,
+			[]string{"cannot unmarshal json into valid payload value"},
 		},
 		{
 			"unmarshal nil payload",
 			[]byte(`{"payload": null`),
-			payload.ErrorUnmarshalPayload,
+			[]string{"cannot unmarshal json into valid payload value"},
 		},
 		{
 			"unmarshal empty payload",
 			[]byte(`{"payload": []`),
-			payload.ErrorUnmarshalPayload,
+			[]string{"cannot unmarshal json into valid payload value"},
 		},
 		{
 			"unmarshal payload with nulls",
 			[]byte(`{"payload": [null]`),
-			payload.ErrorUnmarshalPayload,
+			[]string{"cannot unmarshal json into valid payload value"},
 		},
 		{
 			"unmarshal empty body",
 			[]byte(`{}`),
-			payload.ErrorMissingPayload,
+			[]string{"payload value must not be blank"},
 		},
 	}
 
@@ -113,7 +113,10 @@ func TestPayloadUnmarshalJSONFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			result := payload.Payload{}
 			err := result.UnmarshalJSON(tc.payload)
-			assert.Equal(t, tc.expected, err)
+			assert.Error(t, err)
+			for _, v := range tc.errs {
+				assert.Contains(t, err.Error(), v)
+			}
 		})
 	}
 }

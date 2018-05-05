@@ -106,7 +106,7 @@ func TestCreateINValidUser(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "email must not be blank!",
+				"message": "email must not be blank",
 			},
 		},
 		{
@@ -115,7 +115,7 @@ func TestCreateINValidUser(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "email must not be blank!",
+				"message": "email must not be blank",
 			},
 		},
 	}

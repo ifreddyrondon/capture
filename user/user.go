@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	errEmailRequired = "email must not be blank!"
+	errEmailRequired = "email must not be blank"
 	errInvalidEmail  = "invalid email"
 )
 

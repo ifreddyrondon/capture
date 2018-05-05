@@ -264,7 +264,7 @@ func TestCreateInvalidCapture(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "missing payload value",
+				"message": "payload value must not be blank",
 			},
 		},
 		{
@@ -273,7 +273,7 @@ func TestCreateInvalidCapture(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "missing longitude",
+				"message": "longitude must not be blank",
 			},
 		},
 		{
@@ -282,7 +282,7 @@ func TestCreateInvalidCapture(t *testing.T) {
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "missing latitude",
+				"message": "latitude must not be blank",
 			},
 		},
 	}
@@ -954,7 +954,7 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 			map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
-				"message": "missing payload value",
+				"message": "payload value must not be blank",
 			},
 		},
 	}

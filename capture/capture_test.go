@@ -134,27 +134,27 @@ func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 	tt := []struct {
 		name    string
 		payload []byte
-		err     error
+		errs    []string
 	}{
 		{
 			"invalid point",
 			[]byte(`{"lat": -91, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			geocoding.ErrorLATRange,
+			[]string{"latitude out of boundaries, may range from -90.0 to 90.0"},
 		},
 		{
 			"missing point lat",
 			[]byte(`{"lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			geocoding.ErrorLATMissing,
+			[]string{"latitude must not be blank"},
 		},
 		{
 			"missing payload",
 			[]byte(`{"lat": 1, "lng": 1, "date": "1989-12-26T06:01:00.00Z"}`),
-			payload.ErrorMissingPayload,
+			[]string{"payload value must not be blank"},
 		},
 		{
 			"bad payload",
 			[]byte(`{`),
-			capture.ErrorBadPayload,
+			[]string{"cannot unmarshal json into valid capture"},
 		},
 	}
 
@@ -162,7 +162,10 @@ func TestCaptureUnmarshalJSONFailure(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c := capture.Capture{}
 			err := c.UnmarshalJSON(tc.payload)
-			require.Equal(t, tc.err, err)
+			assert.Error(t, err)
+			for _, v := range tc.errs {
+				assert.Contains(t, err.Error(), v)
+			}
 		})
 	}
 }

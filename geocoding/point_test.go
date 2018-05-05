@@ -41,20 +41,20 @@ func TestNewPointFailure(t *testing.T) {
 	tt := []struct {
 		name     string
 		lat, lng float64
-		expected error
+		err      string
 	}{
-		{"invalid lat > 90", 95, 280, geocoding.ErrorLATRange},
-		{"invalid lat < -95", -95, 280, geocoding.ErrorLATRange},
-		{"invalid lng > 180", 75, 280, geocoding.ErrorLONRange},
-		{"invalid lng with decimals", 77.11112223331, 249.99999999, geocoding.ErrorLONRange},
-		{"invalid lng for 2 decimals points", 90, 180.2, geocoding.ErrorLONRange},
+		{"invalid lat > 90", 95, 280, "latitude out of boundaries, may range from -90.0 to 90.0"},
+		{"invalid lat < -95", -95, 280, "latitude out of boundaries, may range from -90.0 to 90.0"},
+		{"invalid lng > 180", 75, 280, "longitude out of boundaries, may range from -180.0 to 180.0"},
+		{"invalid lng with decimals", 77.11112223331, 249.99999999, "longitude out of boundaries, may range from -180.0 to 180.0"},
+		{"invalid lng for 2 decimals points", 90, 180.2, "longitude out of boundaries, may range from -180.0 to 180.0"},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			point, err := geocoding.New(tc.lat, tc.lng)
 			require.Nil(t, point)
-			assert.Equal(t, tc.expected, err)
+			assert.Contains(t, err.Error(), tc.err)
 		})
 	}
 }
@@ -126,24 +126,55 @@ func TestUnmarshalJSONFailure(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
-		name     string
-		payload  []byte
-		expected error
+		name    string
+		payload []byte
+		errs    []string
 	}{
-		{"invalid lat", []byte(`{"lat":100, "lng": 1}`), geocoding.ErrorLATRange},
-		{"invalid lng", []byte(`{"lat":1, "lng": 190}`), geocoding.ErrorLONRange},
-		{"invalid json", []byte("`"), geocoding.ErrorUnmarshalPoint},
-		{"missing lat", []byte(`{"lng":1}`), geocoding.ErrorLATMissing},
-		{"missing lng", []byte(`{"lat":1}`), geocoding.ErrorLNGMissing},
-		{"missing latitude", []byte(`{"longitude":1}`), geocoding.ErrorLATMissing},
-		{"missing longitude", []byte(`{"latitude":1}`), geocoding.ErrorLNGMissing},
+		{
+			"invalid lat",
+			[]byte(`{"lat":100, "lng": 1}`),
+			[]string{"latitude out of boundaries, may range from -90.0 to 90.0"},
+		},
+		{
+			"invalid lng",
+			[]byte(`{"lat":1, "lng": 190}`),
+			[]string{"longitude out of boundaries, may range from -180.0 to 180.0"},
+		},
+		{
+			"invalid json",
+			[]byte("`"),
+			[]string{"cannot unmarshal json into Point value"},
+		},
+		{
+			"missing lat",
+			[]byte(`{"lng":1}`),
+			[]string{"latitude must not be blank"},
+		},
+		{
+			"missing lng",
+			[]byte(`{"lat":1}`),
+			[]string{"longitude must not be blank"},
+		},
+		{
+			"missing latitude",
+			[]byte(`{"longitude":1}`),
+			[]string{"latitude must not be blank"},
+		},
+		{
+			"missing longitude",
+			[]byte(`{"latitude":1}`),
+			[]string{"longitude must not be blank"},
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			p := geocoding.Point{}
 			err := p.UnmarshalJSON(tc.payload)
-			assert.Equal(t, tc.expected, err)
+			assert.Error(t, err)
+			for _, v := range tc.errs {
+				assert.Contains(t, err.Error(), v)
+			}
 		})
 	}
 }
