@@ -2,35 +2,20 @@ package user_test
 
 import (
 	"net/http"
-	"sync"
 	"testing"
 
 	"github.com/ifreddyrondon/bastion/render/json"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/gocapture/database"
 	"github.com/ifreddyrondon/gocapture/user"
-	"github.com/jinzhu/gorm"
 )
 
-var once sync.Once
-var db *gorm.DB
-
-func getDB() *gorm.DB {
-	once.Do(func() {
-		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
-		db = ds.DB
-	})
-	return db
-}
-
-func setup(t *testing.T) (*bastion.Bastion, func()) {
-	service := user.PGService{DB: getDB().Table("users")}
-	service.Migrate()
-	teardown := func() { service.Drop() }
+func setupController(t *testing.T) (*bastion.Bastion, func()) {
+	service, serviceTeardown := setupService(t)
+	teardown := func() { serviceTeardown() }
 
 	controller := user.Controller{
-		Service: &service,
+		Service: service,
 		Render:  json.NewRender,
 	}
 
@@ -41,7 +26,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 }
 
 func TestCreateValidUser(t *testing.T) {
-	app, teardown := setup(t)
+	app, teardown := setupController(t)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -82,7 +67,7 @@ func TestCreateValidUser(t *testing.T) {
 }
 
 func TestCreateINValidUser(t *testing.T) {
-	app, teardown := setup(t)
+	app, teardown := setupController(t)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -132,7 +117,7 @@ func TestCreateINValidUser(t *testing.T) {
 }
 
 func TestConflictEmail(t *testing.T) {
-	app, teardown := setup(t)
+	app, teardown := setupController(t)
 	defer teardown()
 
 	payload := map[string]interface{}{"email": "test@localhost.com"}

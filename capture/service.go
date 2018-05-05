@@ -12,7 +12,7 @@ type Service interface {
 	Save(*Capture) error
 	// SaveBulk captures into the database.
 	SaveBulk(...*Capture) (Captures, error)
-	// List retrieve the count captures from start index.
+	// List retrieve captures from start index to count.
 	List(start, count int) (Captures, error)
 	// Get a capture by id
 	Get(kallax.ULID) (*Capture, error)

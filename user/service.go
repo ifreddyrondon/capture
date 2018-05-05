@@ -11,16 +11,14 @@ const uniqueConstraintEmail = "uix_users_email"
 // Service is the interface implemented by user
 // It make CRUD operations over users.
 type Service interface {
-	// Save capture into the database.
+	// Save user into the database.
 	Save(*User) error
-	// // List retrieve the count captures from start index.
-	// List(start, count int) (Captures, error)
-	// // Get a capture by id
-	// Get(kallax.ULID) (*Capture, error)
-	// // Delete a capture by id
-	// Delete(*Capture) error
-	// // Update a capture from an updated one, will only update those changed & non blank fields.
-	// Update(original *Capture, updates Capture) error
+	// Get a user by email
+	Get(string) (*User, error)
+	// Delete a user
+	// Delete(*User) error
+	// Update a user from an updated one, will only update those changed & non blank fields.
+	// Update(original *User, updates User) error
 }
 
 // PGService implementation of user.Service for Postgres database.
@@ -50,4 +48,13 @@ func (pgs *PGService) Save(user *User) error {
 		return err
 	}
 	return nil
+}
+
+// Get a user by email
+func (pgs *PGService) Get(email string) (*User, error) {
+	var result User
+	if pgs.DB.Where(&User{Email: email}).First(&result).RecordNotFound() {
+		return nil, ErrNotFound
+	}
+	return &result, nil
 }

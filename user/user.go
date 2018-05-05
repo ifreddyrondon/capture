@@ -19,7 +19,11 @@ const (
 	errInvalidEmail  = "invalid email"
 )
 
-var errInvalidPayload = errors.New("cannot unmarshal json into valid user")
+var (
+	errInvalidPayload = errors.New("cannot unmarshal json into valid user")
+	// ErrNotFound expected error when user is missing
+	ErrNotFound = errors.New("user not found")
+)
 
 type emailDuplicateError struct {
 	Email string
