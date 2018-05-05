@@ -20,6 +20,12 @@
   revision = "f58c961370c5e74008eb4147e8926e8c036393f9"
 
 [[projects]]
+  name = "github.com/asaskevich/govalidator"
+  packages = ["."]
+  revision = "ccb8e960c48f04d6935e72476ae4a51028f9e22f"
+  version = "v9"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -150,13 +156,22 @@
 [[projects]]
   branch = "master"
   name = "github.com/markbates/going"
-  packages = ["defaults"]
+  packages = [
+    "defaults",
+    "wait"
+  ]
   revision = "0576708c56cea02331f864fe6e157ac7841923e4"
 
 [[projects]]
   name = "github.com/markbates/sigtx"
   packages = ["."]
   revision = "daa2e5f08161c569ca3d938d70750ccd038daf16"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/markbates/validate"
+  packages = ["."]
+  revision = "cd8cc34c703420d6b084fbbfd5085e8e71c5b830"
   version = "v1.0.0"
 
 [[projects]]
@@ -291,6 +306,15 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/crypto"
+  packages = [
+    "bcrypt",
+    "blowfish"
+  ]
+  revision = "1f94bef427e370e425e55b172f3b5e300ef38304"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "idna",
@@ -343,6 +367,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "20e0e7a5688698daad5d6bdbd01c10d6dec8bd1c0baa2c82d5617deb4425347a"
+  inputs-digest = "b64b869764727585ce905c32d06ba33744ce81fdf4f6f6f5a7c0ac0d40f24a34"
   solver-name = "gps-cdcl"
   solver-version = 1
