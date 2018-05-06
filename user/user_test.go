@@ -16,7 +16,7 @@ import (
 func TestUserSetPassword(t *testing.T) {
 	t.Parallel()
 
-	plainPassword := []byte("b4KeHAYy3u9v=ZQX")
+	plainPassword := "b4KeHAYy3u9v=ZQX"
 	var u user.User
 	err := u.SetPassword(plainPassword)
 	assert.Nil(t, err)
@@ -26,10 +26,10 @@ func TestUserCheckPassword(t *testing.T) {
 	t.Parallel()
 
 	var u user.User
-	u.SetPassword([]byte("b4KeHAYy3u9v=ZQX"))
+	u.SetPassword("b4KeHAYy3u9v=ZQX")
 
-	assert.True(t, u.CheckPassword([]byte("b4KeHAYy3u9v=ZQX")))
-	assert.False(t, u.CheckPassword([]byte("1")))
+	assert.True(t, u.CheckPassword("b4KeHAYy3u9v=ZQX"))
+	assert.False(t, u.CheckPassword("1"))
 }
 
 func TestUnmarshalValidUser(t *testing.T) {
@@ -51,8 +51,8 @@ func TestUnmarshalUserWithPassword(t *testing.T) {
 	err := u.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com", "password": "b4KeHAYy3u9v=ZQX"}`))
 	require.Nil(t, err)
 	assert.Equal(t, "ifreddyrondon@gmail.com", u.Email)
-	assert.True(t, u.CheckPassword([]byte("b4KeHAYy3u9v=ZQX")))
-	assert.False(t, u.CheckPassword([]byte("1")))
+	assert.True(t, u.CheckPassword("b4KeHAYy3u9v=ZQX"))
+	assert.False(t, u.CheckPassword("1"))
 }
 
 func TestUnmarshalInValidUser(t *testing.T) {

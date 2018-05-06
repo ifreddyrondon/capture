@@ -8,13 +8,19 @@ import (
 
 const uniqueConstraintEmail = "uix_users_email"
 
+// GetterService get users
+type GetterService interface {
+	// Get a user by email
+	Get(string) (*User, error)
+}
+
 // Service is the interface implemented by user
 // It make CRUD operations over users.
 type Service interface {
 	// Save user into the database.
 	Save(*User) error
 	// Get a user by email
-	Get(string) (*User, error)
+	GetterService
 	// Delete a user
 	// Delete(*User) error
 	// Update a user from an updated one, will only update those changed & non blank fields.
@@ -50,7 +56,7 @@ func (pgs *PGService) Save(user *User) error {
 	return nil
 }
 
-// Get a user by email
+// Get a user by email, if not found user returns an error
 func (pgs *PGService) Get(email string) (*User, error) {
 	var result User
 	if pgs.DB.Where(&User{Email: email}).First(&result).RecordNotFound() {

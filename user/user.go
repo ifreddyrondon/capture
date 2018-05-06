@@ -37,10 +37,10 @@ func (e *emailDuplicateError) Error() string {
 type User struct {
 	ID        kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Email     string      `json:"email" sql:"not null" gorm:"unique_index"`
-	password  []byte
-	CreatedAt time.Time  `json:"createdAt" sql:"not null"`
-	UpdatedAt time.Time  `json:"updatedAt" sql:"not null"`
-	DeletedAt *time.Time `json:"-"`
+	Password  []byte      `json:"-"`
+	CreatedAt time.Time   `json:"createdAt" sql:"not null"`
+	UpdatedAt time.Time   `json:"updatedAt" sql:"not null"`
+	DeletedAt *time.Time  `json:"-"`
 }
 
 type userAlias User
@@ -73,7 +73,7 @@ func (u *User) UnmarshalJSON(data []byte) error {
 
 	*u = User(user.userAlias)
 	if len(user.Password) > 0 {
-		if err := u.SetPassword([]byte(user.Password)); err != nil {
+		if err := u.SetPassword(user.Password); err != nil {
 			return err
 		}
 	}
@@ -81,18 +81,18 @@ func (u *User) UnmarshalJSON(data []byte) error {
 }
 
 // SetPassword stores a hashed version of a plain text password into the user.
-func (u *User) SetPassword(pass []byte) error {
+func (u *User) SetPassword(pass string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(pass), 10)
 	if err != nil {
 		return err
 	}
-	u.password = hash
+	u.Password = hash
 	return nil
 }
 
 // CheckPassword compares a hashed password with its possible plaintext equivalent.
-func (u *User) CheckPassword(pass []byte) bool {
-	if err := bcrypt.CompareHashAndPassword(u.password, pass); err != nil {
+func (u *User) CheckPassword(pass string) bool {
+	if err := bcrypt.CompareHashAndPassword(u.Password, []byte(pass)); err != nil {
 		return false
 	}
 	return true
