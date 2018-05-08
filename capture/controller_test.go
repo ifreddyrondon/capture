@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/araddon/dateparse"
 	"github.com/ifreddyrondon/bastion"
@@ -31,11 +30,7 @@ func getDB() *gorm.DB {
 }
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	t.Parallel()
-
-	// get a random table to allow parallel execution
-	schemaName := fmt.Sprintf("captures_%v", time.Now().UnixNano())
-	service := capture.PGService{DB: getDB().Table(schemaName)}
+	service := capture.PGService{DB: getDB().Table("captures")}
 	service.Migrate()
 	teardown := func() { service.Drop() }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/user"
 )
 
-var errInvalidCredentials = errors.New("invalid email or password")
+var errInvalidPassword = errors.New("invalid password")
 
 // Service is the interface implemented by auth
 // It make authentication operations.
@@ -27,7 +27,7 @@ func (p *PGAuthService) Authenticate(crendetials *BasicAuthCrendential) (*user.U
 		return nil, err
 	}
 	if !u.CheckPassword(crendetials.Password) {
-		return nil, errInvalidCredentials
+		return nil, errInvalidPassword
 	}
 
 	return u, nil

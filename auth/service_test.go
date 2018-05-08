@@ -75,7 +75,7 @@ func TestAuthenticateFailure(t *testing.T) {
 		{
 			"invalid password",
 			&auth.BasicAuthCrendential{Email: testUserEmail, Password: "123"},
-			"invalid email or password",
+			"invalid password",
 		},
 	}
 

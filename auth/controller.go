@@ -2,12 +2,17 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+
+	"github.com/ifreddyrondon/gocapture/user"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
 	bastionJSON "github.com/ifreddyrondon/bastion/render/json"
 )
+
+var errInvalidCredentials = errors.New("invalid email or password")
 
 // Controller handler the auth routes
 type Controller struct {
@@ -32,11 +37,11 @@ func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 
 	u, err := c.Service.Authenticate(&credentials)
 	if err != nil {
-		if err == errInvalidCredentials {
+		if err == errInvalidPassword || err == user.ErrNotFound {
 			httpErr := bastionJSON.HTTPError{
 				Status:  http.StatusUnauthorized,
 				Errors:  http.StatusText(http.StatusUnauthorized),
-				Message: err.Error(),
+				Message: errInvalidCredentials.Error(),
 			}
 			_ = c.Render(w).Response(http.StatusUnauthorized, httpErr)
 			return
