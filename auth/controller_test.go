@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/auth"
 
 	"github.com/ifreddyrondon/bastion"
@@ -14,9 +15,15 @@ func setupController(t *testing.T) (*bastion.Bastion, func()) {
 	service, serviceTeardown := setupService(t)
 	teardown := func() { serviceTeardown() }
 
-	controller := auth.Controller{
+	strategies := auth.Strategies{
 		Service: service,
 		Render:  json.NewRender,
+		CtxKey:  app.ContextKey("user"),
+	}
+
+	controller := auth.Controller{
+		Render:     json.NewRender,
+		Strategies: &strategies,
 	}
 
 	app := bastion.New(bastion.Options{})
@@ -64,4 +71,31 @@ func TestTokenAuthFailure(t *testing.T) {
 				JSON().Object().Equal(tc.response)
 		})
 	}
+}
+
+func TestTokenAuthFailureBadRequest(t *testing.T) {
+	app, teardown := setupController(t)
+	defer teardown()
+
+	e := bastion.Tester(t, app)
+	tc := struct {
+		payload  map[string]interface{}
+		response map[string]interface{}
+	}{
+		payload: map[string]interface{}{},
+		response: map[string]interface{}{
+			"status":  400.0,
+			"error":   "Bad Request",
+			"message": "email must not be blank\npassword must not be blank",
+		},
+	}
+
+	e.POST("/auth/token-auth").
+		WithJSON(tc.payload).
+		Expect().
+		Status(http.StatusBadRequest).
+		JSON().Object().
+		ContainsKey("status").ValueEqual("status", tc.response["status"]).
+		ContainsKey("error").ValueEqual("error", tc.response["error"]).
+		ContainsKey("message")
 }
