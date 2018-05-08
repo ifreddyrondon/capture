@@ -1,4 +1,4 @@
-package auth
+package basic
 
 import (
 	"encoding/json"
@@ -16,22 +16,22 @@ const (
 
 var errInvalidPayload = errors.New("cannot unmarshal json into valid credentials")
 
-// BasicAuthCrendential represent the user credentials for basic authentication.
-type BasicAuthCrendential struct {
+// Crendentials represent the user credentials for basic authentication.
+type Crendentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 // alias for custom unmarhal
-type basicAuthCrendentialJSON BasicAuthCrendential
+type crendentialJSON Crendentials
 
-func (bac *basicAuthCrendentialJSON) IsValid(errors *validate.Errors) {
-	if bac.Email == "" {
+func (c *crendentialJSON) IsValid(errors *validate.Errors) {
+	if c.Email == "" {
 		errors.Add("email", errEmailRequired)
-	} else if !govalidator.IsEmail(bac.Email) {
+	} else if !govalidator.IsEmail(c.Email) {
 		errors.Add("email", errInvalidEmail)
 	}
-	if bac.Password == "" {
+	if c.Password == "" {
 		errors.Add("password", errPasswordRequired)
 	}
 }
@@ -39,8 +39,8 @@ func (bac *basicAuthCrendentialJSON) IsValid(errors *validate.Errors) {
 // UnmarshalJSON decodes the BasicAuthCrendential from a JSON body.
 // Throws an error if the body cannot be interpreted.
 // Implements the json.Unmarshaler Interface
-func (bac *BasicAuthCrendential) UnmarshalJSON(data []byte) error {
-	var model basicAuthCrendentialJSON
+func (c *Crendentials) UnmarshalJSON(data []byte) error {
+	var model crendentialJSON
 	if err := json.Unmarshal(data, &model); err != nil {
 		return errInvalidPayload
 	}
@@ -48,6 +48,6 @@ func (bac *BasicAuthCrendential) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*bac = BasicAuthCrendential(model)
+	*c = Crendentials(model)
 	return nil
 }

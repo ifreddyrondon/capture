@@ -2,28 +2,60 @@ package auth_test
 
 import (
 	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/auth"
+	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
+	"github.com/ifreddyrondon/gocapture/database"
+	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
 )
 
-func setupController(t *testing.T) (*bastion.Bastion, func()) {
-	service, serviceTeardown := setupService(t)
-	teardown := func() { serviceTeardown() }
+var (
+	once sync.Once
+	db   *gorm.DB
+)
 
-	strategies := auth.Strategies{
-		Service: service,
-		Render:  json.NewRender,
-		CtxKey:  app.ContextKey("user"),
+const (
+	testUserEmail    = "test@test.com"
+	testUserPassword = "b4KeHAYy3u9v=ZQX"
+)
+
+func getDB() *gorm.DB {
+	once.Do(func() {
+		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
+		db = ds.DB
+	})
+	return db
+}
+
+func setup(t *testing.T) (*bastion.Bastion, func()) {
+	userService := user.PGService{DB: getDB().Table("auth-users")}
+	userService.Migrate()
+
+	// save a user to test
+	u := user.User{Email: testUserEmail}
+	err := u.SetPassword(testUserPassword)
+	require.Nil(t, err)
+	userService.Save(&u)
+
+	teardown := func() { userService.Drop() }
+	strategy := basic.Strategy{
+		Render:        json.NewRender,
+		CtxKey:        app.ContextKey("user"),
+		GetterService: &userService,
 	}
 
 	controller := auth.Controller{
-		Render:     json.NewRender,
-		Strategies: &strategies,
+		Strategy: strategy,
+		Render:   json.NewRender,
+		CtxKey:   app.ContextKey("user"),
 	}
 
 	app := bastion.New(bastion.Options{})
@@ -32,70 +64,19 @@ func setupController(t *testing.T) (*bastion.Bastion, func()) {
 	return app, teardown
 }
 
-func TestTokenAuthFailure(t *testing.T) {
-	app, teardown := setupController(t)
+func TestBasicAuthentication(t *testing.T) {
+	app, teardown := setup(t)
 	defer teardown()
 
+	payload := map[string]interface{}{"email": testUserEmail, "password": testUserPassword}
 	e := bastion.Tester(t, app)
-	tt := []struct {
-		name     string
-		payload  map[string]interface{}
-		response map[string]interface{}
-	}{
-		{
-			name:    "invalid credentials",
-			payload: map[string]interface{}{"email": testUserEmail, "password": "123"},
-			response: map[string]interface{}{
-				"status":  401.0,
-				"error":   "Unauthorized",
-				"message": "invalid email or password",
-			},
-		},
-		{
-			name:    "missing email",
-			payload: map[string]interface{}{"email": "bla@localhost.com", "password": "123"},
-			response: map[string]interface{}{
-				"status":  401.0,
-				"error":   "Unauthorized",
-				"message": "invalid email or password",
-			},
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			e.POST("/auth/token-auth").
-				WithJSON(tc.payload).
-				Expect().
-				Status(http.StatusUnauthorized).
-				JSON().Object().Equal(tc.response)
-		})
-	}
-}
-
-func TestTokenAuthFailureBadRequest(t *testing.T) {
-	app, teardown := setupController(t)
-	defer teardown()
-
-	e := bastion.Tester(t, app)
-	tc := struct {
-		payload  map[string]interface{}
-		response map[string]interface{}
-	}{
-		payload: map[string]interface{}{},
-		response: map[string]interface{}{
-			"status":  400.0,
-			"error":   "Bad Request",
-			"message": "email must not be blank\npassword must not be blank",
-		},
-	}
-
-	e.POST("/auth/token-auth").
-		WithJSON(tc.payload).
+	e.POST("/auth/token-auth").WithJSON(payload).
 		Expect().
-		Status(http.StatusBadRequest).
+		Status(http.StatusOK).
 		JSON().Object().
-		ContainsKey("status").ValueEqual("status", tc.response["status"]).
-		ContainsKey("error").ValueEqual("error", tc.response["error"]).
-		ContainsKey("message")
+		ContainsKey("email").ValueEqual("email", payload["email"]).
+		ContainsKey("id").NotEmpty().
+		ContainsKey("createdAt").NotEmpty().
+		ContainsKey("updatedAt").NotEmpty().
+		NotContainsKey("password")
 }

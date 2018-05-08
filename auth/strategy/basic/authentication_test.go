@@ -1,9 +1,9 @@
-package auth_test
+package basic_test
 
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/auth"
+	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -11,12 +11,12 @@ import (
 func TestAuthenticationPayloadValidUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 
-	expected := auth.BasicAuthCrendential{
+	expected := basic.Crendentials{
 		Email:    "ifreddyrondon@gmail.com",
 		Password: "b4KeHAYy3u9v=ZQX",
 	}
 
-	var model auth.BasicAuthCrendential
+	var model basic.Crendentials
 	err := model.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com", "password": "b4KeHAYy3u9v=ZQX"}`))
 	require.Nil(t, err)
 	assert.Equal(t, expected.Email, model.Email)
@@ -60,7 +60,7 @@ func TestAuthenticationPayloadInvalidUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			var model auth.BasicAuthCrendential
+			var model basic.Crendentials
 			err := model.UnmarshalJSON(tc.payload)
 			assert.Error(t, err)
 			for _, v := range tc.errs {
