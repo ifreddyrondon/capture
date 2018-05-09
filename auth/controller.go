@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ifreddyrondon/gocapture/jwt"
+
 	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
 	"github.com/ifreddyrondon/gocapture/user"
 
@@ -13,11 +15,16 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
+type tokenJSON struct {
+	Token string `json:"token,omitempty"`
+}
+
 // Controller handler the auth routes
 type Controller struct {
 	basic.Strategy
 	CtxKey fmt.Stringer
 	render.Render
+	JWT *jwt.Service
 }
 
 // Router creates a REST router for the auth resource
@@ -39,5 +46,11 @@ func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 		_ = c.Render(w).InternalServerError(err)
 		return
 	}
-	_ = c.Render(w).Send(u)
+
+	token, err := c.JWT.GenerateToken(u.ID.String())
+	if err != nil {
+		_ = c.Render(w).InternalServerError(err)
+	}
+
+	_ = c.Render(w).Send(tokenJSON{Token: token})
 }

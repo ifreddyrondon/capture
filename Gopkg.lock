@@ -32,6 +32,12 @@
   version = "v1.1.0"
 
 [[projects]]
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   name = "github.com/fatih/structs"
   packages = ["."]
   revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
@@ -367,6 +373,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b64b869764727585ce905c32d06ba33744ce81fdf4f6f6f5a7c0ac0d40f24a34"
+  inputs-digest = "120d7dbaf95bc15b4fe0faabddaaefa7f2e794705ce0468332269cfb13febebc"
   solver-name = "gps-cdcl"
   solver-version = 1

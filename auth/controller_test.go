@@ -5,6 +5,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/ifreddyrondon/gocapture/jwt"
+
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/auth"
 	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
@@ -52,10 +54,13 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 		GetterService: &userService,
 	}
 
+	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
+
 	controller := auth.Controller{
 		Strategy: strategy,
 		Render:   json.NewRender,
 		CtxKey:   app.ContextKey("user"),
+		JWT:      jwtService,
 	}
 
 	app := bastion.New(bastion.Options{})
@@ -74,9 +79,5 @@ func TestBasicAuthentication(t *testing.T) {
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object().
-		ContainsKey("email").ValueEqual("email", payload["email"]).
-		ContainsKey("id").NotEmpty().
-		ContainsKey("createdAt").NotEmpty().
-		ContainsKey("updatedAt").NotEmpty().
-		NotContainsKey("password")
+		ContainsKey("token")
 }
