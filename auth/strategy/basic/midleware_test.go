@@ -54,7 +54,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	teardown := func() { userService.Drop() }
 	service := basic.Strategy{
 		Render:        json.NewRender,
-		CtxKey:        app.ContextKey("user"),
+		UserKey:       app.ContextKey("user"),
 		GetterService: &userService,
 	}
 

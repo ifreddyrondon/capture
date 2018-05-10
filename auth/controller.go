@@ -22,7 +22,7 @@ type tokenJSON struct {
 // Controller handler the auth routes
 type Controller struct {
 	basic.Strategy
-	CtxKey fmt.Stringer
+	UserKey fmt.Stringer
 	render.Render
 	JWT *jwt.Service
 }
@@ -40,7 +40,7 @@ func (c *Controller) Router() http.Handler {
 
 func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u, ok := ctx.Value(c.CtxKey).(*user.User)
+	u, ok := ctx.Value(c.UserKey).(*user.User)
 	if !ok {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		_ = c.Render(w).InternalServerError(err)

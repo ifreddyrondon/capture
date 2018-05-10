@@ -50,7 +50,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	teardown := func() { userService.Drop() }
 	strategy := basic.Strategy{
 		Render:        json.NewRender,
-		CtxKey:        app.ContextKey("user"),
+		UserKey:       app.ContextKey("user"),
 		GetterService: &userService,
 	}
 
@@ -59,7 +59,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	controller := auth.Controller{
 		Strategy: strategy,
 		Render:   json.NewRender,
-		CtxKey:   app.ContextKey("user"),
+		UserKey:  app.ContextKey("user"),
 		JWT:      jwtService,
 	}
 

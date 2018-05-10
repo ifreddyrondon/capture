@@ -21,7 +21,7 @@ var (
 type Strategy struct {
 	render.Render
 	user.GetterService
-	CtxKey fmt.Stringer
+	UserKey fmt.Stringer
 }
 
 // Authenticate for basic (username/password) authentication.
@@ -48,7 +48,7 @@ func (s *Strategy) Authenticate(next http.Handler) http.Handler {
 			_ = s.Render(w).InternalServerError(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), s.CtxKey, u)
+		ctx := context.WithValue(r.Context(), s.UserKey, u)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
