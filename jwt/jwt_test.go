@@ -67,6 +67,48 @@ func TestClaims(t *testing.T) {
 	}
 }
 
+func TestInvalidClaims(t *testing.T) {
+	t.Parallel()
+
+	userID := "123"
+	tt := []struct {
+		name   string
+		claims gocaptureJWT.Claims
+		err    string
+	}{
+		{
+			"expired",
+			gocaptureJWT.Claims{
+				StandardClaims: jwt.StandardClaims{
+					Subject:   userID,
+					IssuedAt:  time.Now().Unix(),
+					ExpiresAt: time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC).Unix(),
+				},
+			},
+			"token is expired by",
+		},
+		{
+			"issued after valid",
+			gocaptureJWT.Claims{
+				StandardClaims: jwt.StandardClaims{
+					Subject:   userID,
+					IssuedAt:  time.Now().Add(time.Minute * 10).Unix(),
+					ExpiresAt: time.Now().Add(time.Minute * 10).Unix(),
+				},
+			},
+			"Token used before issued",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.claims.Valid()
+			assert.NotNil(t, err)
+			assert.Contains(t, err.Error(), tc.err)
+		})
+	}
+}
+
 func TestNewClaims(t *testing.T) {
 	t.Parallel()
 
