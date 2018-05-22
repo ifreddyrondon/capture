@@ -54,7 +54,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 		GetterService: &userService,
 	}
 
-	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
+	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
 
 	controller := auth.Controller{
 		Strategy: strategy,

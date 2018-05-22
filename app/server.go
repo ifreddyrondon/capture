@@ -38,7 +38,7 @@ func New(db *gorm.DB) *bastion.Bastion {
 		GetterService: &userService,
 	}
 
-	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
+	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
 
 	authController := auth.Controller{
 		Strategy: strategy,

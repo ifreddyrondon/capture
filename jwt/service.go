@@ -3,7 +3,6 @@ package jwt
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -21,21 +20,29 @@ var (
 	ErrUserNotAllowed = errors.New("you don’t have permission to access this resource")
 	// SigningMethod method used or to be used in jwt
 	SigningMethod = jwt.SigningMethodHS256
+	// SubjectCtxKey key to get the subject from requets
+	SubjectCtxKey = contextKey("jwt_subject_ctx_key")
 )
+
+type contextKey string
+
+func (c contextKey) String() string {
+	return string(c)
+}
 
 // Service service to managed JWT
 type Service struct {
 	ExpirationDelta time.Duration
-	UserIDKey       fmt.Stringer
 	render.Render
 	signingKey []byte
 }
 
 // NewService is a helper constructor to create a new service with signing key.
-func NewService(signingKey []byte, delta time.Duration) *Service {
+func NewService(signingKey []byte, delta time.Duration, render render.Render) *Service {
 	return &Service{
 		ExpirationDelta: delta,
 		signingKey:      signingKey,
+		Render:          render,
 	}
 }
 
@@ -54,13 +61,18 @@ func (s *Service) GenerateToken(userID string) (string, error) {
 // Authorization validates if a request contains a valid JWT
 func (s *Service) Authorization(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, err := request.ParseFromRequest(r, request.OAuth2Extractor, func(token *jwt.Token) (interface{}, error) {
+		// keyFunc will receive the parsed token and should return the key for validating
+		fun := func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, ErrSigningMethod
 			}
-
 			return s.signingKey, nil
-		})
+		}
+
+		token, err := request.ParseFromRequest(
+			r, request.OAuth2Extractor,
+			fun,
+			request.WithClaims(&Claims{}))
 
 		if err != nil || !token.Valid {
 			httpErr := json.HTTPError{
@@ -78,7 +90,7 @@ func (s *Service) Authorization(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), s.UserIDKey, claims.Subject)
+		ctx := context.WithValue(r.Context(), SubjectCtxKey, claims.Subject)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
