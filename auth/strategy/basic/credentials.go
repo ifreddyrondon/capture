@@ -1,7 +1,6 @@
 package basic
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/asaskevich/govalidator"
@@ -16,16 +15,17 @@ const (
 
 var errInvalidPayload = errors.New("cannot unmarshal json into valid credentials")
 
-// Crendentials represent the user credentials for basic authentication.
-type Crendentials struct {
+type credentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// alias for custom unmarhal
-type crendentialJSON Crendentials
+// Crendentials represent the user credentials for basic authentication.
+type Crendentials credentials
 
-func (c *crendentialJSON) IsValid(errors *validate.Errors) {
+// IsValid validates if credentials are valid.
+// Implements Validator from github.com/markbates/validate
+func (c *Crendentials) IsValid(errors *validate.Errors) {
 	if c.Email == "" {
 		errors.Add("email", errEmailRequired)
 	} else if !govalidator.IsEmail(c.Email) {
@@ -40,14 +40,14 @@ func (c *crendentialJSON) IsValid(errors *validate.Errors) {
 // Throws an error if the body cannot be interpreted.
 // Implements the json.Unmarshaler Interface
 func (c *Crendentials) UnmarshalJSON(data []byte) error {
-	var model crendentialJSON
-	if err := json.Unmarshal(data, &model); err != nil {
+	var model credentials
+	if err := model.UnmarshalJSON(data); err != nil {
 		return errInvalidPayload
 	}
-	if err := validate.Validate(&model); err.HasAny() {
+	*c = Crendentials(model)
+	if err := validate.Validate(c); err.HasAny() {
 		return err
 	}
 
-	*c = Crendentials(model)
 	return nil
 }
