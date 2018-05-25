@@ -2,6 +2,7 @@ package collection
 
 import (
 	"errors"
+	"time"
 
 	"github.com/markbates/validate"
 
@@ -15,6 +16,9 @@ type Collection struct {
 	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Name          string      `json:"name"`
 	CurrentBranch string      `json:"current_branch"`
+	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
+	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
+	DeletedAt     *time.Time  `json:"-"`
 }
 
 // UnmarshalJSON decodes the user from a JSON body.
@@ -31,4 +35,10 @@ func (c *Collection) UnmarshalJSON(data []byte) error {
 
 	c.Name = model.Name
 	return nil
+}
+
+func (c *Collection) fillIfEmpty() {
+	if c.ID.IsEmpty() {
+		c.ID = kallax.NewULID()
+	}
 }

@@ -14,8 +14,8 @@ type GetterService interface {
 	Get(string) (*User, error)
 }
 
-// Service is the interface implemented by user
-// It make CRUD operations over users.
+// Service is the interface to be implemented by user
+// It make CRUD operations.
 type Service interface {
 	// Save user into the database.
 	Save(*User) error
