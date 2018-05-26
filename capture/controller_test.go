@@ -871,8 +871,10 @@ func TestUpdateCapture(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			createdObj := e.POST("/captures/").WithJSON(capPayload).Expect().
 				Status(http.StatusCreated).JSON().Object().Raw()
+
 			e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
 			tc.updatePayload["id"] = createdObj["id"]
+
 			updatedObj := e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
 				Status(http.StatusOK).
 				JSON().Object().
@@ -887,12 +889,6 @@ func TestUpdateCapture(t *testing.T) {
 				ContainsKey("updatedAt").NotEmpty().
 				Raw()
 
-			// createdAt should be equal
-			createdAtFromCreate, err := dateparse.ParseAny(createdObj["createdAt"].(string))
-			assert.Nil(t, err)
-			createdAtFromUpdate, err := dateparse.ParseAny(updatedObj["createdAt"].(string))
-			assert.Nil(t, err)
-			assert.True(t, createdAtFromCreate.Equal(createdAtFromUpdate))
 			// updatedAt from put should be after updatedAt from post
 			updatedAtFromCreate, err := dateparse.ParseAny(createdObj["updatedAt"].(string))
 			assert.Nil(t, err)
