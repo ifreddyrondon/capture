@@ -16,6 +16,7 @@ type Collection struct {
 	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Name          string      `json:"name"`
 	CurrentBranch string      `json:"current_branch"`
+	Shared        bool        `json:"shared"`
 	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
 	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
 	DeletedAt     *time.Time  `json:"-"`
@@ -33,7 +34,7 @@ func (c *Collection) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	c.Name = model.Name
+	*c = model.toCollection()
 	return nil
 }
 

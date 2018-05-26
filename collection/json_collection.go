@@ -8,7 +8,8 @@ import (
 const errNameRequired = "name must not be blank"
 
 type jsonCollection struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
+	Shared bool   `json:"shared"`
 }
 
 func (v *jsonCollection) IsValid(errors *validate.Errors) {
@@ -17,6 +18,11 @@ func (v *jsonCollection) IsValid(errors *validate.Errors) {
 	}
 }
 
+func (v *jsonCollection) toCollection() Collection {
+	return Collection{Name: v.Name, Shared: v.Shared}
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
 func (v *jsonCollection) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjsonD0cf849fDecodeGithubComIfreddyrondonGocaptureCollection(&r, v)

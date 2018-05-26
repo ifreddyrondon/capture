@@ -50,6 +50,7 @@ func TestCreateCollectionSuccess(t *testing.T) {
 		Status(http.StatusCreated).
 		JSON().Object().
 		ContainsKey("name").ValueEqual("name", payload["name"]).
+		ContainsKey("shared").ValueEqual("shared", false).
 		ContainsKey("id").NotEmpty().
 		ContainsKey("createdAt").NotEmpty().
 		ContainsKey("updatedAt").NotEmpty()

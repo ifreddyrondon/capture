@@ -39,6 +39,8 @@ func easyjsonD0cf849fDecodeGithubComIfreddyrondonGocaptureCollection(in *jlexer.
 		switch key {
 		case "name":
 			out.Name = string(in.String())
+		case "shared":
+			out.Shared = bool(in.Bool())
 		default:
 			in.SkipRecursive()
 		}
