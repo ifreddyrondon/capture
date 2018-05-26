@@ -11,8 +11,13 @@ import (
 
 // Controller handler the user's routes
 type Controller struct {
-	Service Service
-	render.Render
+	service Service
+	render  render.Render
+}
+
+// NewController returns a new Controller
+func NewController(service Service, render render.Render) *Controller {
+	return &Controller{service: service, render: render}
 }
 
 // Router creates a REST router for the user resource
@@ -26,24 +31,24 @@ func (c *Controller) Router() http.Handler {
 func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		_ = c.Render(w).BadRequest(err)
+		_ = c.render(w).BadRequest(err)
 		return
 	}
 
-	if err := c.Service.Save(&user); err != nil {
+	if err := c.service.Save(&user); err != nil {
 		if _, ok := err.(*emailDuplicateError); ok {
 			httpErr := bastionJSON.HTTPError{
 				Status:  http.StatusConflict,
 				Errors:  http.StatusText(http.StatusConflict),
 				Message: err.Error(),
 			}
-			_ = c.Render(w).Response(http.StatusConflict, httpErr)
+			_ = c.render(w).Response(http.StatusConflict, httpErr)
 			return
 		}
 
-		_ = c.Render(w).InternalServerError(err)
+		_ = c.render(w).InternalServerError(err)
 		return
 	}
 
-	_ = c.Render(w).Created(user)
+	_ = c.render(w).Created(user)
 }

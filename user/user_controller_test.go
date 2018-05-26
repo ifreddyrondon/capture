@@ -11,14 +11,9 @@ import (
 )
 
 func setupController(t *testing.T) (*bastion.Bastion, func()) {
-	service, serviceTeardown := setupService(t)
-	teardown := func() { serviceTeardown() }
+	service, teardown := setupService(t)
 
-	controller := user.Controller{
-		Service: service,
-		Render:  json.NewRender,
-	}
-
+	controller := user.NewController(service, json.NewRender)
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/users/", controller.Router())
 

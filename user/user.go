@@ -97,3 +97,9 @@ func (u *User) CheckPassword(pass string) bool {
 	}
 	return true
 }
+
+func (u *User) fillIfEmpty() {
+	if u.ID.IsEmpty() {
+		u.ID = kallax.NewULID()
+	}
+}

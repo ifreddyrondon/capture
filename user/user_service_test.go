@@ -1,38 +1,33 @@
 package user_test
 
 import (
-	"sync"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/database"
-	"github.com/jinzhu/gorm"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/stretchr/testify/assert"
 )
 
-var once sync.Once
-var db *gorm.DB
+type MockRespository struct{}
 
-func getDB() *gorm.DB {
-	once.Do(func() {
-		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
-		db = ds.DB
-	})
-	return db
+func (r *MockRespository) Save(u *user.User) error { return nil }
+func (r *MockRespository) Get(email string) (*user.User, error) {
+	return &user.User{Email: email}, nil
 }
 
-func setupService(t *testing.T) (*user.PGService, func()) {
-	service := user.PGService{DB: getDB().Table("users")}
-	service.Migrate()
-	teardown := func() { service.Drop() }
+func setupServiceMockRepo(t *testing.T) *user.REPOService {
+	repo := &MockRespository{}
+	return user.NewService(repo)
+}
 
-	return &service, teardown
+func setupService(t *testing.T) (*user.REPOService, func()) {
+	repo, teardown := setupRepository(t)
+	return user.NewService(repo), teardown
 }
 
 func TestSaveUser(t *testing.T) {
-	service, teardown := setupService(t)
-	defer teardown()
+	t.Parallel()
+
+	service := setupServiceMockRepo(t)
 
 	u := user.User{Email: "test@localhost.com"}
 	err := service.Save(&u)
