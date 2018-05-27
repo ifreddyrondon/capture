@@ -26,7 +26,8 @@ func New(db *gorm.DB) *bastion.Bastion {
 	userRepo := user.NewPGRepository(db)
 	userRepo.Drop()
 	userRepo.Migrate()
-	userController := user.NewController(userRepo, json.NewRender)
+	userService := user.NewService(userRepo)
+	userController := user.NewController(userService, json.NewRender)
 	app.APIRouter.Mount("/users/", userController.Router())
 
 	strategy := basic.Strategy{
@@ -45,14 +46,10 @@ func New(db *gorm.DB) *bastion.Bastion {
 	}
 	app.APIRouter.Mount("/auth/", authController.Router())
 
-	captureService := capture.PGService{DB: db}
-	captureService.Drop()
-	captureService.Migrate()
-	captureController := capture.Controller{
-		Service: &captureService,
-		Render:  json.NewRender,
-		CtxKey:  ContextKey("capture"),
-	}
+	captureRepo := capture.NewPGRepository(db)
+	captureRepo.Drop()
+	captureRepo.Migrate()
+	captureController := capture.NewController(captureRepo, json.NewRender, ContextKey("capture"))
 	app.APIRouter.Mount("/captures/", captureController.Router())
 
 	branchController := branch.Controller{

@@ -30,16 +30,11 @@ func getDB() *gorm.DB {
 }
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	service := capture.PGService{DB: getDB().Table("captures")}
-	service.Migrate()
-	teardown := func() { service.Drop() }
+	repo := capture.NewPGRepository(getDB().Table("captures"))
+	repo.Migrate()
+	teardown := func() { repo.Drop() }
 
-	controller := capture.Controller{
-		Service: &service,
-		Render:  json.NewRender,
-		CtxKey:  app.ContextKey("capture"),
-	}
-
+	controller := capture.NewController(repo, json.NewRender, app.ContextKey("capture"))
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/captures/", controller.Router())
 

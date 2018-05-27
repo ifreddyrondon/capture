@@ -1,7 +1,6 @@
 package capture
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -52,7 +51,7 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 	c.Timestamp = t.Timestamp
 
 	var payl payload.Payload
-	if err := json.Unmarshal(data, &payl); err != nil {
+	if err := payl.UnmarshalJSON(data); err != nil {
 		return err
 	}
 	c.Payload = payl
