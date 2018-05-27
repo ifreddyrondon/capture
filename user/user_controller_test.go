@@ -1,6 +1,7 @@
 package user_test
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -128,5 +129,28 @@ func TestConflictEmail(t *testing.T) {
 	e.POST("/users/").WithJSON(payload).
 		Expect().
 		Status(http.StatusConflict).
+		JSON().Object().Equal(response)
+}
+
+func TestCreateFailSave(t *testing.T) {
+	t.Parallel()
+
+	service := user.NewFakeServiceDefaultPanic()
+	service.SaveHook = func(*user.User) error { return errors.New("test") }
+	controller := user.NewController(service, json.NewRender)
+	app := bastion.New(bastion.Options{})
+	app.APIRouter.Mount("/users/", controller.Router())
+
+	payload := map[string]interface{}{"email": "test@localhost.com"}
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "test",
+	}
+
+	e := bastion.Tester(t, app)
+	e.POST("/users/").WithJSON(payload).
+		Expect().
+		Status(http.StatusInternalServerError).
 		JSON().Object().Equal(response)
 }

@@ -1,23 +1,12 @@
 package user_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ifreddyrondon/gocapture/user"
 	"github.com/stretchr/testify/assert"
 )
-
-type MockRespository struct{}
-
-func (r *MockRespository) Save(u *user.User) error { return nil }
-func (r *MockRespository) Get(email string) (*user.User, error) {
-	return &user.User{Email: email}, nil
-}
-
-func setupServiceMockRepo(t *testing.T) *user.REPOService {
-	repo := &MockRespository{}
-	return user.NewService(repo)
-}
 
 func setupService(t *testing.T) (*user.REPOService, func()) {
 	repo, teardown := setupRepository(t)
@@ -27,7 +16,9 @@ func setupService(t *testing.T) (*user.REPOService, func()) {
 func TestSaveUser(t *testing.T) {
 	t.Parallel()
 
-	service := setupServiceMockRepo(t)
+	repo := user.NewFakeRepositoryDefaultPanic()
+	repo.SaveHook = func(*user.User) error { return nil }
+	service := user.NewService(repo)
 
 	u := user.User{Email: "test@localhost.com"}
 	err := service.Save(&u)
@@ -48,6 +39,18 @@ func TestErrWhenSaveUserWithSameEmail(t *testing.T) {
 	err := service.Save(&u2)
 	assert.Error(t, err)
 	assert.Equal(t, "email 'test@localhost.com' already exists", err.Error())
+}
+
+func TestErrSaveUser(t *testing.T) {
+	t.Parallel()
+
+	repo := user.NewFakeRepositoryDefaultPanic()
+	repo.SaveHook = func(*user.User) error { return errors.New("test") }
+	service := user.NewService(repo)
+
+	u := user.User{Email: "test@localhost.com"}
+	err := service.Save(&u)
+	assert.EqualError(t, err, "test")
 }
 
 func TestGetUser(t *testing.T) {
