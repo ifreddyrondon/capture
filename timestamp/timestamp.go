@@ -27,7 +27,7 @@ func New(date time.Time) *Timestamp {
 func (t *Timestamp) UnmarshalJSON(data []byte) error {
 	t.Timestamp = t.clock.Now()
 
-	var model jsonTimestamp
+	var model timestampJSON
 	if err := json.Unmarshal(data, &model); err != nil {
 		log.Print(err)
 		return nil
