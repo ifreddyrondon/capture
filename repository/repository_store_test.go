@@ -1,11 +1,11 @@
-package collection_test
+package repository_test
 
 import (
 	"sync"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/collection"
 	"github.com/ifreddyrondon/gocapture/database"
+	"github.com/ifreddyrondon/gocapture/repository"
 	"github.com/jinzhu/gorm"
 )
 
@@ -20,8 +20,8 @@ func getDB() *gorm.DB {
 	return db
 }
 
-func setupRepository(t *testing.T) (collection.Repository, func()) {
-	repo := collection.NewPGRepository(getDB().Table("collections"))
+func setupStore(t *testing.T) (repository.Store, func()) {
+	repo := repository.NewPGStore(getDB().Table("repositories"))
 	repo.Migrate()
 	teardown := func() { repo.Drop() }
 

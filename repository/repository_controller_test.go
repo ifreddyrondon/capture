@@ -1,50 +1,51 @@
-package collection_test
+package repository_test
 
 import (
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/ifreddyrondon/gocapture/repository"
+
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
-	"github.com/ifreddyrondon/gocapture/collection"
 )
 
 type MockService struct{}
 
-func (r *MockService) Save(c *collection.Collection) error {
+func (r *MockService) Save(c *repository.Repository) error {
 	return errors.New("test")
 }
 
 func setupControllerMockService() *bastion.Bastion {
 	service := &MockService{}
 
-	controller := collection.NewController(service, json.NewRender)
+	controller := repository.NewController(service, json.NewRender)
 
 	app := bastion.New(bastion.Options{})
-	app.APIRouter.Mount("/collection/", controller.Router())
+	app.APIRouter.Mount("/repository/", controller.Router())
 	return app
 }
 
 func setupController(t *testing.T) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
 
-	controller := collection.NewController(service, json.NewRender)
+	controller := repository.NewController(service, json.NewRender)
 
 	app := bastion.New(bastion.Options{})
-	app.APIRouter.Mount("/collection/", controller.Router())
+	app.APIRouter.Mount("/repository/", controller.Router())
 
 	return app, teardown
 }
 
-func TestCreateCollectionSuccess(t *testing.T) {
+func TestCreateRepositorySuccess(t *testing.T) {
 	app, teardown := setupController(t)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"name": "test"}
 
-	e.POST("/collection/").
+	e.POST("/repository/").
 		WithJSON(payload).
 		Expect().
 		Status(http.StatusCreated).
@@ -56,7 +57,7 @@ func TestCreateCollectionSuccess(t *testing.T) {
 		ContainsKey("updatedAt").NotEmpty()
 }
 
-func TestCreateCollectionFail(t *testing.T) {
+func TestCreateRepositoryFail(t *testing.T) {
 	app, teardown := setupController(t)
 	defer teardown()
 
@@ -88,7 +89,7 @@ func TestCreateCollectionFail(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			e.POST("/collection/").
+			e.POST("/repository/").
 				WithJSON(tc.payload).
 				Expect().
 				Status(http.StatusBadRequest).
@@ -97,7 +98,7 @@ func TestCreateCollectionFail(t *testing.T) {
 	}
 }
 
-func TestCreateCollectionSaveFail(t *testing.T) {
+func TestCreateRepositorySaveFail(t *testing.T) {
 	t.Parallel()
 
 	app := setupControllerMockService()
@@ -105,7 +106,7 @@ func TestCreateCollectionSaveFail(t *testing.T) {
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"name": "test"}
 
-	e.POST("/collection/").
+	e.POST("/repository/").
 		WithJSON(payload).
 		Expect().
 		Status(http.StatusInternalServerError).

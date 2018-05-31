@@ -1,4 +1,4 @@
-package collection
+package repository
 
 import (
 	"errors"
@@ -9,10 +9,10 @@ import (
 	kallax "gopkg.in/src-d/go-kallax.v1"
 )
 
-var errInvalidPayload = errors.New("cannot unmarshal json into valid collection")
+var errInvalidPayload = errors.New("cannot unmarshal json into valid repository")
 
-// Collection represent a collection of captures.
-type Collection struct {
+// Repository represent a collection of captures.
+type Repository struct {
 	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Name          string      `json:"name"`
 	CurrentBranch string      `json:"current_branch"`
@@ -22,11 +22,11 @@ type Collection struct {
 	DeletedAt     *time.Time  `json:"-"`
 }
 
-// UnmarshalJSON decodes the user from a JSON body.
+// UnmarshalJSON decodes the repository from a JSON body.
 // Throws an error if the body cannot be interpreted.
 // Implements the json.Unmarshaler Interface
-func (c *Collection) UnmarshalJSON(data []byte) error {
-	var model jsonCollection
+func (c *Repository) UnmarshalJSON(data []byte) error {
+	var model repositoryJSON
 	if err := model.UnmarshalJSON(data); err != nil {
 		return errInvalidPayload
 	}
@@ -34,11 +34,11 @@ func (c *Collection) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*c = model.toCollection()
+	*c = model.toRepository()
 	return nil
 }
 
-func (c *Collection) fillIfEmpty() {
+func (c *Repository) fillIfEmpty() {
 	if c.ID.IsEmpty() {
 		c.ID = kallax.NewULID()
 	}

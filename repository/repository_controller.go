@@ -1,4 +1,4 @@
-package collection
+package repository
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
-// Controller handler the collection's routes
+// Controller handler the repository routes
 type Controller struct {
 	service Service
 	render  render.Render
@@ -28,16 +28,16 @@ func (c *Controller) Router() http.Handler {
 }
 
 func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
-	var collection Collection
-	if err := json.NewDecoder(r.Body).Decode(&collection); err != nil {
+	var repo Repository
+	if err := json.NewDecoder(r.Body).Decode(&repo); err != nil {
 		_ = c.render(w).BadRequest(err)
 		return
 	}
 
-	if err := c.service.Save(&collection); err != nil {
+	if err := c.service.Save(&repo); err != nil {
 		_ = c.render(w).InternalServerError(err)
 		return
 	}
 
-	_ = c.render(w).Created(collection)
+	_ = c.render(w).Created(repo)
 }

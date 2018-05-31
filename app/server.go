@@ -8,6 +8,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/branch"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/ifreddyrondon/gocapture/jwt"
+	"github.com/ifreddyrondon/gocapture/repository"
 	"github.com/ifreddyrondon/gocapture/user"
 	"github.com/jinzhu/gorm"
 )
@@ -45,6 +46,13 @@ func New(db *gorm.DB) *bastion.Bastion {
 		JWT:      jwtService,
 	}
 	app.APIRouter.Mount("/auth/", authController.Router())
+
+	repoStore := repository.NewPGStore(db)
+	repoStore.Drop()
+	repoStore.Migrate()
+	repoService := repository.NewService(repoStore)
+	repoController := repository.NewController(repoService, json.NewRender)
+	app.APIRouter.Mount("/repository/", repoController.Router())
 
 	captureRepo := capture.NewPGRepository(db)
 	captureRepo.Drop()
