@@ -44,7 +44,6 @@ func (pgs *PGRepository) Drop() {
 
 // Save capture into the database.
 func (pgs *PGRepository) Save(capt *Capture) error {
-	capt.ID = kallax.NewULID()
 	return pgs.db.Create(capt).Error
 }
 

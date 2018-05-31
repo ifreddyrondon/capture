@@ -24,13 +24,13 @@ var (
 
 // Controller handler the capture's routes
 type Controller struct {
-	service Repository
+	service Service
 	render  render.Render
 	ctxKey  fmt.Stringer
 }
 
 // NewController returns a new Controller
-func NewController(service Repository, render render.Render, ctxKey fmt.Stringer) *Controller {
+func NewController(service Service, render render.Render, ctxKey fmt.Stringer) *Controller {
 	return &Controller{service: service, render: render, ctxKey: ctxKey}
 }
 

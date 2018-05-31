@@ -5,7 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-	"sync"
 	"testing"
 
 	"github.com/araddon/dateparse"
@@ -13,28 +12,13 @@ import (
 	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/database"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 )
 
-var once sync.Once
-var db *gorm.DB
-
-func getDB() *gorm.DB {
-	once.Do(func() {
-		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
-		db = ds.DB
-	})
-	return db
-}
-
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	repo := capture.NewPGRepository(getDB().Table("captures"))
-	repo.Migrate()
-	teardown := func() { repo.Drop() }
+	service, teardown := setupService(t)
 
-	controller := capture.NewController(repo, json.NewRender, app.ContextKey("capture"))
+	controller := capture.NewController(service, json.NewRender, app.ContextKey("capture"))
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/captures/", controller.Router())
 

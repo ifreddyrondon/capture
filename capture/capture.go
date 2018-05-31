@@ -71,3 +71,9 @@ func (c Capture) MarshalJSON() ([]byte, error) {
 	easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(&w, c)
 	return w.Buffer.BuildBytes(), w.Error
 }
+
+func (c *Capture) fillIfEmpty() {
+	if c.ID.IsEmpty() {
+		c.ID = kallax.NewULID()
+	}
+}
