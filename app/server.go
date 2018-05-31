@@ -61,9 +61,7 @@ func New(db *gorm.DB) *bastion.Bastion {
 	captureController := capture.NewController(captureService, json.NewRender, ContextKey("capture"))
 	app.APIRouter.Mount("/captures/", captureController.Router())
 
-	branchController := branch.Controller{
-		Render: json.NewRender,
-	}
+	branchController := branch.NewController(json.NewRender)
 	app.APIRouter.Mount("/branches/", branchController.Router())
 	return app
 }
