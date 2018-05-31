@@ -8,17 +8,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setupService(t *testing.T) (*user.REPOService, func()) {
-	repo, teardown := setupRepository(t)
-	return user.NewService(repo), teardown
+func setupService(t *testing.T) (*user.StoreService, func()) {
+	store, teardown := setupStore(t)
+	return user.NewService(store), teardown
 }
 
 func TestSaveUser(t *testing.T) {
 	t.Parallel()
 
-	repo := user.NewFakeRepositoryDefaultPanic()
-	repo.SaveHook = func(*user.User) error { return nil }
-	service := user.NewService(repo)
+	store := user.NewFakeStoreDefaultPanic()
+	store.SaveHook = func(*user.User) error { return nil }
+	service := user.NewService(store)
 
 	u := user.User{Email: "test@localhost.com"}
 	err := service.Save(&u)
@@ -44,9 +44,9 @@ func TestErrWhenSaveUserWithSameEmail(t *testing.T) {
 func TestErrSaveUser(t *testing.T) {
 	t.Parallel()
 
-	repo := user.NewFakeRepositoryDefaultPanic()
-	repo.SaveHook = func(*user.User) error { return errors.New("test") }
-	service := user.NewService(repo)
+	store := user.NewFakeStoreDefaultPanic()
+	store.SaveHook = func(*user.User) error { return errors.New("test") }
+	service := user.NewService(store)
 
 	u := user.User{Email: "test@localhost.com"}
 	err := service.Save(&u)

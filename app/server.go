@@ -24,17 +24,17 @@ func (c ContextKey) String() string {
 func New(db *gorm.DB) *bastion.Bastion {
 	app := bastion.New(bastion.Options{})
 
-	userRepo := user.NewPGRepository(db)
-	userRepo.Drop()
-	userRepo.Migrate()
-	userService := user.NewService(userRepo)
+	userStore := user.NewPGStore(db)
+	userStore.Drop()
+	userStore.Migrate()
+	userService := user.NewService(userStore)
 	userController := user.NewController(userService, json.NewRender)
 	app.APIRouter.Mount("/users/", userController.Router())
 
 	strategy := basic.Strategy{
 		Render:        json.NewRender,
 		UserKey:       ContextKey("user"),
-		GetterService: userRepo,
+		GetterService: userStore,
 	}
 
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)

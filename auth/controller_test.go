@@ -38,10 +38,10 @@ func getDB() *gorm.DB {
 }
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	userRepo := user.NewPGRepository(getDB().Table("auth-users"))
-	userRepo.Migrate()
-	teardown := func() { userRepo.Drop() }
-	userService := user.NewService(userRepo)
+	userStore := user.NewPGStore(getDB().Table("auth-users"))
+	userStore.Migrate()
+	teardown := func() { userStore.Drop() }
+	userService := user.NewService(userStore)
 
 	// save a user to test
 	u := user.User{Email: testUserEmail}

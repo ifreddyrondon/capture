@@ -11,7 +11,7 @@ type GetterService interface {
 }
 
 // Service is the interface to be implemented by user services
-// It's the layer between HTTP server and Repositories.
+// It's the layer between HTTP server and Stores.
 type Service interface {
 	// Save a collection.
 	Save(*User) error
@@ -19,20 +19,20 @@ type Service interface {
 	GetterService
 }
 
-// REPOService implementation of Service for repository
-type REPOService struct {
-	repository Repository
+// StoreService implementation of Service for user
+type StoreService struct {
+	store Store
 }
 
 // NewService creates a new user Service
-func NewService(repository Repository) *REPOService {
-	return &REPOService{repository: repository}
+func NewService(store Store) *StoreService {
+	return &StoreService{store: store}
 }
 
 // Save a capture
-func (s *REPOService) Save(user *User) error {
+func (s *StoreService) Save(user *User) error {
 	user.fillIfEmpty()
-	err := s.repository.Save(user)
+	err := s.store.Save(user)
 
 	if err != nil {
 		if postgres.IsUniqueConstraintError(err, uniqueConstraintEmail) {
@@ -44,6 +44,6 @@ func (s *REPOService) Save(user *User) error {
 }
 
 // Get a user by email
-func (s *REPOService) Get(email string) (*User, error) {
-	return s.repository.Get(email)
+func (s *StoreService) Get(email string) (*User, error) {
+	return s.store.Get(email)
 }
