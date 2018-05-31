@@ -3,7 +3,7 @@ package capture
 import kallax "gopkg.in/src-d/go-kallax.v1"
 
 // Service is the interface to be implemented by capture services
-// It's the layer between HTTP server and Repositories.
+// It's the layer between HTTP server and Stores.
 type Service interface {
 	// Save a capture.
 	Save(*Capture) error
@@ -19,43 +19,43 @@ type Service interface {
 	Update(original *Capture, updates Capture) error
 }
 
-// REPOService implementation of Service for repository
-type REPOService struct {
-	repository Repository
+// StoreService implementation of Service for capture
+type StoreService struct {
+	store Store
 }
 
 // NewService creates a new user Service
-func NewService(repository Repository) *REPOService {
-	return &REPOService{repository: repository}
+func NewService(store Store) *StoreService {
+	return &StoreService{store: store}
 }
 
 // Save a capture.
-func (s *REPOService) Save(capt *Capture) error {
+func (s *StoreService) Save(capt *Capture) error {
 	capt.fillIfEmpty()
-	return s.repository.Save(capt)
+	return s.store.Save(capt)
 }
 
 // SaveBulk captures.
-func (s *REPOService) SaveBulk(captures ...*Capture) (Captures, error) {
-	return s.repository.SaveBulk(captures...)
+func (s *StoreService) SaveBulk(captures ...*Capture) (Captures, error) {
+	return s.store.SaveBulk(captures...)
 }
 
 // List retrieve the count captures from start index.
-func (s *REPOService) List(start, count int) (Captures, error) {
-	return s.repository.List(start, count)
+func (s *StoreService) List(start, count int) (Captures, error) {
+	return s.store.List(start, count)
 }
 
 // Get a capture by id
-func (s *REPOService) Get(id kallax.ULID) (*Capture, error) {
-	return s.repository.Get(id)
+func (s *StoreService) Get(id kallax.ULID) (*Capture, error) {
+	return s.store.Get(id)
 }
 
 // Delete a capture by id
-func (s *REPOService) Delete(capt *Capture) error {
-	return s.repository.Delete(capt)
+func (s *StoreService) Delete(capt *Capture) error {
+	return s.store.Delete(capt)
 }
 
 // Update a capture
-func (s *REPOService) Update(original *Capture, updates Capture) error {
-	return s.repository.Update(original, updates)
+func (s *StoreService) Update(original *Capture, updates Capture) error {
+	return s.store.Update(original, updates)
 }

@@ -20,10 +20,10 @@ func getDB() *gorm.DB {
 	return db
 }
 
-func setupRepository(t *testing.T) (capture.Repository, func()) {
-	repo := capture.NewPGRepository(getDB().Table("captures"))
-	repo.Migrate()
-	teardown := func() { repo.Drop() }
+func setupStore(t *testing.T) (capture.Store, func()) {
+	store := capture.NewPGStore(getDB().Table("captures"))
+	store.Migrate()
+	teardown := func() { store.Drop() }
 
-	return repo, teardown
+	return store, teardown
 }

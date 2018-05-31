@@ -5,9 +5,9 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-// Repository is the interface to be implemented by capture services.
-// It make CRUD operations over a repository.
-type Repository interface {
+// Store is the interface to be implemented by any kind of store
+// It make CRUD operations over a store.
+type Store interface {
 	// Save capture into the database.
 	Save(*Capture) error
 	// SaveBulk captures into the database.
@@ -22,33 +22,33 @@ type Repository interface {
 	Update(original *Capture, updates Capture) error
 }
 
-// PGRepository implementation of capture.Repository for Postgres database.
-type PGRepository struct {
+// PGStore implementation of capture.Store for Postgres database.
+type PGStore struct {
 	db *gorm.DB
 }
 
-// NewPGRepository creates a PGRepository
-func NewPGRepository(db *gorm.DB) *PGRepository {
-	return &PGRepository{db: db}
+// NewPGStore creates a PGStore
+func NewPGStore(db *gorm.DB) *PGStore {
+	return &PGStore{db: db}
 }
 
 // Migrate (panic) runs schema migration.
-func (pgs *PGRepository) Migrate() {
+func (pgs *PGStore) Migrate() {
 	pgs.db.AutoMigrate(Capture{})
 }
 
 // Drop (panic) delete schema.
-func (pgs *PGRepository) Drop() {
+func (pgs *PGStore) Drop() {
 	pgs.db.DropTableIfExists(Capture{})
 }
 
 // Save capture into the database.
-func (pgs *PGRepository) Save(capt *Capture) error {
+func (pgs *PGStore) Save(capt *Capture) error {
 	return pgs.db.Create(capt).Error
 }
 
 // SaveBulk captures into the database.
-func (pgs *PGRepository) SaveBulk(captures ...*Capture) (Captures, error) {
+func (pgs *PGStore) SaveBulk(captures ...*Capture) (Captures, error) {
 	// TODO: bash create
 	for _, c := range captures {
 		if err := pgs.db.Create(c).Error; err != nil {
@@ -59,7 +59,7 @@ func (pgs *PGRepository) SaveBulk(captures ...*Capture) (Captures, error) {
 }
 
 // List retrieve the count captures from start index.
-func (pgs *PGRepository) List(start, count int) (Captures, error) {
+func (pgs *PGStore) List(start, count int) (Captures, error) {
 	results := Captures{}
 	if err := pgs.db.Order("updated_at").Offset(start).Limit(count).Find(&results).Error; err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (pgs *PGRepository) List(start, count int) (Captures, error) {
 }
 
 // Get a capture by id
-func (pgs *PGRepository) Get(id kallax.ULID) (*Capture, error) {
+func (pgs *PGStore) Get(id kallax.ULID) (*Capture, error) {
 	var result Capture
 	if pgs.db.Where(&Capture{ID: id}).First(&result).RecordNotFound() {
 		return nil, ErrorNotFound
@@ -77,11 +77,11 @@ func (pgs *PGRepository) Get(id kallax.ULID) (*Capture, error) {
 }
 
 // Delete a capture by id
-func (pgs *PGRepository) Delete(capt *Capture) error {
+func (pgs *PGStore) Delete(capt *Capture) error {
 	return pgs.db.Delete(capt).Error
 }
 
 // Update a capture
-func (pgs *PGRepository) Update(original *Capture, updates Capture) error {
+func (pgs *PGStore) Update(original *Capture, updates Capture) error {
 	return pgs.db.Model(original).Updates(updates).Error
 }

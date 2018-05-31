@@ -6,7 +6,7 @@ import (
 	"github.com/ifreddyrondon/gocapture/capture"
 )
 
-func setupService(t *testing.T) (*capture.REPOService, func()) {
-	repo, teardown := setupRepository(t)
-	return capture.NewService(repo), teardown
+func setupService(t *testing.T) (*capture.StoreService, func()) {
+	store, teardown := setupStore(t)
+	return capture.NewService(store), teardown
 }

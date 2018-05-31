@@ -54,10 +54,10 @@ func New(db *gorm.DB) *bastion.Bastion {
 	repoController := repository.NewController(repoService, json.NewRender)
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
-	captureRepo := capture.NewPGRepository(db)
-	captureRepo.Drop()
-	captureRepo.Migrate()
-	captureService := capture.NewService(captureRepo)
+	captureStore := capture.NewPGStore(db)
+	captureStore.Drop()
+	captureStore.Migrate()
+	captureService := capture.NewService(captureStore)
 	captureController := capture.NewController(captureService, json.NewRender, ContextKey("capture"))
 	app.APIRouter.Mount("/captures/", captureController.Router())
 
