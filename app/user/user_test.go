@@ -36,11 +36,11 @@ func TestUnmarshalValidUser(t *testing.T) {
 	t.Parallel()
 
 	expected := user.User{
-		Email: "ifreddyrondon@gmail.com",
+		Email: "ifreddyrondon@example.com",
 	}
 
 	result := user.User{}
-	err := result.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com"}`))
+	err := result.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@example.com"}`))
 	require.Nil(t, err)
 	assert.Equal(t, expected.Email, result.Email)
 }
@@ -48,9 +48,9 @@ func TestUnmarshalValidUser(t *testing.T) {
 func TestUnmarshalUserWithPassword(t *testing.T) {
 	t.Parallel()
 	u := user.User{}
-	err := u.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com", "password": "b4KeHAYy3u9v=ZQX"}`))
+	err := u.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@example.com", "password": "b4KeHAYy3u9v=ZQX"}`))
 	require.Nil(t, err)
-	assert.Equal(t, "ifreddyrondon@gmail.com", u.Email)
+	assert.Equal(t, "ifreddyrondon@example.com", u.Email)
 	assert.True(t, u.CheckPassword("b4KeHAYy3u9v=ZQX"))
 	assert.False(t, u.CheckPassword("1"))
 }
@@ -96,9 +96,9 @@ func TestMarshalUser(t *testing.T) {
 	t.Parallel()
 	d, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
 
-	expected := []byte(`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","email":"test@test.com","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z"}`)
+	expected := []byte(`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","email":"test@example.com","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z"}`)
 	user := user.User{
-		Email: "test@test.com",
+		Email: "test@example.com",
 		ID: func() kallax.ULID {
 			id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
 			return id

@@ -20,7 +20,7 @@ func TestSaveUser(t *testing.T) {
 	store.SaveHook = func(*user.User) error { return nil }
 	service := user.NewService(store)
 
-	u := user.User{Email: "test@localhost.com"}
+	u := user.User{Email: "test@example.com"}
 	err := service.Save(&u)
 	assert.Nil(t, err)
 	assert.NotNil(t, u.ID)
@@ -32,13 +32,13 @@ func TestErrWhenSaveUserWithSameEmail(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	u := user.User{Email: "test@localhost.com"}
+	u := user.User{Email: "test@example.com"}
 	service.Save(&u)
 
-	u2 := user.User{Email: "test@localhost.com"}
+	u2 := user.User{Email: "test@example.com"}
 	err := service.Save(&u2)
 	assert.Error(t, err)
-	assert.Equal(t, "email 'test@localhost.com' already exists", err.Error())
+	assert.Equal(t, "email 'test@example.com' already exists", err.Error())
 }
 
 func TestErrSaveUser(t *testing.T) {
@@ -48,7 +48,7 @@ func TestErrSaveUser(t *testing.T) {
 	store.SaveHook = func(*user.User) error { return errors.New("test") }
 	service := user.NewService(store)
 
-	u := user.User{Email: "test@localhost.com"}
+	u := user.User{Email: "test@example.com"}
 	err := service.Save(&u)
 	assert.EqualError(t, err, "test")
 }
@@ -57,10 +57,10 @@ func TestGetUser(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	u := user.User{Email: "test@localhost.com"}
+	u := user.User{Email: "test@example.com"}
 	service.Save(&u)
 
-	tempUser, err := service.GetByEmail("test@localhost.com")
+	tempUser, err := service.GetByEmail("test@example.com")
 	assert.Nil(t, err)
 	assert.Equal(t, u.ID, tempUser.ID)
 }
@@ -69,7 +69,7 @@ func TestGetMissingUser(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	_, err := service.GetByEmail("test@localhost.com")
+	_, err := service.GetByEmail("test@example.com")
 	assert.Error(t, err)
 	assert.Equal(t, user.ErrNotFound, err)
 }

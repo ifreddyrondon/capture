@@ -33,16 +33,16 @@ func TestCreateValidUser(t *testing.T) {
 	}{
 		{
 			name:     "create user with only email",
-			payload:  map[string]interface{}{"email": "test@localhost.com"},
-			response: map[string]interface{}{"email": "test@localhost.com"},
+			payload:  map[string]interface{}{"email": "test@example.com"},
+			response: map[string]interface{}{"email": "test@example.com"},
 		},
 		{
 			name: "create user",
 			payload: map[string]interface{}{
-				"email":    "test2@localhost.com",
+				"email":    "test2@example.com",
 				"password": "b4KeHAYy3u9v=ZQX",
 			},
-			response: map[string]interface{}{"email": "test2@localhost.com"},
+			response: map[string]interface{}{"email": "test2@example.com"},
 		},
 	}
 
@@ -74,7 +74,7 @@ func TestCreateINValidUser(t *testing.T) {
 	}{
 		{
 			name:    "invalid email",
-			payload: map[string]interface{}{"email": "test@localhost"},
+			payload: map[string]interface{}{"email": "test@asd"},
 			response: map[string]interface{}{
 				"status":  400.0,
 				"error":   "Bad Request",
@@ -116,11 +116,11 @@ func TestConflictEmail(t *testing.T) {
 	app, teardown := setupController(t)
 	defer teardown()
 
-	payload := map[string]interface{}{"email": "test@localhost.com"}
+	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{
 		"status":  409.0,
 		"error":   "Conflict",
-		"message": "email 'test@localhost.com' already exists",
+		"message": "email 'test@example.com' already exists",
 	}
 
 	e := bastion.Tester(t, app)
@@ -141,7 +141,7 @@ func TestCreateFailSave(t *testing.T) {
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/users/", controller.Router())
 
-	payload := map[string]interface{}{"email": "test@localhost.com"}
+	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{
 		"status":  500.0,
 		"error":   "Internal Server Error",

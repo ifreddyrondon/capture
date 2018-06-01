@@ -24,7 +24,7 @@ var (
 )
 
 const (
-	testUserEmail    = "test@test.com"
+	testUserEmail    = "test@example.com"
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
 

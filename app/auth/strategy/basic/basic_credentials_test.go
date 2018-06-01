@@ -13,12 +13,12 @@ func TestAuthenticationPayloadValidUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 
 	expected := basic.Crendentials{
-		Email:    "ifreddyrondon@gmail.com",
+		Email:    "ifreddyrondon@example.com",
 		Password: "b4KeHAYy3u9v=ZQX",
 	}
 
 	var model basic.Crendentials
-	err := model.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@gmail.com", "password": "b4KeHAYy3u9v=ZQX"}`))
+	err := model.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@example.com", "password": "b4KeHAYy3u9v=ZQX"}`))
 	require.Nil(t, err)
 	assert.Equal(t, expected.Email, model.Email)
 	assert.Equal(t, expected.Password, model.Password)
@@ -49,7 +49,7 @@ func TestAuthenticationPayloadInvalidUnmarshalJSON(t *testing.T) {
 		},
 		{
 			"empty password",
-			[]byte(`{"email":"abc@abc.com"}`),
+			[]byte(`{"email":"abc@example.com"}`),
 			[]string{"password must not be blank"},
 		},
 		{

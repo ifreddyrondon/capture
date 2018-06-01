@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	testUserEmail    = "test@test.com"
+	testUserEmail    = "test@example.com"
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
 
@@ -95,7 +95,7 @@ func TestTokenAuthFailure(t *testing.T) {
 		},
 		{
 			name:    "missing email",
-			payload: map[string]interface{}{"email": "bla@localhost.com", "password": "123"},
+			payload: map[string]interface{}{"email": "bla@example.com", "password": "123"},
 			response: map[string]interface{}{
 				"status":  401.0,
 				"error":   "Unauthorized",
