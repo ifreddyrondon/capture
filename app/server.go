@@ -13,13 +13,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// ContextKey represent a key in a context.ContextValue
-type ContextKey string
-
-func (c ContextKey) String() string {
-	return string(c)
-}
-
 // New returns a bastion ready instance with all the app config
 func New(db *gorm.DB) *bastion.Bastion {
 	app := bastion.New(bastion.Options{})
@@ -47,7 +40,7 @@ func New(db *gorm.DB) *bastion.Bastion {
 	captureStore.Drop()
 	captureStore.Migrate()
 	captureService := capture.NewService(captureStore)
-	captureController := capture.NewController(captureService, json.NewRender, ContextKey("capture"))
+	captureController := capture.NewController(captureService, json.NewRender)
 	app.APIRouter.Mount("/captures/", captureController.Router())
 
 	branchController := branch.NewController(json.NewRender)

@@ -10,7 +10,6 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
-	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/capture"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +17,7 @@ import (
 func setup(t *testing.T) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
 
-	controller := capture.NewController(service, json.NewRender, app.ContextKey("capture"))
+	controller := capture.NewController(service, json.NewRender)
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/captures/", controller.Router())
 

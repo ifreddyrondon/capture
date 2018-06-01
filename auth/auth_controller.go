@@ -46,8 +46,7 @@ func (c *Controller) Router() http.Handler {
 }
 
 func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	u := c.ctxManager.Get(ctx)
+	u := c.ctxManager.Get(r.Context())
 	if u == nil {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		_ = c.render(w).InternalServerError(err)

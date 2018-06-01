@@ -1,10 +1,8 @@
 package capture
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -24,14 +22,18 @@ var (
 
 // Controller handler the capture's routes
 type Controller struct {
-	service Service
-	render  render.Render
-	ctxKey  fmt.Stringer
+	service    Service
+	render     render.Render
+	ctxManager *contextManager
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render, ctxKey fmt.Stringer) *Controller {
-	return &Controller{service: service, render: render, ctxKey: ctxKey}
+func NewController(service Service, render render.Render) *Controller {
+	return &Controller{
+		service:    service,
+		render:     render,
+		ctxManager: &contextManager{},
+	}
 }
 
 // Router creates a REST router for the capture resource
@@ -103,15 +105,14 @@ func (c *Controller) captureCtx(next http.Handler) http.Handler {
 			_ = c.render(w).InternalServerError(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), c.ctxKey, capt)
+		ctx := c.ctxManager.WithCapture(r.Context(), capt)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	capt, ok := ctx.Value(c.ctxKey).(*Capture)
-	if !ok {
+	capt := c.ctxManager.Get(r.Context())
+	if capt == nil {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		_ = c.render(w).InternalServerError(err)
 		return
@@ -120,9 +121,8 @@ func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	capt, ok := ctx.Value(c.ctxKey).(*Capture)
-	if !ok {
+	capt := c.ctxManager.Get(r.Context())
+	if capt == nil {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		_ = c.render(w).InternalServerError(err)
 		return
@@ -135,9 +135,8 @@ func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) update(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	capt, ok := ctx.Value(c.ctxKey).(*Capture)
-	if !ok {
+	capt := c.ctxManager.Get(r.Context())
+	if capt == nil {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		_ = c.render(w).InternalServerError(err)
 		return
