@@ -1,10 +1,8 @@
 package basic
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion/render"
@@ -19,14 +17,14 @@ var (
 
 // Strategy is a basic authentication method that uses email and password to authenticate
 type Strategy struct {
-	render  render.Render
-	service user.GetterService
-	userKey fmt.Stringer
+	render     render.Render
+	service    user.GetterService
+	ctxManager *user.ContextManager
 }
 
 // NewStrategy returns a new instance of Strategy
-func NewStrategy(render render.Render, service user.GetterService, userKey fmt.Stringer) *Strategy {
-	return &Strategy{render: render, service: service, userKey: userKey}
+func NewStrategy(render render.Render, service user.GetterService) *Strategy {
+	return &Strategy{render: render, service: service, ctxManager: user.NewContextManager()}
 }
 
 // Authenticate for basic (username/password) authentication.
@@ -53,7 +51,7 @@ func (s *Strategy) Authenticate(next http.Handler) http.Handler {
 			_ = s.render(w).InternalServerError(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), s.userKey, u)
+		ctx := s.ctxManager.WithUser(r.Context(), u)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

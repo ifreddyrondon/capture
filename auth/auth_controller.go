@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/ifreddyrondon/gocapture/jwt"
@@ -19,19 +18,19 @@ type tokenJSON struct {
 
 // Controller handler the auth routes
 type Controller struct {
-	strategy Strategy
-	userKey  fmt.Stringer
-	render   render.Render
-	service  *jwt.Service
+	strategy   Strategy
+	render     render.Render
+	service    *jwt.Service
+	ctxManager *user.ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(strategy Strategy, service *jwt.Service, render render.Render, userKey fmt.Stringer) *Controller {
+func NewController(strategy Strategy, service *jwt.Service, render render.Render) *Controller {
 	return &Controller{
-		strategy: strategy,
-		service:  service,
-		render:   render,
-		userKey:  userKey,
+		strategy:   strategy,
+		service:    service,
+		render:     render,
+		ctxManager: user.NewContextManager(),
 	}
 }
 
@@ -48,8 +47,8 @@ func (c *Controller) Router() http.Handler {
 
 func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	u, ok := ctx.Value(c.userKey).(*user.User)
-	if !ok {
+	u := c.ctxManager.Get(ctx)
+	if u == nil {
 		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
 		_ = c.render(w).InternalServerError(err)
 		return

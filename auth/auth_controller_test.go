@@ -7,7 +7,6 @@ import (
 
 	"github.com/ifreddyrondon/gocapture/jwt"
 
-	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/auth"
 	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
 	"github.com/ifreddyrondon/gocapture/database"
@@ -48,9 +47,9 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	err := u.SetPassword(testUserPassword)
 	require.Nil(t, err)
 	userService.Save(&u)
-	strategy := basic.NewStrategy(json.NewRender, userService, app.ContextKey("user"))
+	strategy := basic.NewStrategy(json.NewRender, userService)
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
-	controller := auth.NewController(strategy, jwtService, json.NewRender, app.ContextKey("user"))
+	controller := auth.NewController(strategy, jwtService, json.NewRender)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/auth/", controller.Router())

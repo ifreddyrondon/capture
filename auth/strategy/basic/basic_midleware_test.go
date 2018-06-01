@@ -11,7 +11,6 @@ import (
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
 
-	"github.com/ifreddyrondon/gocapture/app"
 	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
 	"github.com/ifreddyrondon/gocapture/database"
 	"github.com/ifreddyrondon/gocapture/user"
@@ -53,7 +52,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	require.Nil(t, err)
 	userService.Save(&u)
 
-	service := basic.NewStrategy(json.NewRender, userService, app.ContextKey("user"))
+	service := basic.NewStrategy(json.NewRender, userService)
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Route("/", func(r chi.Router) {
 		r.Use(service.Authenticate)
