@@ -4,13 +4,13 @@ import (
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
 
-	"github.com/ifreddyrondon/capture/auth"
-	"github.com/ifreddyrondon/capture/auth/strategy/basic"
-	"github.com/ifreddyrondon/capture/branch"
-	"github.com/ifreddyrondon/capture/capture"
-	"github.com/ifreddyrondon/capture/jwt"
-	"github.com/ifreddyrondon/capture/repository"
-	"github.com/ifreddyrondon/capture/user"
+	"github.com/ifreddyrondon/capture/app/auth"
+	"github.com/ifreddyrondon/capture/app/auth/strategy/basic"
+	"github.com/ifreddyrondon/capture/app/branch"
+	"github.com/ifreddyrondon/capture/app/capture"
+	"github.com/ifreddyrondon/capture/app/jwt"
+	"github.com/ifreddyrondon/capture/app/repository"
+	"github.com/ifreddyrondon/capture/app/user"
 
 	"github.com/jinzhu/gorm"
 )
