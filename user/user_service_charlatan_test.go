@@ -4,8 +4,8 @@ package user
 
 import "reflect"
 
-// ServiceGetInvocation represents a single call of FakeService.Get
-type ServiceGetInvocation struct {
+// ServiceGetByEmailInvocation represents a single call of FakeService.GetByEmail
+type ServiceGetByEmailInvocation struct {
 	Parameters struct {
 		Ident1 string
 	}
@@ -15,9 +15,9 @@ type ServiceGetInvocation struct {
 	}
 }
 
-// NewServiceGetInvocation creates a new instance of ServiceGetInvocation
-func NewServiceGetInvocation(ident1 string, ident2 *User, ident3 error) *ServiceGetInvocation {
-	invocation := new(ServiceGetInvocation)
+// NewServiceGetByEmailInvocation creates a new instance of ServiceGetByEmailInvocation
+func NewServiceGetByEmailInvocation(ident1 string, ident2 *User, ident3 error) *ServiceGetByEmailInvocation {
+	invocation := new(ServiceGetByEmailInvocation)
 
 	invocation.Parameters.Ident1 = ident1
 
@@ -64,7 +64,7 @@ Use it in your tests as in this example:
 
 	func TestWithService(t *testing.T) {
 		f := &user.FakeService{
-			GetHook: func(ident1 string) (ident2 *User, ident3 error) {
+			GetByEmailHook: func(ident1 string) (ident2 *User, ident3 error) {
 				// ensure parameters meet expections, signal errors using t, etc
 				return
 			},
@@ -72,27 +72,27 @@ Use it in your tests as in this example:
 
 		// test code goes here ...
 
-		// assert state of FakeGet ...
-		f.AssertGetCalledOnce(t)
+		// assert state of FakeGetByEmail ...
+		f.AssertGetByEmailCalledOnce(t)
 	}
 
 Create anonymous function implementations for only those interface methods that
 should be called in the code under test.  This will force a panic if any
-unexpected calls are made to FakeGet.
+unexpected calls are made to FakeGetByEmail.
 */
 type FakeService struct {
-	GetHook  func(string) (*User, error)
-	SaveHook func(*User) error
+	GetByEmailHook func(string) (*User, error)
+	SaveHook       func(*User) error
 
-	GetCalls  []*ServiceGetInvocation
-	SaveCalls []*ServiceSaveInvocation
+	GetByEmailCalls []*ServiceGetByEmailInvocation
+	SaveCalls       []*ServiceSaveInvocation
 }
 
 // NewFakeServiceDefaultPanic returns an instance of FakeService with all hooks configured to panic
 func NewFakeServiceDefaultPanic() *FakeService {
 	return &FakeService{
-		GetHook: func(string) (ident2 *User, ident3 error) {
-			panic("Unexpected call to Service.Get")
+		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
+			panic("Unexpected call to Service.GetByEmail")
 		},
 		SaveHook: func(*User) (ident2 error) {
 			panic("Unexpected call to Service.Save")
@@ -103,8 +103,8 @@ func NewFakeServiceDefaultPanic() *FakeService {
 // NewFakeServiceDefaultFatal returns an instance of FakeService with all hooks configured to call t.Fatal
 func NewFakeServiceDefaultFatal(t_sym1 ServiceTestingT) *FakeService {
 	return &FakeService{
-		GetHook: func(string) (ident2 *User, ident3 error) {
-			t_sym1.Fatal("Unexpected call to Service.Get")
+		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
+			t_sym1.Fatal("Unexpected call to Service.GetByEmail")
 			return
 		},
 		SaveHook: func(*User) (ident2 error) {
@@ -117,8 +117,8 @@ func NewFakeServiceDefaultFatal(t_sym1 ServiceTestingT) *FakeService {
 // NewFakeServiceDefaultError returns an instance of FakeService with all hooks configured to call t.Error
 func NewFakeServiceDefaultError(t_sym2 ServiceTestingT) *FakeService {
 	return &FakeService{
-		GetHook: func(string) (ident2 *User, ident3 error) {
-			t_sym2.Error("Unexpected call to Service.Get")
+		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
+			t_sym2.Error("Unexpected call to Service.GetByEmail")
 			return
 		},
 		SaveHook: func(*User) (ident2 error) {
@@ -129,21 +129,21 @@ func NewFakeServiceDefaultError(t_sym2 ServiceTestingT) *FakeService {
 }
 
 func (f *FakeService) Reset() {
-	f.GetCalls = []*ServiceGetInvocation{}
+	f.GetByEmailCalls = []*ServiceGetByEmailInvocation{}
 	f.SaveCalls = []*ServiceSaveInvocation{}
 }
 
-func (f_sym3 *FakeService) Get(ident1 string) (ident2 *User, ident3 error) {
-	if f_sym3.GetHook == nil {
-		panic("Service.Get() called but FakeService.GetHook is nil")
+func (f_sym3 *FakeService) GetByEmail(ident1 string) (ident2 *User, ident3 error) {
+	if f_sym3.GetByEmailHook == nil {
+		panic("Service.GetByEmail() called but FakeService.GetByEmailHook is nil")
 	}
 
-	invocation_sym3 := new(ServiceGetInvocation)
-	f_sym3.GetCalls = append(f_sym3.GetCalls, invocation_sym3)
+	invocation_sym3 := new(ServiceGetByEmailInvocation)
+	f_sym3.GetByEmailCalls = append(f_sym3.GetByEmailCalls, invocation_sym3)
 
 	invocation_sym3.Parameters.Ident1 = ident1
 
-	ident2, ident3 = f_sym3.GetHook(ident1)
+	ident2, ident3 = f_sym3.GetByEmailHook(ident1)
 
 	invocation_sym3.Results.Ident2 = ident2
 	invocation_sym3.Results.Ident3 = ident3
@@ -151,17 +151,17 @@ func (f_sym3 *FakeService) Get(ident1 string) (ident2 *User, ident3 error) {
 	return
 }
 
-// SetGetStub configures Service.Get to always return the given values
-func (f_sym4 *FakeService) SetGetStub(ident2 *User, ident3 error) {
-	f_sym4.GetHook = func(string) (*User, error) {
+// SetGetByEmailStub configures Service.GetByEmail to always return the given values
+func (f_sym4 *FakeService) SetGetByEmailStub(ident2 *User, ident3 error) {
+	f_sym4.GetByEmailHook = func(string) (*User, error) {
 		return ident2, ident3
 	}
 }
 
-// SetGetInvocation configures Service.Get to return the given results when called with the given parameters
+// SetGetByEmailInvocation configures Service.GetByEmail to return the given results when called with the given parameters
 // If no match is found for an invocation the result(s) of the fallback function are returned
-func (f_sym5 *FakeService) SetGetInvocation(calls_sym5 []*ServiceGetInvocation, fallback_sym5 func() (*User, error)) {
-	f_sym5.GetHook = func(ident1 string) (ident2 *User, ident3 error) {
+func (f_sym5 *FakeService) SetGetByEmailInvocation(calls_sym5 []*ServiceGetByEmailInvocation, fallback_sym5 func() (*User, error)) {
+	f_sym5.GetByEmailHook = func(ident1 string) (ident2 *User, ident3 error) {
 		for _, call_sym5 := range calls_sym5 {
 			if reflect.DeepEqual(call_sym5.Parameters.Ident1, ident1) {
 				ident2 = call_sym5.Results.Ident2
@@ -175,61 +175,61 @@ func (f_sym5 *FakeService) SetGetInvocation(calls_sym5 []*ServiceGetInvocation, 
 	}
 }
 
-// GetCalled returns true if FakeService.Get was called
-func (f *FakeService) GetCalled() bool {
-	return len(f.GetCalls) != 0
+// GetByEmailCalled returns true if FakeService.GetByEmail was called
+func (f *FakeService) GetByEmailCalled() bool {
+	return len(f.GetByEmailCalls) != 0
 }
 
-// AssertGetCalled calls t.Error if FakeService.Get was not called
-func (f *FakeService) AssertGetCalled(t ServiceTestingT) {
+// AssertGetByEmailCalled calls t.Error if FakeService.GetByEmail was not called
+func (f *FakeService) AssertGetByEmailCalled(t ServiceTestingT) {
 	t.Helper()
-	if len(f.GetCalls) == 0 {
-		t.Error("FakeService.Get not called, expected at least one")
+	if len(f.GetByEmailCalls) == 0 {
+		t.Error("FakeService.GetByEmail not called, expected at least one")
 	}
 }
 
-// GetNotCalled returns true if FakeService.Get was not called
-func (f *FakeService) GetNotCalled() bool {
-	return len(f.GetCalls) == 0
+// GetByEmailNotCalled returns true if FakeService.GetByEmail was not called
+func (f *FakeService) GetByEmailNotCalled() bool {
+	return len(f.GetByEmailCalls) == 0
 }
 
-// AssertGetNotCalled calls t.Error if FakeService.Get was called
-func (f *FakeService) AssertGetNotCalled(t ServiceTestingT) {
+// AssertGetByEmailNotCalled calls t.Error if FakeService.GetByEmail was called
+func (f *FakeService) AssertGetByEmailNotCalled(t ServiceTestingT) {
 	t.Helper()
-	if len(f.GetCalls) != 0 {
-		t.Error("FakeService.Get called, expected none")
+	if len(f.GetByEmailCalls) != 0 {
+		t.Error("FakeService.GetByEmail called, expected none")
 	}
 }
 
-// GetCalledOnce returns true if FakeService.Get was called exactly once
-func (f *FakeService) GetCalledOnce() bool {
-	return len(f.GetCalls) == 1
+// GetByEmailCalledOnce returns true if FakeService.GetByEmail was called exactly once
+func (f *FakeService) GetByEmailCalledOnce() bool {
+	return len(f.GetByEmailCalls) == 1
 }
 
-// AssertGetCalledOnce calls t.Error if FakeService.Get was not called exactly once
-func (f *FakeService) AssertGetCalledOnce(t ServiceTestingT) {
+// AssertGetByEmailCalledOnce calls t.Error if FakeService.GetByEmail was not called exactly once
+func (f *FakeService) AssertGetByEmailCalledOnce(t ServiceTestingT) {
 	t.Helper()
-	if len(f.GetCalls) != 1 {
-		t.Errorf("FakeService.Get called %d times, expected 1", len(f.GetCalls))
+	if len(f.GetByEmailCalls) != 1 {
+		t.Errorf("FakeService.GetByEmail called %d times, expected 1", len(f.GetByEmailCalls))
 	}
 }
 
-// GetCalledN returns true if FakeService.Get was called at least n times
-func (f *FakeService) GetCalledN(n int) bool {
-	return len(f.GetCalls) >= n
+// GetByEmailCalledN returns true if FakeService.GetByEmail was called at least n times
+func (f *FakeService) GetByEmailCalledN(n int) bool {
+	return len(f.GetByEmailCalls) >= n
 }
 
-// AssertGetCalledN calls t.Error if FakeService.Get was called less than n times
-func (f *FakeService) AssertGetCalledN(t ServiceTestingT, n int) {
+// AssertGetByEmailCalledN calls t.Error if FakeService.GetByEmail was called less than n times
+func (f *FakeService) AssertGetByEmailCalledN(t ServiceTestingT, n int) {
 	t.Helper()
-	if len(f.GetCalls) < n {
-		t.Errorf("FakeService.Get called %d times, expected >= %d", len(f.GetCalls), n)
+	if len(f.GetByEmailCalls) < n {
+		t.Errorf("FakeService.GetByEmail called %d times, expected >= %d", len(f.GetByEmailCalls), n)
 	}
 }
 
-// GetCalledWith returns true if FakeService.Get was called with the given values
-func (f_sym6 *FakeService) GetCalledWith(ident1 string) bool {
-	for _, call_sym6 := range f_sym6.GetCalls {
+// GetByEmailCalledWith returns true if FakeService.GetByEmail was called with the given values
+func (f_sym6 *FakeService) GetByEmailCalledWith(ident1 string) bool {
+	for _, call_sym6 := range f_sym6.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym6.Parameters.Ident1, ident1) {
 			return true
 		}
@@ -238,11 +238,11 @@ func (f_sym6 *FakeService) GetCalledWith(ident1 string) bool {
 	return false
 }
 
-// AssertGetCalledWith calls t.Error if FakeService.Get was not called with the given values
-func (f_sym7 *FakeService) AssertGetCalledWith(t ServiceTestingT, ident1 string) {
+// AssertGetByEmailCalledWith calls t.Error if FakeService.GetByEmail was not called with the given values
+func (f_sym7 *FakeService) AssertGetByEmailCalledWith(t ServiceTestingT, ident1 string) {
 	t.Helper()
 	var found_sym7 bool
-	for _, call_sym7 := range f_sym7.GetCalls {
+	for _, call_sym7 := range f_sym7.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym7.Parameters.Ident1, ident1) {
 			found_sym7 = true
 			break
@@ -250,14 +250,14 @@ func (f_sym7 *FakeService) AssertGetCalledWith(t ServiceTestingT, ident1 string)
 	}
 
 	if !found_sym7 {
-		t.Error("FakeService.Get not called with expected parameters")
+		t.Error("FakeService.GetByEmail not called with expected parameters")
 	}
 }
 
-// GetCalledOnceWith returns true if FakeService.Get was called exactly once with the given values
-func (f_sym8 *FakeService) GetCalledOnceWith(ident1 string) bool {
+// GetByEmailCalledOnceWith returns true if FakeService.GetByEmail was called exactly once with the given values
+func (f_sym8 *FakeService) GetByEmailCalledOnceWith(ident1 string) bool {
 	var count_sym8 int
-	for _, call_sym8 := range f_sym8.GetCalls {
+	for _, call_sym8 := range f_sym8.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym8.Parameters.Ident1, ident1) {
 			count_sym8++
 		}
@@ -266,24 +266,24 @@ func (f_sym8 *FakeService) GetCalledOnceWith(ident1 string) bool {
 	return count_sym8 == 1
 }
 
-// AssertGetCalledOnceWith calls t.Error if FakeService.Get was not called exactly once with the given values
-func (f_sym9 *FakeService) AssertGetCalledOnceWith(t ServiceTestingT, ident1 string) {
+// AssertGetByEmailCalledOnceWith calls t.Error if FakeService.GetByEmail was not called exactly once with the given values
+func (f_sym9 *FakeService) AssertGetByEmailCalledOnceWith(t ServiceTestingT, ident1 string) {
 	t.Helper()
 	var count_sym9 int
-	for _, call_sym9 := range f_sym9.GetCalls {
+	for _, call_sym9 := range f_sym9.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym9.Parameters.Ident1, ident1) {
 			count_sym9++
 		}
 	}
 
 	if count_sym9 != 1 {
-		t.Errorf("FakeService.Get called %d times with expected parameters, expected one", count_sym9)
+		t.Errorf("FakeService.GetByEmail called %d times with expected parameters, expected one", count_sym9)
 	}
 }
 
-// GetResultsForCall returns the result values for the first call to FakeService.Get with the given values
-func (f_sym10 *FakeService) GetResultsForCall(ident1 string) (ident2 *User, ident3 error, found_sym10 bool) {
-	for _, call_sym10 := range f_sym10.GetCalls {
+// GetByEmailResultsForCall returns the result values for the first call to FakeService.GetByEmail with the given values
+func (f_sym10 *FakeService) GetByEmailResultsForCall(ident1 string) (ident2 *User, ident3 error, found_sym10 bool) {
+	for _, call_sym10 := range f_sym10.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym10.Parameters.Ident1, ident1) {
 			ident2 = call_sym10.Results.Ident2
 			ident3 = call_sym10.Results.Ident3

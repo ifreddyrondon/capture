@@ -7,7 +7,7 @@ const uniqueConstraintEmail = "uix_users_email"
 // GetterService get users
 type GetterService interface {
 	// Get a user by email
-	Get(string) (*User, error)
+	GetByEmail(string) (*User, error)
 }
 
 // Service is the interface to be implemented by user services
@@ -43,7 +43,11 @@ func (s *StoreService) Save(user *User) error {
 	return nil
 }
 
-// Get a user by email
-func (s *StoreService) Get(email string) (*User, error) {
+// GetByEmail will look for a user with the same email address, or return
+// user.ErrNotFound if no user is found. Any other errors raised by the sql
+// package are passed through.
+//
+// ByEmail is NOT case sensitive.
+func (s *StoreService) GetByEmail(email string) (*User, error) {
 	return s.store.Get(email)
 }

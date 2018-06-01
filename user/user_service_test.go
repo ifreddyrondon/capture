@@ -60,7 +60,7 @@ func TestGetUser(t *testing.T) {
 	u := user.User{Email: "test@localhost.com"}
 	service.Save(&u)
 
-	tempUser, err := service.Get("test@localhost.com")
+	tempUser, err := service.GetByEmail("test@localhost.com")
 	assert.Nil(t, err)
 	assert.Equal(t, u.ID, tempUser.ID)
 }
@@ -69,7 +69,7 @@ func TestGetMissingUser(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	_, err := service.Get("test@localhost.com")
+	_, err := service.GetByEmail("test@localhost.com")
 	assert.Error(t, err)
 	assert.Equal(t, user.ErrNotFound, err)
 }

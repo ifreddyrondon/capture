@@ -59,7 +59,7 @@ func (s *Strategy) Authenticate(next http.Handler) http.Handler {
 }
 
 func (s *Strategy) validate(cre *Crendentials) (*user.User, error) {
-	u, err := s.service.Get(cre.Email)
+	u, err := s.service.GetByEmail(cre.Email)
 	if err != nil {
 		return nil, err
 	}
