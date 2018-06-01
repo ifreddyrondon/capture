@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/capture/payload"
 
 	"gopkg.in/src-d/go-kallax.v1"
 
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/branch"
-	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/capture/branch"
+	"github.com/ifreddyrondon/capture/capture"
+	"github.com/ifreddyrondon/capture/geocoding"
 	"github.com/stretchr/testify/assert"
 )
 

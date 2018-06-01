@@ -3,7 +3,7 @@ package basic_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
+	"github.com/ifreddyrondon/capture/auth/strategy/basic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

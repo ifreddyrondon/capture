@@ -3,7 +3,7 @@ package repository_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/repository"
+	"github.com/ifreddyrondon/capture/repository"
 
 	"github.com/stretchr/testify/assert"
 )

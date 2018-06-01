@@ -8,7 +8,7 @@ type tagsJSON struct {
 
 func (v *tagsJSON) unmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson247433ddDecodeGithubComIfreddyrondonGocaptureCapture(&r, v)
+	easyjson247433ddDecodeGithubComIfreddyrondonCaptureCapture(&r, v)
 	if v.Tags == nil {
 		v.Tags = []string{}
 	}

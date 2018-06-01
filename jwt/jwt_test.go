@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/dgrijalva/jwt-go"
-	gocaptureJWT "github.com/ifreddyrondon/gocapture/jwt"
-	"github.com/ifreddyrondon/gocapture/timestamp"
+	captureJWT "github.com/ifreddyrondon/capture/jwt"
+	"github.com/ifreddyrondon/capture/timestamp"
 )
 
 func TestClaims(t *testing.T) {
@@ -21,18 +21,18 @@ func TestClaims(t *testing.T) {
 	tt := []struct {
 		name            string
 		expirationDelta int64
-		expect          gocaptureJWT.Claims
+		expect          captureJWT.Claims
 	}{
 		{
 			"claims with default delta",
 			0,
-			gocaptureJWT.Claims{
+			captureJWT.Claims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:  userID,
 					IssuedAt: expected.Unix(),
 					ExpiresAt: func() int64 {
 						n := expected
-						return n.Add(gocaptureJWT.DefaultJWTExpirationDelta).Unix()
+						return n.Add(captureJWT.DefaultJWTExpirationDelta).Unix()
 					}(),
 				},
 			},
@@ -40,7 +40,7 @@ func TestClaims(t *testing.T) {
 		{
 			"claims with 30 min delta",
 			1800, // 30min
-			gocaptureJWT.Claims{
+			captureJWT.Claims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:  userID,
 					IssuedAt: expected.Unix(),
@@ -55,9 +55,9 @@ func TestClaims(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			var c gocaptureJWT.Claims
+			var c captureJWT.Claims
 			// mock clock
-			gocaptureJWT.SetClockInstance(&c, mockClock)
+			captureJWT.SetClockInstance(&c, mockClock)
 			c.Subject = userID
 			c.IssueIt()
 			c.SetExpirationDate(0)
@@ -73,12 +73,12 @@ func TestInvalidClaims(t *testing.T) {
 	userID := "123"
 	tt := []struct {
 		name   string
-		claims gocaptureJWT.Claims
+		claims captureJWT.Claims
 		err    string
 	}{
 		{
 			"expired",
-			gocaptureJWT.Claims{
+			captureJWT.Claims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:   userID,
 					IssuedAt:  time.Now().Unix(),
@@ -89,7 +89,7 @@ func TestInvalidClaims(t *testing.T) {
 		},
 		{
 			"issued after valid",
-			gocaptureJWT.Claims{
+			captureJWT.Claims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:   userID,
 					IssuedAt:  time.Now().Add(time.Minute * 10).Unix(),
@@ -112,7 +112,7 @@ func TestInvalidClaims(t *testing.T) {
 func TestNewClaims(t *testing.T) {
 	t.Parallel()
 
-	c := gocaptureJWT.NewClaims("123", 0)
+	c := captureJWT.NewClaims("123", 0)
 	err := c.Valid()
 	assert.Nil(t, err)
 }

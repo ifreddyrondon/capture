@@ -6,11 +6,11 @@ import (
 
 	"gopkg.in/src-d/go-kallax.v1"
 
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/capture/payload"
 
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/capture/geocoding"
 
-	"github.com/ifreddyrondon/gocapture/capture"
+	"github.com/ifreddyrondon/capture/capture"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

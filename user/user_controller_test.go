@@ -8,7 +8,7 @@ import (
 	"github.com/ifreddyrondon/bastion/render/json"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/ifreddyrondon/capture/user"
 )
 
 func setupController(t *testing.T) (*bastion.Bastion, func()) {

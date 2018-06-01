@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/ifreddyrondon/gocapture/app"
-	"github.com/ifreddyrondon/gocapture/database"
+	"github.com/ifreddyrondon/capture/app"
+	"github.com/ifreddyrondon/capture/database"
 )
 
 func main() {

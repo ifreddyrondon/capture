@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson6ad23cceDecodeGithubComIfreddyrondonGocapturePayload(in *jlexer.Lexer, out *payloadJSON) {
+func easyjson6ad23cceDecodeGithubComIfreddyrondonCapturePayload(in *jlexer.Lexer, out *payloadJSON) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {

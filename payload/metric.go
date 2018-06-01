@@ -14,13 +14,13 @@ type Metric struct {
 // MarshalJSON supports json.Marshaler interface
 func (v Metric) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson9478868cEncodeGithubComIfreddyrondonGocapturePayload(&w, v)
+	easyjson9478868cEncodeGithubComIfreddyrondonCapturePayload(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Metric) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson9478868cDecodeGithubComIfreddyrondonGocapturePayload(&r, v)
+	easyjson9478868cDecodeGithubComIfreddyrondonCapturePayload(&r, v)
 	return r.Error()
 }

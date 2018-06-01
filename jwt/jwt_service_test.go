@@ -10,7 +10,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
-	"github.com/ifreddyrondon/gocapture/jwt"
+	"github.com/ifreddyrondon/capture/jwt"
 )
 
 func TestServiceGenerateToken(t *testing.T) {

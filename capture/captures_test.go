@@ -3,8 +3,8 @@ package capture_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/capture/capture"
+	"github.com/ifreddyrondon/capture/payload"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

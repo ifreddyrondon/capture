@@ -3,7 +3,7 @@ package geocoding_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/capture/geocoding"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

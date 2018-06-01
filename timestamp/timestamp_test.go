@@ -5,7 +5,7 @@ import (
 
 	"time"
 
-	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/ifreddyrondon/capture/timestamp"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -6,12 +6,12 @@ import (
 
 	"gopkg.in/src-d/go-kallax.v1"
 
-	"github.com/ifreddyrondon/gocapture/payload"
-	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/ifreddyrondon/capture/payload"
+	"github.com/ifreddyrondon/capture/timestamp"
 	"github.com/lib/pq"
 	"github.com/mailru/easyjson/jwriter"
 
-	"github.com/ifreddyrondon/gocapture/geocoding"
+	"github.com/ifreddyrondon/capture/geocoding"
 )
 
 var (
@@ -68,7 +68,7 @@ func (c *Capture) UnmarshalJSON(data []byte) error {
 // MarshalJSON supports json.Marshaler interface
 func (c Capture) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(&w, c)
+	easyjsonCbca9c40EncodeGithubComIfreddyrondonCaptureCapture(&w, c)
 	return w.Buffer.BuildBytes(), w.Error
 }
 

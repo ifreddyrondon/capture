@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"github.com/ifreddyrondon/gocapture/timestamp"
+	"github.com/ifreddyrondon/capture/timestamp"
 )
 
 // SetClockInstance is a helper function only exported for test.

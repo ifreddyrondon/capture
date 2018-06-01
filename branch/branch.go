@@ -3,7 +3,7 @@ package branch
 import (
 	"github.com/markbates/going/defaults"
 
-	"github.com/ifreddyrondon/gocapture/capture"
+	"github.com/ifreddyrondon/capture/capture"
 )
 
 const defaultBranchName = "master"

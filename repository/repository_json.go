@@ -25,6 +25,6 @@ func (r *repositoryJSON) toRepository() Repository {
 // UnmarshalJSON supports json.Unmarshaler interface
 func (r *repositoryJSON) UnmarshalJSON(data []byte) error {
 	l := jlexer.Lexer{Data: data}
-	easyjsonD0cf849fDecodeGithubComIfreddyrondonGocaptureRepository(&l, r)
+	easyjsonD0cf849fDecodeGithubComIfreddyrondonCaptureRepository(&l, r)
 	return l.Error()
 }

@@ -21,7 +21,7 @@ type pointJSON struct {
 
 func (p *pointJSON) unmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonA2deb046DecodeGithubComIfreddyrondonGocaptureGeocoding(&r, p)
+	easyjsonA2deb046DecodeGithubComIfreddyrondonCaptureGeocoding(&r, p)
 	if err := r.Error(); err != nil {
 		return ErrUnmarshalPoint
 	}

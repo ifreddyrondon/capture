@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/ifreddyrondon/capture/user"
 	"github.com/stretchr/testify/assert"
 )
 

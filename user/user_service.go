@@ -1,6 +1,6 @@
 package user
 
-import "github.com/ifreddyrondon/gocapture/postgres"
+import "github.com/ifreddyrondon/capture/postgres"
 
 const uniqueConstraintEmail = "uix_users_email"
 

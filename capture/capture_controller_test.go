@@ -10,7 +10,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
-	"github.com/ifreddyrondon/gocapture/capture"
+	"github.com/ifreddyrondon/capture/capture"
 	"github.com/stretchr/testify/assert"
 )
 

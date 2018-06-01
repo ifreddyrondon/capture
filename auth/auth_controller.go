@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ifreddyrondon/gocapture/jwt"
-	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/ifreddyrondon/capture/jwt"
+	"github.com/ifreddyrondon/capture/user"
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"

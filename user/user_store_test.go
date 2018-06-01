@@ -4,10 +4,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/database"
+	"github.com/ifreddyrondon/capture/database"
 	"github.com/jinzhu/gorm"
 
-	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/ifreddyrondon/capture/user"
 )
 
 var once sync.Once

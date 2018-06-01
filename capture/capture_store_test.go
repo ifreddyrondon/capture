@@ -4,8 +4,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/capture"
-	"github.com/ifreddyrondon/gocapture/database"
+	"github.com/ifreddyrondon/capture/capture"
+	"github.com/ifreddyrondon/capture/database"
 	"github.com/jinzhu/gorm"
 )
 

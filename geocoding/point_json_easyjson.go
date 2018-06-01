@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonA2deb046DecodeGithubComIfreddyrondonGocaptureGeocoding(in *jlexer.Lexer, out *pointJSON) {
+func easyjsonA2deb046DecodeGithubComIfreddyrondonCaptureGeocoding(in *jlexer.Lexer, out *pointJSON) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {

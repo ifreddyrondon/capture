@@ -18,7 +18,7 @@ type payloadJSON struct {
 // UnmarshalJSON supports json.Unmarshaler interface
 func (p *payloadJSON) unmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson6ad23cceDecodeGithubComIfreddyrondonGocapturePayload(&r, p)
+	easyjson6ad23cceDecodeGithubComIfreddyrondonCapturePayload(&r, p)
 	return r.Error()
 }
 

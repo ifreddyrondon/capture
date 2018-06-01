@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonCbca9c40EncodeGithubComIfreddyrondonGocaptureCapture(out *jwriter.Writer, in Capture) {
+func easyjsonCbca9c40EncodeGithubComIfreddyrondonCaptureCapture(out *jwriter.Writer, in Capture) {
 	out.RawByte('{')
 	first := true
 	_ = first

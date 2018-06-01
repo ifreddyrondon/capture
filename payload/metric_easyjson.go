@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson9478868cDecodeGithubComIfreddyrondonGocapturePayload(in *jlexer.Lexer, out *Metric) {
+func easyjson9478868cDecodeGithubComIfreddyrondonCapturePayload(in *jlexer.Lexer, out *Metric) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -57,7 +57,7 @@ func easyjson9478868cDecodeGithubComIfreddyrondonGocapturePayload(in *jlexer.Lex
 		in.Consumed()
 	}
 }
-func easyjson9478868cEncodeGithubComIfreddyrondonGocapturePayload(out *jwriter.Writer, in Metric) {
+func easyjson9478868cEncodeGithubComIfreddyrondonCapturePayload(out *jwriter.Writer, in Metric) {
 	out.RawByte('{')
 	first := true
 	_ = first

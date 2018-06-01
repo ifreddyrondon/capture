@@ -18,7 +18,7 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson5b679028DecodeGithubComIfreddyrondonGocaptureAuthStrategyBasic(in *jlexer.Lexer, out *credentials) {
+func easyjson5b679028DecodeGithubComIfreddyrondonCaptureAuthStrategyBasic(in *jlexer.Lexer, out *credentials) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -55,6 +55,6 @@ func easyjson5b679028DecodeGithubComIfreddyrondonGocaptureAuthStrategyBasic(in *
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *credentials) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson5b679028DecodeGithubComIfreddyrondonGocaptureAuthStrategyBasic(&r, v)
+	easyjson5b679028DecodeGithubComIfreddyrondonCaptureAuthStrategyBasic(&r, v)
 	return r.Error()
 }

@@ -3,7 +3,7 @@ package capture_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/capture"
+	"github.com/ifreddyrondon/capture/capture"
 )
 
 func setupService(t *testing.T) (*capture.StoreService, func()) {

@@ -5,14 +5,14 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/jwt"
-
-	"github.com/ifreddyrondon/gocapture/auth"
-	"github.com/ifreddyrondon/gocapture/auth/strategy/basic"
-	"github.com/ifreddyrondon/gocapture/database"
-	"github.com/ifreddyrondon/gocapture/user"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ifreddyrondon/capture/auth"
+	"github.com/ifreddyrondon/capture/auth/strategy/basic"
+	"github.com/ifreddyrondon/capture/database"
+	"github.com/ifreddyrondon/capture/jwt"
+	"github.com/ifreddyrondon/capture/user"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"

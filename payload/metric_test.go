@@ -3,7 +3,7 @@ package payload_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/gocapture/payload"
+	"github.com/ifreddyrondon/capture/payload"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

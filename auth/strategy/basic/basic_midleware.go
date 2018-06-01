@@ -7,7 +7,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion/render"
 	bastionJSON "github.com/ifreddyrondon/bastion/render/json"
-	"github.com/ifreddyrondon/gocapture/user"
+	"github.com/ifreddyrondon/capture/user"
 )
 
 var (
