@@ -19,9 +19,14 @@ var (
 
 // Strategy is a basic authentication method that uses email and password to authenticate
 type Strategy struct {
-	render.Render
-	user.GetterService
-	UserKey fmt.Stringer
+	render  render.Render
+	service user.GetterService
+	userKey fmt.Stringer
+}
+
+// NewStrategy returns a new instance of Strategy
+func NewStrategy(render render.Render, service user.GetterService, userKey fmt.Stringer) *Strategy {
+	return &Strategy{render: render, service: service, userKey: userKey}
 }
 
 // Authenticate for basic (username/password) authentication.
@@ -29,7 +34,7 @@ func (s *Strategy) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var cre Crendentials
 		if err := json.NewDecoder(r.Body).Decode(&cre); err != nil {
-			_ = s.Render(w).BadRequest(err)
+			_ = s.render(w).BadRequest(err)
 			return
 		}
 
@@ -41,20 +46,20 @@ func (s *Strategy) Authenticate(next http.Handler) http.Handler {
 					Errors:  http.StatusText(http.StatusUnauthorized),
 					Message: errInvalidCredentials.Error(),
 				}
-				_ = s.Render(w).Response(http.StatusUnauthorized, httpErr)
+				_ = s.render(w).Response(http.StatusUnauthorized, httpErr)
 				return
 			}
 
-			_ = s.Render(w).InternalServerError(err)
+			_ = s.render(w).InternalServerError(err)
 			return
 		}
-		ctx := context.WithValue(r.Context(), s.UserKey, u)
+		ctx := context.WithValue(r.Context(), s.userKey, u)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (s *Strategy) validate(cre *Crendentials) (*user.User, error) {
-	u, err := s.GetterService.Get(cre.Email)
+	u, err := s.service.Get(cre.Email)
 	if err != nil {
 		return nil, err
 	}

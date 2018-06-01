@@ -53,12 +53,7 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	require.Nil(t, err)
 	userService.Save(&u)
 
-	service := basic.Strategy{
-		Render:        json.NewRender,
-		UserKey:       app.ContextKey("user"),
-		GetterService: userService,
-	}
-
+	service := basic.NewStrategy(json.NewRender, userService, app.ContextKey("user"))
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Route("/", func(r chi.Router) {
 		r.Use(service.Authenticate)

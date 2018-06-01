@@ -1,4 +1,4 @@
-package strategy
+package auth
 
 import "net/http"
 

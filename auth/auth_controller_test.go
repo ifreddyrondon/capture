@@ -48,21 +48,9 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	err := u.SetPassword(testUserPassword)
 	require.Nil(t, err)
 	userService.Save(&u)
-
-	strategy := basic.Strategy{
-		Render:        json.NewRender,
-		UserKey:       app.ContextKey("user"),
-		GetterService: userService,
-	}
-
+	strategy := basic.NewStrategy(json.NewRender, userService, app.ContextKey("user"))
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
-
-	controller := auth.Controller{
-		Strategy: strategy,
-		Render:   json.NewRender,
-		UserKey:  app.ContextKey("user"),
-		JWT:      jwtService,
-	}
+	controller := auth.NewController(strategy, jwtService, json.NewRender, app.ContextKey("user"))
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/auth/", controller.Router())

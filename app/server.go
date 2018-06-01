@@ -31,20 +31,9 @@ func New(db *gorm.DB) *bastion.Bastion {
 	userController := user.NewController(userService, json.NewRender)
 	app.APIRouter.Mount("/users/", userController.Router())
 
-	strategy := basic.Strategy{
-		Render:        json.NewRender,
-		UserKey:       ContextKey("user"),
-		GetterService: userStore,
-	}
-
+	strategy := basic.NewStrategy(json.NewRender, userService, ContextKey("user"))
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
-
-	authController := auth.Controller{
-		Strategy: strategy,
-		Render:   json.NewRender,
-		UserKey:  ContextKey("user"),
-		JWT:      jwtService,
-	}
+	authController := auth.NewController(strategy, jwtService, json.NewRender, ContextKey("user"))
 	app.APIRouter.Mount("/auth/", authController.Router())
 
 	repoStore := repository.NewPGStore(db)
