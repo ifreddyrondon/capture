@@ -33,8 +33,8 @@ func (c contextKey) String() string {
 // Service service to managed JWT
 type Service struct {
 	ExpirationDelta time.Duration
-	render.Render
-	signingKey []byte
+	render          render.Render
+	signingKey      []byte
 }
 
 // NewService is a helper constructor to create a new service with signing key.
@@ -42,7 +42,7 @@ func NewService(signingKey []byte, delta time.Duration, render render.Render) *S
 	return &Service{
 		ExpirationDelta: delta,
 		signingKey:      signingKey,
-		Render:          render,
+		render:          render,
 	}
 }
 
@@ -80,13 +80,13 @@ func (s *Service) Authorization(next http.Handler) http.Handler {
 				Errors:  http.StatusText(http.StatusForbidden),
 				Message: ErrUserNotAllowed.Error(),
 			}
-			_ = s.Render(w).Response(http.StatusForbidden, httpErr)
+			_ = s.render(w).Response(http.StatusForbidden, httpErr)
 			return
 		}
 
 		claims, ok := token.Claims.(*Claims)
 		if !ok {
-			_ = s.Render(w).InternalServerError(err)
+			_ = s.render(w).InternalServerError(err)
 			return
 		}
 
