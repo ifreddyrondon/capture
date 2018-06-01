@@ -18,7 +18,7 @@ type Payload []*Metric
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (p *Payload) UnmarshalJSON(data []byte) error {
-	var model jsonPayload
+	var model payloadJSON
 	if err := model.unmarshalJSON(data); err != nil {
 		return errUnmarshalPayload
 	}

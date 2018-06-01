@@ -8,7 +8,7 @@ import (
 // errMissingPayload expected error when payload is missing
 const errMissingPayload = "payload value must not be blank"
 
-type jsonPayload struct {
+type payloadJSON struct {
 	Cap      []*Metric `json:"cap"`
 	Captures []*Metric `json:"captures"`
 	Data     []*Metric `json:"data"`
@@ -16,13 +16,13 @@ type jsonPayload struct {
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (p *jsonPayload) unmarshalJSON(data []byte) error {
+func (p *payloadJSON) unmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson6ad23cceDecodeGithubComIfreddyrondonGocapturePayload(&r, p)
 	return r.Error()
 }
 
-func (p *jsonPayload) getPayload() Payload {
+func (p *payloadJSON) getPayload() Payload {
 	if p.Cap != nil {
 		return p.Cap
 	} else if p.Captures != nil {
@@ -33,7 +33,7 @@ func (p *jsonPayload) getPayload() Payload {
 	return p.Payload
 }
 
-func (p *jsonPayload) IsValid(errors *validate.Errors) {
+func (p *payloadJSON) IsValid(errors *validate.Errors) {
 	payl := p.getPayload()
 	if len(payl) == 0 {
 		errors.Add("payload", errMissingPayload)
