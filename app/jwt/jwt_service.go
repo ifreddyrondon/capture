@@ -58,8 +58,8 @@ func (s *Service) GenerateToken(userID string) (string, error) {
 	return tokenString, nil
 }
 
-// Authorization validates if a request contains a valid JWT
-func (s *Service) Authorization(next http.Handler) http.Handler {
+// IsAuthorized validates if a request contains a valid JWT
+func (s *Service) IsAuthorized(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// keyFunc will receive the parsed token and should return the key for validating
 		fun := func(token *jwt.Token) (interface{}, error) {

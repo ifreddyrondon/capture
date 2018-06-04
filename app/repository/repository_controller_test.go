@@ -17,10 +17,31 @@ func (r *MockService) Save(c *repository.Repository) error {
 	return errors.New("test")
 }
 
+type MockAuthMiddlewareOK struct{}
+
+func (m *MockAuthMiddlewareOK) IsAuthorized(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
+	})
+}
+
+type MockAuthMiddlewareFail struct{}
+
+func (m *MockAuthMiddlewareFail) IsAuthorized(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpErr := json.HTTPError{
+			Status:  http.StatusForbidden,
+			Errors:  http.StatusText(http.StatusForbidden),
+			Message: "you don’t have permission to access this resource",
+		}
+		json.NewRender(w).Response(http.StatusForbidden, httpErr)
+	})
+}
+
 func setupControllerMockService() *bastion.Bastion {
 	service := &MockService{}
-
-	controller := repository.NewController(service, json.NewRender)
+	authorization := MockAuthMiddlewareOK{}
+	controller := repository.NewController(service, json.NewRender, &authorization)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/repository/", controller.Router())
@@ -29,8 +50,9 @@ func setupControllerMockService() *bastion.Bastion {
 
 func setupController(t *testing.T) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
+	authorization := MockAuthMiddlewareOK{}
 
-	controller := repository.NewController(service, json.NewRender)
+	controller := repository.NewController(service, json.NewRender, &authorization)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/repository/", controller.Router())
@@ -111,4 +133,27 @@ func TestCreateRepositorySaveFail(t *testing.T) {
 		Expect().
 		Status(http.StatusInternalServerError).
 		JSON().Object()
+}
+
+func TestCreateRepositoryNotAuthorized(t *testing.T) {
+	service := &MockService{}
+	authorization := MockAuthMiddlewareFail{}
+	controller := repository.NewController(service, json.NewRender, &authorization)
+
+	response := map[string]interface{}{
+		"status":  403.0,
+		"error":   "Forbidden",
+		"message": "you don’t have permission to access this resource",
+	}
+
+	app := bastion.New(bastion.Options{})
+	app.APIRouter.Mount("/repository/", controller.Router())
+	e := bastion.Tester(t, app)
+	payload := map[string]interface{}{"name": "test"}
+
+	e.POST("/repository/").
+		WithJSON(payload).
+		Expect().
+		Status(http.StatusForbidden).
+		JSON().Object().Equal(response)
 }

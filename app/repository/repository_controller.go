@@ -4,26 +4,39 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/ifreddyrondon/capture/app/auth"
+
+	"github.com/go-chi/chi"
+
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
 )
 
 // Controller handler the repository routes
 type Controller struct {
-	service Service
-	render  render.Render
+	service       Service
+	render        render.Render
+	authorization auth.Authorization
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render) *Controller {
-	return &Controller{service: service, render: render}
+func NewController(service Service, render render.Render, authMiddleware auth.Authorization) *Controller {
+	return &Controller{
+		service:       service,
+		render:        render,
+		authorization: authMiddleware,
+	}
 }
 
 // Router creates a REST router for the user resource
 func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
 
-	r.Post("/", c.create)
+	r.Route("/", func(r chi.Router) {
+		r.Use(c.authorization.IsAuthorized)
+		r.Post("/", c.create)
+	})
+
 	return r
 }
 
