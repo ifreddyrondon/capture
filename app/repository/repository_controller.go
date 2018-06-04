@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ifreddyrondon/capture/app/auth"
+	"github.com/ifreddyrondon/capture/app/auth/authorization"
 
 	"github.com/go-chi/chi"
 
@@ -16,11 +16,11 @@ import (
 type Controller struct {
 	service       Service
 	render        render.Render
-	authorization auth.Authorization
+	authorization authorization.Authorization
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render, authMiddleware auth.Authorization) *Controller {
+func NewController(service Service, render render.Render, authMiddleware authorization.Authorization) *Controller {
 	return &Controller{
 		service:       service,
 		render:        render,

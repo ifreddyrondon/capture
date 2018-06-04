@@ -3,7 +3,7 @@ package basic_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/app/auth/strategy/basic"
+	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

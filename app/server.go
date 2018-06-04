@@ -5,7 +5,7 @@ import (
 	"github.com/ifreddyrondon/bastion/render/json"
 
 	"github.com/ifreddyrondon/capture/app/auth"
-	"github.com/ifreddyrondon/capture/app/auth/strategy/basic"
+	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/app/branch"
 	"github.com/ifreddyrondon/capture/app/capture"
 	"github.com/ifreddyrondon/capture/app/jwt"

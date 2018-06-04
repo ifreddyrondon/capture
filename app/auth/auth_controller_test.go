@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/app/auth"
-	"github.com/ifreddyrondon/capture/app/auth/strategy/basic"
+	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/app/jwt"
 	"github.com/ifreddyrondon/capture/app/user"
 	"github.com/ifreddyrondon/capture/database"

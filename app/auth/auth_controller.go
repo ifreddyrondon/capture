@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/ifreddyrondon/capture/app/auth/authentication"
+
 	"github.com/ifreddyrondon/capture/app/jwt"
 	"github.com/ifreddyrondon/capture/app/user"
 
@@ -18,14 +20,14 @@ type tokenJSON struct {
 
 // Controller handler the auth routes
 type Controller struct {
-	strategy   Strategy
+	strategy   authentication.Strategy
 	render     render.Render
 	service    *jwt.Service
 	ctxManager *user.ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(strategy Strategy, service *jwt.Service, render render.Render) *Controller {
+func NewController(strategy authentication.Strategy, service *jwt.Service, render render.Render) *Controller {
 	return &Controller{
 		strategy:   strategy,
 		service:    service,
