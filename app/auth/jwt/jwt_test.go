@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/dgrijalva/jwt-go"
-	captureJWT "github.com/ifreddyrondon/capture/app/jwt"
+	captureJWT "github.com/ifreddyrondon/capture/app/auth/jwt"
 	"github.com/ifreddyrondon/capture/app/timestamp"
 )
 

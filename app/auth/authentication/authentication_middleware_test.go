@@ -1,16 +1,18 @@
-package basic_test
+package authentication_test
 
 import (
+	"errors"
 	"net/http"
 	"sync"
 	"testing"
 
-	"github.com/go-chi/chi"
-	"github.com/stretchr/testify/require"
-
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
 
+	"github.com/go-chi/chi"
+	"github.com/stretchr/testify/require"
+
+	"github.com/ifreddyrondon/capture/app/auth/authentication"
 	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/app/user"
 	"github.com/ifreddyrondon/capture/database"
@@ -52,10 +54,12 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	require.Nil(t, err)
 	userService.Save(&u)
 
-	service := basic.NewStrategy(json.NewRender, userService)
+	strategy := basic.New(userService)
+	middleware := authentication.NewAuthentication(strategy, json.NewRender)
+
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(service.Authenticate)
+		r.Use(middleware.Authenticate)
 		r.Post("/", handler)
 	})
 
@@ -115,7 +119,7 @@ func TestTokenAuthFailure(t *testing.T) {
 	}
 }
 
-func TestTokenAuthFailureBadRequest(t *testing.T) {
+func TestTokenAuthFailureBadRequestCredentials(t *testing.T) {
 	app, teardown := setup(t)
 	defer teardown()
 
@@ -140,4 +144,74 @@ func TestTokenAuthFailureBadRequest(t *testing.T) {
 		ContainsKey("status").ValueEqual("status", tc.response["status"]).
 		ContainsKey("error").ValueEqual("error", tc.response["error"]).
 		ContainsKey("message")
+}
+
+func setupWithMockStrategy(mock authentication.Strategy) *bastion.Bastion {
+	middleware := authentication.NewAuthentication(mock, json.NewRender)
+
+	app := bastion.New(bastion.Options{})
+	app.APIRouter.Route("/", func(r chi.Router) {
+		r.Use(middleware.Authenticate)
+		r.Post("/", handler)
+	})
+
+	return app
+}
+
+type mockStrategyFailValidate struct{}
+
+func (m *mockStrategyFailValidate) Validate(payload []byte) (*user.User, error) {
+	return nil, errors.New("test")
+}
+func (m *mockStrategyFailValidate) IsErrCredentials(err error) bool {
+	return false
+}
+func (m *mockStrategyFailValidate) IsErrDecoding(err error) bool {
+	return false
+}
+
+func TestTokenAuthFailureBadRequestJSON(t *testing.T) {
+	app := setupWithMockStrategy(&mockStrategyFailValidate{})
+
+	e := bastion.Tester(t, app)
+	tc := struct {
+		payload  []byte
+		response map[string]interface{}
+	}{
+		payload: []byte("{"),
+		response: map[string]interface{}{
+			"status":  400.0,
+			"error":   "Bad Request",
+			"message": "unexpected EOF",
+		},
+	}
+
+	e.POST("/auth/token-auth").
+		WithBytes(tc.payload).
+		Expect().
+		Status(http.StatusBadRequest).
+		JSON().Object().Equal(tc.response)
+}
+
+func TestTokenAuthFailureInternalServerError(t *testing.T) {
+	app := setupWithMockStrategy(&mockStrategyFailValidate{})
+
+	e := bastion.Tester(t, app)
+	tc := struct {
+		payload  map[string]interface{}
+		response map[string]interface{}
+	}{
+		payload: map[string]interface{}{"email": testUserEmail, "password": testUserPassword},
+		response: map[string]interface{}{
+			"status":  500.0,
+			"error":   "Internal Server Error",
+			"message": "test",
+		},
+	}
+
+	e.POST("/auth/token-auth").
+		WithJSON(tc.payload).
+		Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(tc.response)
 }

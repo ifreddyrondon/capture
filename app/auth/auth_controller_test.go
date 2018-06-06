@@ -9,8 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/app/auth"
+	"github.com/ifreddyrondon/capture/app/auth/authentication"
 	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
-	"github.com/ifreddyrondon/capture/app/jwt"
+	"github.com/ifreddyrondon/capture/app/auth/jwt"
 	"github.com/ifreddyrondon/capture/app/user"
 	"github.com/ifreddyrondon/capture/database"
 
@@ -47,9 +48,10 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	err := u.SetPassword(testUserPassword)
 	require.Nil(t, err)
 	userService.Save(&u)
-	strategy := basic.NewStrategy(json.NewRender, userService)
+	strategy := basic.New(userService)
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
-	controller := auth.NewController(strategy, jwtService, json.NewRender)
+	middleware := authentication.NewAuthentication(strategy, json.NewRender)
+	controller := auth.NewController(middleware, jwtService, json.NewRender)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/auth/", controller.Router())

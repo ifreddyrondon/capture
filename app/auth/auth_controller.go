@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/ifreddyrondon/capture/app/auth/authentication"
+	"github.com/ifreddyrondon/capture/app/auth/jwt"
 
-	"github.com/ifreddyrondon/capture/app/jwt"
 	"github.com/ifreddyrondon/capture/app/user"
 
 	"github.com/go-chi/chi"
@@ -20,16 +20,16 @@ type tokenJSON struct {
 
 // Controller handler the auth routes
 type Controller struct {
-	strategy   authentication.Strategy
+	middleware *authentication.Authentication
 	render     render.Render
 	service    *jwt.Service
 	ctxManager *user.ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(strategy authentication.Strategy, service *jwt.Service, render render.Render) *Controller {
+func NewController(middleware *authentication.Authentication, service *jwt.Service, render render.Render) *Controller {
 	return &Controller{
-		strategy:   strategy,
+		middleware: middleware,
 		service:    service,
 		render:     render,
 		ctxManager: user.NewContextManager(),
@@ -41,7 +41,7 @@ func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
 
 	r.Route("/token-auth", func(r chi.Router) {
-		r.Use(c.strategy.Authenticate)
+		r.Use(c.middleware.Authenticate)
 		r.Post("/", c.login)
 	})
 	return r

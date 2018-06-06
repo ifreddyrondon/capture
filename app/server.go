@@ -5,10 +5,11 @@ import (
 	"github.com/ifreddyrondon/bastion/render/json"
 
 	"github.com/ifreddyrondon/capture/app/auth"
+	"github.com/ifreddyrondon/capture/app/auth/authentication"
 	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
+	"github.com/ifreddyrondon/capture/app/auth/jwt"
 	"github.com/ifreddyrondon/capture/app/branch"
 	"github.com/ifreddyrondon/capture/app/capture"
-	"github.com/ifreddyrondon/capture/app/jwt"
 	"github.com/ifreddyrondon/capture/app/repository"
 	"github.com/ifreddyrondon/capture/app/user"
 
@@ -26,10 +27,11 @@ func New(db *gorm.DB) *bastion.Bastion {
 	userController := user.NewController(userService, json.NewRender)
 	app.APIRouter.Mount("/users/", userController.Router())
 
-	strategy := basic.NewStrategy(json.NewRender, userService)
+	strategy := basic.New(userService)
+	middleware := authentication.NewAuthentication(strategy, json.NewRender)
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
 
-	authController := auth.NewController(strategy, jwtService, json.NewRender)
+	authController := auth.NewController(middleware, jwtService, json.NewRender)
 	app.APIRouter.Mount("/auth/", authController.Router())
 
 	repoStore := repository.NewPGStore(db)
