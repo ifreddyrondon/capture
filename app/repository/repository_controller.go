@@ -16,11 +16,11 @@ import (
 type Controller struct {
 	service       Service
 	render        render.Render
-	authorization authorization.Authorization
+	authorization *authorization.Authorization
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render, authMiddleware authorization.Authorization) *Controller {
+func NewController(service Service, render render.Render, authMiddleware *authorization.Authorization) *Controller {
 	return &Controller{
 		service:       service,
 		render:        render,
@@ -33,7 +33,7 @@ func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
 
 	r.Route("/", func(r chi.Router) {
-		r.Use(c.authorization.IsAuthorized)
+		r.Use(c.authorization.IsAuthorizedREQ)
 		r.Post("/", c.create)
 	})
 

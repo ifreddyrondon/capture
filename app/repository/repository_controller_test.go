@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/app/auth/authorization"
+
 	"github.com/ifreddyrondon/capture/app/repository"
 
 	"github.com/ifreddyrondon/bastion"
@@ -17,42 +19,38 @@ func (r *MockService) Save(c *repository.Repository) error {
 	return errors.New("test")
 }
 
-type MockAuthMiddlewareOK struct{}
+type mockStrategySuccess struct{}
 
-func (m *MockAuthMiddlewareOK) IsAuthorized(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
+func (m *mockStrategySuccess) IsAuthorizedREQ(r *http.Request) (string, error) {
+	return "test", nil
+}
+func (m *mockStrategySuccess) IsNotAuthorizedErr(err error) bool {
+	return false
 }
 
-type MockAuthMiddlewareFail struct{}
+type mockStrategyFail struct{}
 
-func (m *MockAuthMiddlewareFail) IsAuthorized(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		httpErr := json.HTTPError{
-			Status:  http.StatusForbidden,
-			Errors:  http.StatusText(http.StatusForbidden),
-			Message: "you don’t have permission to access this resource",
-		}
-		json.NewRender(w).Response(http.StatusForbidden, httpErr)
-	})
+func (m *mockStrategyFail) IsAuthorizedREQ(r *http.Request) (string, error) {
+	return "", errors.New("you don’t have permission to access this resource")
+}
+func (m *mockStrategyFail) IsNotAuthorizedErr(err error) bool {
+	return true
 }
 
-func setupControllerMockService() *bastion.Bastion {
+func setupControllerMockService(strategy authorization.Strategy) *bastion.Bastion {
 	service := &MockService{}
-	authorization := MockAuthMiddlewareOK{}
-	controller := repository.NewController(service, json.NewRender, &authorization)
+	midl := authorization.NewAuthorization(strategy, json.NewRender)
+	controller := repository.NewController(service, json.NewRender, midl)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/repository/", controller.Router())
 	return app
 }
 
-func setupController(t *testing.T) (*bastion.Bastion, func()) {
+func setupController(t *testing.T, strategy authorization.Strategy) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
-	authorization := MockAuthMiddlewareOK{}
-
-	controller := repository.NewController(service, json.NewRender, &authorization)
+	midl := authorization.NewAuthorization(strategy, json.NewRender)
+	controller := repository.NewController(service, json.NewRender, midl)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/repository/", controller.Router())
@@ -61,7 +59,7 @@ func setupController(t *testing.T) (*bastion.Bastion, func()) {
 }
 
 func TestCreateRepositorySuccess(t *testing.T) {
-	app, teardown := setupController(t)
+	app, teardown := setupController(t, &mockStrategySuccess{})
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -80,7 +78,7 @@ func TestCreateRepositorySuccess(t *testing.T) {
 }
 
 func TestCreateRepositoryFail(t *testing.T) {
-	app, teardown := setupController(t)
+	app, teardown := setupController(t, &mockStrategySuccess{})
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -123,7 +121,7 @@ func TestCreateRepositoryFail(t *testing.T) {
 func TestCreateRepositorySaveFail(t *testing.T) {
 	t.Parallel()
 
-	app := setupControllerMockService()
+	app := setupControllerMockService(&mockStrategySuccess{})
 
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"name": "test"}
@@ -136,9 +134,7 @@ func TestCreateRepositorySaveFail(t *testing.T) {
 }
 
 func TestCreateRepositoryNotAuthorized(t *testing.T) {
-	service := &MockService{}
-	authorization := MockAuthMiddlewareFail{}
-	controller := repository.NewController(service, json.NewRender, &authorization)
+	t.Parallel()
 
 	response := map[string]interface{}{
 		"status":  403.0,
@@ -146,8 +142,7 @@ func TestCreateRepositoryNotAuthorized(t *testing.T) {
 		"message": "you don’t have permission to access this resource",
 	}
 
-	app := bastion.New(bastion.Options{})
-	app.APIRouter.Mount("/repository/", controller.Router())
+	app := setupControllerMockService(&mockStrategyFail{})
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"name": "test"}
 

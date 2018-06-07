@@ -9,7 +9,7 @@ import (
 	"github.com/ifreddyrondon/capture/app/user"
 )
 
-// Authentication is a middleware authentication mechanisms to validate users credentials.
+// Authentication is a middleware to validate request credentials.
 type Authentication struct {
 	strategy   Strategy
 	render     render.Render

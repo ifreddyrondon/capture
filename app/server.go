@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/capture/app/auth/authorization"
 
 	"github.com/ifreddyrondon/capture/app/auth"
 	"github.com/ifreddyrondon/capture/app/auth/authentication"
@@ -27,18 +28,21 @@ func New(db *gorm.DB) *bastion.Bastion {
 	userController := user.NewController(userService, json.NewRender)
 	app.APIRouter.Mount("/users/", userController.Router())
 
-	strategy := basic.New(userService)
-	middleware := authentication.NewAuthentication(strategy, json.NewRender)
-	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta, json.NewRender)
+	authenticationStrategy := basic.New(userService)
+	authenticationMiddleware := authentication.NewAuthentication(authenticationStrategy, json.NewRender)
 
-	authController := auth.NewController(middleware, jwtService, json.NewRender)
+	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
+
+	authController := auth.NewController(authenticationMiddleware, jwtService, json.NewRender)
 	app.APIRouter.Mount("/auth/", authController.Router())
+
+	authorizationMiddleware := authorization.NewAuthorization(jwtService, json.NewRender)
 
 	repoStore := repository.NewPGStore(db)
 	repoStore.Drop()
 	repoStore.Migrate()
 	repoService := repository.NewService(repoStore)
-	repoController := repository.NewController(repoService, json.NewRender, jwtService)
+	repoController := repository.NewController(repoService, json.NewRender, authorizationMiddleware)
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
 	captureStore := capture.NewPGStore(db)

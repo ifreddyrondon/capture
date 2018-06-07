@@ -171,6 +171,8 @@ func (m *mockStrategyFailValidate) IsErrDecoding(err error) bool {
 }
 
 func TestTokenAuthFailureBadRequestJSON(t *testing.T) {
+	t.Parallel()
+
 	app := setupWithMockStrategy(&mockStrategyFailValidate{})
 
 	e := bastion.Tester(t, app)
@@ -194,6 +196,8 @@ func TestTokenAuthFailureBadRequestJSON(t *testing.T) {
 }
 
 func TestTokenAuthFailureInternalServerError(t *testing.T) {
+	t.Parallel()
+
 	app := setupWithMockStrategy(&mockStrategyFailValidate{})
 
 	e := bastion.Tester(t, app)

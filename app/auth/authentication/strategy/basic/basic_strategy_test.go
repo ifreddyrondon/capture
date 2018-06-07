@@ -99,6 +99,8 @@ func (m *MockUserGetterServiceFail) GetByEmail(email string) (*user.User, error)
 }
 
 func TestValidateFailsDecoding(t *testing.T) {
+	t.Parallel()
+
 	userService := &MockUserGetterServiceFail{}
 	strategy := basic.New(userService)
 
@@ -132,6 +134,8 @@ func TestValidateFailsDecoding(t *testing.T) {
 }
 
 func TestValidateFailsUnknowErr(t *testing.T) {
+	t.Parallel()
+
 	userService := &MockUserGetterServiceFail{}
 	strategy := basic.New(userService)
 	body := []byte(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
