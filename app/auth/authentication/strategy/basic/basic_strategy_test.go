@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/stretchr/testify/require"
@@ -95,6 +97,10 @@ func TestValidateInvalidCredentials(t *testing.T) {
 type MockUserGetterServiceFail struct{}
 
 func (m *MockUserGetterServiceFail) GetByEmail(email string) (*user.User, error) {
+	return nil, errors.New("test")
+}
+
+func (m *MockUserGetterServiceFail) GetByID(id kallax.ULID) (*user.User, error) {
 	return nil, errors.New("test")
 }
 

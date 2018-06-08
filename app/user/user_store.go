@@ -1,6 +1,9 @@
 package user
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"gopkg.in/src-d/go-kallax.v1"
+)
 
 // Store is the interface to be implemented by any kind of store
 // It make CRUD operations over a store.
@@ -8,7 +11,9 @@ type Store interface {
 	// Save user into the database.
 	Save(*User) error
 	// Get a user by email from database
-	Get(string) (*User, error)
+	GetByEmail(string) (*User, error)
+	// Get a user by id from database
+	GetByID(kallax.ULID) (*User, error)
 }
 
 // PGStore implementation of user.Store for Postgres database.
@@ -36,10 +41,19 @@ func (p *PGStore) Save(user *User) error {
 	return p.db.Create(user).Error
 }
 
-// Get a user by email, if not found user returns an error
-func (p *PGStore) Get(email string) (*User, error) {
+// GetByEmail a user by email, if not found returns an error
+func (p *PGStore) GetByEmail(email string) (*User, error) {
 	var result User
 	if p.db.Where(&User{Email: email}).First(&result).RecordNotFound() {
+		return nil, ErrNotFound
+	}
+	return &result, nil
+}
+
+// GetByID a user by ID, if not found returns an error
+func (p *PGStore) GetByID(id kallax.ULID) (*User, error) {
+	var result User
+	if p.db.Where(&User{ID: id}).First(&result).RecordNotFound() {
 		return nil, ErrNotFound
 	}
 	return &result, nil

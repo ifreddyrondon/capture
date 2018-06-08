@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/capture/app/user"
 	"github.com/stretchr/testify/assert"
 )
@@ -53,7 +55,7 @@ func TestErrSaveUser(t *testing.T) {
 	assert.EqualError(t, err, "test")
 }
 
-func TestGetUser(t *testing.T) {
+func TestGetByEmail(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
@@ -65,11 +67,32 @@ func TestGetUser(t *testing.T) {
 	assert.Equal(t, u.ID, tempUser.ID)
 }
 
-func TestGetMissingUser(t *testing.T) {
+func TestGetByEmailMissing(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
 	_, err := service.GetByEmail("test@example.com")
+	assert.Error(t, err)
+	assert.Equal(t, user.ErrNotFound, err)
+}
+
+func TestGetByID(t *testing.T) {
+	service, teardown := setupService(t)
+	defer teardown()
+
+	u := user.User{Email: "test@example.com"}
+	service.Save(&u)
+
+	tempUser, err := service.GetByID(u.ID)
+	assert.Nil(t, err)
+	assert.Equal(t, u.Email, tempUser.Email)
+}
+
+func TestGetByIDMissing(t *testing.T) {
+	service, teardown := setupService(t)
+	defer teardown()
+
+	_, err := service.GetByID(kallax.NewULID())
 	assert.Error(t, err)
 	assert.Equal(t, user.ErrNotFound, err)
 }

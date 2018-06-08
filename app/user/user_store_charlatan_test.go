@@ -4,6 +4,8 @@ package user
 
 import "reflect"
 
+import kallax "gopkg.in/src-d/go-kallax.v1"
+
 // StoreSaveInvocation represents a single call of FakeStore.Save
 type StoreSaveInvocation struct {
 	Parameters struct {
@@ -25,8 +27,8 @@ func NewStoreSaveInvocation(ident1 *User, ident2 error) *StoreSaveInvocation {
 	return invocation
 }
 
-// StoreGetInvocation represents a single call of FakeStore.Get
-type StoreGetInvocation struct {
+// StoreGetByEmailInvocation represents a single call of FakeStore.GetByEmail
+type StoreGetByEmailInvocation struct {
 	Parameters struct {
 		Ident1 string
 	}
@@ -36,9 +38,32 @@ type StoreGetInvocation struct {
 	}
 }
 
-// NewStoreGetInvocation creates a new instance of StoreGetInvocation
-func NewStoreGetInvocation(ident1 string, ident2 *User, ident3 error) *StoreGetInvocation {
-	invocation := new(StoreGetInvocation)
+// NewStoreGetByEmailInvocation creates a new instance of StoreGetByEmailInvocation
+func NewStoreGetByEmailInvocation(ident1 string, ident2 *User, ident3 error) *StoreGetByEmailInvocation {
+	invocation := new(StoreGetByEmailInvocation)
+
+	invocation.Parameters.Ident1 = ident1
+
+	invocation.Results.Ident2 = ident2
+	invocation.Results.Ident3 = ident3
+
+	return invocation
+}
+
+// StoreGetByIDInvocation represents a single call of FakeStore.GetByID
+type StoreGetByIDInvocation struct {
+	Parameters struct {
+		Ident1 kallax.ULID
+	}
+	Results struct {
+		Ident2 *User
+		Ident3 error
+	}
+}
+
+// NewStoreGetByIDInvocation creates a new instance of StoreGetByIDInvocation
+func NewStoreGetByIDInvocation(ident1 kallax.ULID, ident2 *User, ident3 error) *StoreGetByIDInvocation {
+	invocation := new(StoreGetByIDInvocation)
 
 	invocation.Parameters.Ident1 = ident1
 
@@ -81,11 +106,13 @@ should be called in the code under test.  This will force a panic if any
 unexpected calls are made to FakeSave.
 */
 type FakeStore struct {
-	SaveHook func(*User) error
-	GetHook  func(string) (*User, error)
+	SaveHook       func(*User) error
+	GetByEmailHook func(string) (*User, error)
+	GetByIDHook    func(kallax.ULID) (*User, error)
 
-	SaveCalls []*StoreSaveInvocation
-	GetCalls  []*StoreGetInvocation
+	SaveCalls       []*StoreSaveInvocation
+	GetByEmailCalls []*StoreGetByEmailInvocation
+	GetByIDCalls    []*StoreGetByIDInvocation
 }
 
 // NewFakeStoreDefaultPanic returns an instance of FakeStore with all hooks configured to panic
@@ -94,8 +121,11 @@ func NewFakeStoreDefaultPanic() *FakeStore {
 		SaveHook: func(*User) (ident2 error) {
 			panic("Unexpected call to Store.Save")
 		},
-		GetHook: func(string) (ident2 *User, ident3 error) {
-			panic("Unexpected call to Store.Get")
+		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
+			panic("Unexpected call to Store.GetByEmail")
+		},
+		GetByIDHook: func(kallax.ULID) (ident2 *User, ident3 error) {
+			panic("Unexpected call to Store.GetByID")
 		},
 	}
 }
@@ -107,8 +137,12 @@ func NewFakeStoreDefaultFatal(t_sym1 StoreTestingT) *FakeStore {
 			t_sym1.Fatal("Unexpected call to Store.Save")
 			return
 		},
-		GetHook: func(string) (ident2 *User, ident3 error) {
-			t_sym1.Fatal("Unexpected call to Store.Get")
+		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
+			t_sym1.Fatal("Unexpected call to Store.GetByEmail")
+			return
+		},
+		GetByIDHook: func(kallax.ULID) (ident2 *User, ident3 error) {
+			t_sym1.Fatal("Unexpected call to Store.GetByID")
 			return
 		},
 	}
@@ -121,8 +155,12 @@ func NewFakeStoreDefaultError(t_sym2 StoreTestingT) *FakeStore {
 			t_sym2.Error("Unexpected call to Store.Save")
 			return
 		},
-		GetHook: func(string) (ident2 *User, ident3 error) {
-			t_sym2.Error("Unexpected call to Store.Get")
+		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
+			t_sym2.Error("Unexpected call to Store.GetByEmail")
+			return
+		},
+		GetByIDHook: func(kallax.ULID) (ident2 *User, ident3 error) {
+			t_sym2.Error("Unexpected call to Store.GetByID")
 			return
 		},
 	}
@@ -130,7 +168,8 @@ func NewFakeStoreDefaultError(t_sym2 StoreTestingT) *FakeStore {
 
 func (f *FakeStore) Reset() {
 	f.SaveCalls = []*StoreSaveInvocation{}
-	f.GetCalls = []*StoreGetInvocation{}
+	f.GetByEmailCalls = []*StoreGetByEmailInvocation{}
+	f.GetByIDCalls = []*StoreGetByIDInvocation{}
 }
 
 func (f_sym3 *FakeStore) Save(ident1 *User) (ident2 error) {
@@ -292,17 +331,17 @@ func (f_sym10 *FakeStore) SaveResultsForCall(ident1 *User) (ident2 error, found_
 	return
 }
 
-func (f_sym11 *FakeStore) Get(ident1 string) (ident2 *User, ident3 error) {
-	if f_sym11.GetHook == nil {
-		panic("Store.Get() called but FakeStore.GetHook is nil")
+func (f_sym11 *FakeStore) GetByEmail(ident1 string) (ident2 *User, ident3 error) {
+	if f_sym11.GetByEmailHook == nil {
+		panic("Store.GetByEmail() called but FakeStore.GetByEmailHook is nil")
 	}
 
-	invocation_sym11 := new(StoreGetInvocation)
-	f_sym11.GetCalls = append(f_sym11.GetCalls, invocation_sym11)
+	invocation_sym11 := new(StoreGetByEmailInvocation)
+	f_sym11.GetByEmailCalls = append(f_sym11.GetByEmailCalls, invocation_sym11)
 
 	invocation_sym11.Parameters.Ident1 = ident1
 
-	ident2, ident3 = f_sym11.GetHook(ident1)
+	ident2, ident3 = f_sym11.GetByEmailHook(ident1)
 
 	invocation_sym11.Results.Ident2 = ident2
 	invocation_sym11.Results.Ident3 = ident3
@@ -310,17 +349,17 @@ func (f_sym11 *FakeStore) Get(ident1 string) (ident2 *User, ident3 error) {
 	return
 }
 
-// SetGetStub configures Store.Get to always return the given values
-func (f_sym12 *FakeStore) SetGetStub(ident2 *User, ident3 error) {
-	f_sym12.GetHook = func(string) (*User, error) {
+// SetGetByEmailStub configures Store.GetByEmail to always return the given values
+func (f_sym12 *FakeStore) SetGetByEmailStub(ident2 *User, ident3 error) {
+	f_sym12.GetByEmailHook = func(string) (*User, error) {
 		return ident2, ident3
 	}
 }
 
-// SetGetInvocation configures Store.Get to return the given results when called with the given parameters
+// SetGetByEmailInvocation configures Store.GetByEmail to return the given results when called with the given parameters
 // If no match is found for an invocation the result(s) of the fallback function are returned
-func (f_sym13 *FakeStore) SetGetInvocation(calls_sym13 []*StoreGetInvocation, fallback_sym13 func() (*User, error)) {
-	f_sym13.GetHook = func(ident1 string) (ident2 *User, ident3 error) {
+func (f_sym13 *FakeStore) SetGetByEmailInvocation(calls_sym13 []*StoreGetByEmailInvocation, fallback_sym13 func() (*User, error)) {
+	f_sym13.GetByEmailHook = func(ident1 string) (ident2 *User, ident3 error) {
 		for _, call_sym13 := range calls_sym13 {
 			if reflect.DeepEqual(call_sym13.Parameters.Ident1, ident1) {
 				ident2 = call_sym13.Results.Ident2
@@ -334,61 +373,61 @@ func (f_sym13 *FakeStore) SetGetInvocation(calls_sym13 []*StoreGetInvocation, fa
 	}
 }
 
-// GetCalled returns true if FakeStore.Get was called
-func (f *FakeStore) GetCalled() bool {
-	return len(f.GetCalls) != 0
+// GetByEmailCalled returns true if FakeStore.GetByEmail was called
+func (f *FakeStore) GetByEmailCalled() bool {
+	return len(f.GetByEmailCalls) != 0
 }
 
-// AssertGetCalled calls t.Error if FakeStore.Get was not called
-func (f *FakeStore) AssertGetCalled(t StoreTestingT) {
+// AssertGetByEmailCalled calls t.Error if FakeStore.GetByEmail was not called
+func (f *FakeStore) AssertGetByEmailCalled(t StoreTestingT) {
 	t.Helper()
-	if len(f.GetCalls) == 0 {
-		t.Error("FakeStore.Get not called, expected at least one")
+	if len(f.GetByEmailCalls) == 0 {
+		t.Error("FakeStore.GetByEmail not called, expected at least one")
 	}
 }
 
-// GetNotCalled returns true if FakeStore.Get was not called
-func (f *FakeStore) GetNotCalled() bool {
-	return len(f.GetCalls) == 0
+// GetByEmailNotCalled returns true if FakeStore.GetByEmail was not called
+func (f *FakeStore) GetByEmailNotCalled() bool {
+	return len(f.GetByEmailCalls) == 0
 }
 
-// AssertGetNotCalled calls t.Error if FakeStore.Get was called
-func (f *FakeStore) AssertGetNotCalled(t StoreTestingT) {
+// AssertGetByEmailNotCalled calls t.Error if FakeStore.GetByEmail was called
+func (f *FakeStore) AssertGetByEmailNotCalled(t StoreTestingT) {
 	t.Helper()
-	if len(f.GetCalls) != 0 {
-		t.Error("FakeStore.Get called, expected none")
+	if len(f.GetByEmailCalls) != 0 {
+		t.Error("FakeStore.GetByEmail called, expected none")
 	}
 }
 
-// GetCalledOnce returns true if FakeStore.Get was called exactly once
-func (f *FakeStore) GetCalledOnce() bool {
-	return len(f.GetCalls) == 1
+// GetByEmailCalledOnce returns true if FakeStore.GetByEmail was called exactly once
+func (f *FakeStore) GetByEmailCalledOnce() bool {
+	return len(f.GetByEmailCalls) == 1
 }
 
-// AssertGetCalledOnce calls t.Error if FakeStore.Get was not called exactly once
-func (f *FakeStore) AssertGetCalledOnce(t StoreTestingT) {
+// AssertGetByEmailCalledOnce calls t.Error if FakeStore.GetByEmail was not called exactly once
+func (f *FakeStore) AssertGetByEmailCalledOnce(t StoreTestingT) {
 	t.Helper()
-	if len(f.GetCalls) != 1 {
-		t.Errorf("FakeStore.Get called %d times, expected 1", len(f.GetCalls))
+	if len(f.GetByEmailCalls) != 1 {
+		t.Errorf("FakeStore.GetByEmail called %d times, expected 1", len(f.GetByEmailCalls))
 	}
 }
 
-// GetCalledN returns true if FakeStore.Get was called at least n times
-func (f *FakeStore) GetCalledN(n int) bool {
-	return len(f.GetCalls) >= n
+// GetByEmailCalledN returns true if FakeStore.GetByEmail was called at least n times
+func (f *FakeStore) GetByEmailCalledN(n int) bool {
+	return len(f.GetByEmailCalls) >= n
 }
 
-// AssertGetCalledN calls t.Error if FakeStore.Get was called less than n times
-func (f *FakeStore) AssertGetCalledN(t StoreTestingT, n int) {
+// AssertGetByEmailCalledN calls t.Error if FakeStore.GetByEmail was called less than n times
+func (f *FakeStore) AssertGetByEmailCalledN(t StoreTestingT, n int) {
 	t.Helper()
-	if len(f.GetCalls) < n {
-		t.Errorf("FakeStore.Get called %d times, expected >= %d", len(f.GetCalls), n)
+	if len(f.GetByEmailCalls) < n {
+		t.Errorf("FakeStore.GetByEmail called %d times, expected >= %d", len(f.GetByEmailCalls), n)
 	}
 }
 
-// GetCalledWith returns true if FakeStore.Get was called with the given values
-func (f_sym14 *FakeStore) GetCalledWith(ident1 string) bool {
-	for _, call_sym14 := range f_sym14.GetCalls {
+// GetByEmailCalledWith returns true if FakeStore.GetByEmail was called with the given values
+func (f_sym14 *FakeStore) GetByEmailCalledWith(ident1 string) bool {
+	for _, call_sym14 := range f_sym14.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym14.Parameters.Ident1, ident1) {
 			return true
 		}
@@ -397,11 +436,11 @@ func (f_sym14 *FakeStore) GetCalledWith(ident1 string) bool {
 	return false
 }
 
-// AssertGetCalledWith calls t.Error if FakeStore.Get was not called with the given values
-func (f_sym15 *FakeStore) AssertGetCalledWith(t StoreTestingT, ident1 string) {
+// AssertGetByEmailCalledWith calls t.Error if FakeStore.GetByEmail was not called with the given values
+func (f_sym15 *FakeStore) AssertGetByEmailCalledWith(t StoreTestingT, ident1 string) {
 	t.Helper()
 	var found_sym15 bool
-	for _, call_sym15 := range f_sym15.GetCalls {
+	for _, call_sym15 := range f_sym15.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym15.Parameters.Ident1, ident1) {
 			found_sym15 = true
 			break
@@ -409,14 +448,14 @@ func (f_sym15 *FakeStore) AssertGetCalledWith(t StoreTestingT, ident1 string) {
 	}
 
 	if !found_sym15 {
-		t.Error("FakeStore.Get not called with expected parameters")
+		t.Error("FakeStore.GetByEmail not called with expected parameters")
 	}
 }
 
-// GetCalledOnceWith returns true if FakeStore.Get was called exactly once with the given values
-func (f_sym16 *FakeStore) GetCalledOnceWith(ident1 string) bool {
+// GetByEmailCalledOnceWith returns true if FakeStore.GetByEmail was called exactly once with the given values
+func (f_sym16 *FakeStore) GetByEmailCalledOnceWith(ident1 string) bool {
 	var count_sym16 int
-	for _, call_sym16 := range f_sym16.GetCalls {
+	for _, call_sym16 := range f_sym16.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym16.Parameters.Ident1, ident1) {
 			count_sym16++
 		}
@@ -425,28 +464,190 @@ func (f_sym16 *FakeStore) GetCalledOnceWith(ident1 string) bool {
 	return count_sym16 == 1
 }
 
-// AssertGetCalledOnceWith calls t.Error if FakeStore.Get was not called exactly once with the given values
-func (f_sym17 *FakeStore) AssertGetCalledOnceWith(t StoreTestingT, ident1 string) {
+// AssertGetByEmailCalledOnceWith calls t.Error if FakeStore.GetByEmail was not called exactly once with the given values
+func (f_sym17 *FakeStore) AssertGetByEmailCalledOnceWith(t StoreTestingT, ident1 string) {
 	t.Helper()
 	var count_sym17 int
-	for _, call_sym17 := range f_sym17.GetCalls {
+	for _, call_sym17 := range f_sym17.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym17.Parameters.Ident1, ident1) {
 			count_sym17++
 		}
 	}
 
 	if count_sym17 != 1 {
-		t.Errorf("FakeStore.Get called %d times with expected parameters, expected one", count_sym17)
+		t.Errorf("FakeStore.GetByEmail called %d times with expected parameters, expected one", count_sym17)
 	}
 }
 
-// GetResultsForCall returns the result values for the first call to FakeStore.Get with the given values
-func (f_sym18 *FakeStore) GetResultsForCall(ident1 string) (ident2 *User, ident3 error, found_sym18 bool) {
-	for _, call_sym18 := range f_sym18.GetCalls {
+// GetByEmailResultsForCall returns the result values for the first call to FakeStore.GetByEmail with the given values
+func (f_sym18 *FakeStore) GetByEmailResultsForCall(ident1 string) (ident2 *User, ident3 error, found_sym18 bool) {
+	for _, call_sym18 := range f_sym18.GetByEmailCalls {
 		if reflect.DeepEqual(call_sym18.Parameters.Ident1, ident1) {
 			ident2 = call_sym18.Results.Ident2
 			ident3 = call_sym18.Results.Ident3
 			found_sym18 = true
+			break
+		}
+	}
+
+	return
+}
+
+func (f_sym19 *FakeStore) GetByID(ident1 kallax.ULID) (ident2 *User, ident3 error) {
+	if f_sym19.GetByIDHook == nil {
+		panic("Store.GetByID() called but FakeStore.GetByIDHook is nil")
+	}
+
+	invocation_sym19 := new(StoreGetByIDInvocation)
+	f_sym19.GetByIDCalls = append(f_sym19.GetByIDCalls, invocation_sym19)
+
+	invocation_sym19.Parameters.Ident1 = ident1
+
+	ident2, ident3 = f_sym19.GetByIDHook(ident1)
+
+	invocation_sym19.Results.Ident2 = ident2
+	invocation_sym19.Results.Ident3 = ident3
+
+	return
+}
+
+// SetGetByIDStub configures Store.GetByID to always return the given values
+func (f_sym20 *FakeStore) SetGetByIDStub(ident2 *User, ident3 error) {
+	f_sym20.GetByIDHook = func(kallax.ULID) (*User, error) {
+		return ident2, ident3
+	}
+}
+
+// SetGetByIDInvocation configures Store.GetByID to return the given results when called with the given parameters
+// If no match is found for an invocation the result(s) of the fallback function are returned
+func (f_sym21 *FakeStore) SetGetByIDInvocation(calls_sym21 []*StoreGetByIDInvocation, fallback_sym21 func() (*User, error)) {
+	f_sym21.GetByIDHook = func(ident1 kallax.ULID) (ident2 *User, ident3 error) {
+		for _, call_sym21 := range calls_sym21 {
+			if reflect.DeepEqual(call_sym21.Parameters.Ident1, ident1) {
+				ident2 = call_sym21.Results.Ident2
+				ident3 = call_sym21.Results.Ident3
+
+				return
+			}
+		}
+
+		return fallback_sym21()
+	}
+}
+
+// GetByIDCalled returns true if FakeStore.GetByID was called
+func (f *FakeStore) GetByIDCalled() bool {
+	return len(f.GetByIDCalls) != 0
+}
+
+// AssertGetByIDCalled calls t.Error if FakeStore.GetByID was not called
+func (f *FakeStore) AssertGetByIDCalled(t StoreTestingT) {
+	t.Helper()
+	if len(f.GetByIDCalls) == 0 {
+		t.Error("FakeStore.GetByID not called, expected at least one")
+	}
+}
+
+// GetByIDNotCalled returns true if FakeStore.GetByID was not called
+func (f *FakeStore) GetByIDNotCalled() bool {
+	return len(f.GetByIDCalls) == 0
+}
+
+// AssertGetByIDNotCalled calls t.Error if FakeStore.GetByID was called
+func (f *FakeStore) AssertGetByIDNotCalled(t StoreTestingT) {
+	t.Helper()
+	if len(f.GetByIDCalls) != 0 {
+		t.Error("FakeStore.GetByID called, expected none")
+	}
+}
+
+// GetByIDCalledOnce returns true if FakeStore.GetByID was called exactly once
+func (f *FakeStore) GetByIDCalledOnce() bool {
+	return len(f.GetByIDCalls) == 1
+}
+
+// AssertGetByIDCalledOnce calls t.Error if FakeStore.GetByID was not called exactly once
+func (f *FakeStore) AssertGetByIDCalledOnce(t StoreTestingT) {
+	t.Helper()
+	if len(f.GetByIDCalls) != 1 {
+		t.Errorf("FakeStore.GetByID called %d times, expected 1", len(f.GetByIDCalls))
+	}
+}
+
+// GetByIDCalledN returns true if FakeStore.GetByID was called at least n times
+func (f *FakeStore) GetByIDCalledN(n int) bool {
+	return len(f.GetByIDCalls) >= n
+}
+
+// AssertGetByIDCalledN calls t.Error if FakeStore.GetByID was called less than n times
+func (f *FakeStore) AssertGetByIDCalledN(t StoreTestingT, n int) {
+	t.Helper()
+	if len(f.GetByIDCalls) < n {
+		t.Errorf("FakeStore.GetByID called %d times, expected >= %d", len(f.GetByIDCalls), n)
+	}
+}
+
+// GetByIDCalledWith returns true if FakeStore.GetByID was called with the given values
+func (f_sym22 *FakeStore) GetByIDCalledWith(ident1 kallax.ULID) bool {
+	for _, call_sym22 := range f_sym22.GetByIDCalls {
+		if reflect.DeepEqual(call_sym22.Parameters.Ident1, ident1) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// AssertGetByIDCalledWith calls t.Error if FakeStore.GetByID was not called with the given values
+func (f_sym23 *FakeStore) AssertGetByIDCalledWith(t StoreTestingT, ident1 kallax.ULID) {
+	t.Helper()
+	var found_sym23 bool
+	for _, call_sym23 := range f_sym23.GetByIDCalls {
+		if reflect.DeepEqual(call_sym23.Parameters.Ident1, ident1) {
+			found_sym23 = true
+			break
+		}
+	}
+
+	if !found_sym23 {
+		t.Error("FakeStore.GetByID not called with expected parameters")
+	}
+}
+
+// GetByIDCalledOnceWith returns true if FakeStore.GetByID was called exactly once with the given values
+func (f_sym24 *FakeStore) GetByIDCalledOnceWith(ident1 kallax.ULID) bool {
+	var count_sym24 int
+	for _, call_sym24 := range f_sym24.GetByIDCalls {
+		if reflect.DeepEqual(call_sym24.Parameters.Ident1, ident1) {
+			count_sym24++
+		}
+	}
+
+	return count_sym24 == 1
+}
+
+// AssertGetByIDCalledOnceWith calls t.Error if FakeStore.GetByID was not called exactly once with the given values
+func (f_sym25 *FakeStore) AssertGetByIDCalledOnceWith(t StoreTestingT, ident1 kallax.ULID) {
+	t.Helper()
+	var count_sym25 int
+	for _, call_sym25 := range f_sym25.GetByIDCalls {
+		if reflect.DeepEqual(call_sym25.Parameters.Ident1, ident1) {
+			count_sym25++
+		}
+	}
+
+	if count_sym25 != 1 {
+		t.Errorf("FakeStore.GetByID called %d times with expected parameters, expected one", count_sym25)
+	}
+}
+
+// GetByIDResultsForCall returns the result values for the first call to FakeStore.GetByID with the given values
+func (f_sym26 *FakeStore) GetByIDResultsForCall(ident1 kallax.ULID) (ident2 *User, ident3 error, found_sym26 bool) {
+	for _, call_sym26 := range f_sym26.GetByIDCalls {
+		if reflect.DeepEqual(call_sym26.Parameters.Ident1, ident1) {
+			ident2 = call_sym26.Results.Ident2
+			ident3 = call_sym26.Results.Ident3
+			found_sym26 = true
 			break
 		}
 	}

@@ -4,6 +4,8 @@ package user
 
 import "reflect"
 
+import kallax "gopkg.in/src-d/go-kallax.v1"
+
 // ServiceGetByEmailInvocation represents a single call of FakeService.GetByEmail
 type ServiceGetByEmailInvocation struct {
 	Parameters struct {
@@ -18,6 +20,29 @@ type ServiceGetByEmailInvocation struct {
 // NewServiceGetByEmailInvocation creates a new instance of ServiceGetByEmailInvocation
 func NewServiceGetByEmailInvocation(ident1 string, ident2 *User, ident3 error) *ServiceGetByEmailInvocation {
 	invocation := new(ServiceGetByEmailInvocation)
+
+	invocation.Parameters.Ident1 = ident1
+
+	invocation.Results.Ident2 = ident2
+	invocation.Results.Ident3 = ident3
+
+	return invocation
+}
+
+// ServiceGetByIDInvocation represents a single call of FakeService.GetByID
+type ServiceGetByIDInvocation struct {
+	Parameters struct {
+		Ident1 kallax.ULID
+	}
+	Results struct {
+		Ident2 *User
+		Ident3 error
+	}
+}
+
+// NewServiceGetByIDInvocation creates a new instance of ServiceGetByIDInvocation
+func NewServiceGetByIDInvocation(ident1 kallax.ULID, ident2 *User, ident3 error) *ServiceGetByIDInvocation {
+	invocation := new(ServiceGetByIDInvocation)
 
 	invocation.Parameters.Ident1 = ident1
 
@@ -82,9 +107,11 @@ unexpected calls are made to FakeGetByEmail.
 */
 type FakeService struct {
 	GetByEmailHook func(string) (*User, error)
+	GetByIDHook    func(kallax.ULID) (*User, error)
 	SaveHook       func(*User) error
 
 	GetByEmailCalls []*ServiceGetByEmailInvocation
+	GetByIDCalls    []*ServiceGetByIDInvocation
 	SaveCalls       []*ServiceSaveInvocation
 }
 
@@ -93,6 +120,9 @@ func NewFakeServiceDefaultPanic() *FakeService {
 	return &FakeService{
 		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
 			panic("Unexpected call to Service.GetByEmail")
+		},
+		GetByIDHook: func(kallax.ULID) (ident2 *User, ident3 error) {
+			panic("Unexpected call to Service.GetByID")
 		},
 		SaveHook: func(*User) (ident2 error) {
 			panic("Unexpected call to Service.Save")
@@ -105,6 +135,10 @@ func NewFakeServiceDefaultFatal(t_sym1 ServiceTestingT) *FakeService {
 	return &FakeService{
 		GetByEmailHook: func(string) (ident2 *User, ident3 error) {
 			t_sym1.Fatal("Unexpected call to Service.GetByEmail")
+			return
+		},
+		GetByIDHook: func(kallax.ULID) (ident2 *User, ident3 error) {
+			t_sym1.Fatal("Unexpected call to Service.GetByID")
 			return
 		},
 		SaveHook: func(*User) (ident2 error) {
@@ -121,6 +155,10 @@ func NewFakeServiceDefaultError(t_sym2 ServiceTestingT) *FakeService {
 			t_sym2.Error("Unexpected call to Service.GetByEmail")
 			return
 		},
+		GetByIDHook: func(kallax.ULID) (ident2 *User, ident3 error) {
+			t_sym2.Error("Unexpected call to Service.GetByID")
+			return
+		},
 		SaveHook: func(*User) (ident2 error) {
 			t_sym2.Error("Unexpected call to Service.Save")
 			return
@@ -130,6 +168,7 @@ func NewFakeServiceDefaultError(t_sym2 ServiceTestingT) *FakeService {
 
 func (f *FakeService) Reset() {
 	f.GetByEmailCalls = []*ServiceGetByEmailInvocation{}
+	f.GetByIDCalls = []*ServiceGetByIDInvocation{}
 	f.SaveCalls = []*ServiceSaveInvocation{}
 }
 
@@ -295,43 +334,205 @@ func (f_sym10 *FakeService) GetByEmailResultsForCall(ident1 string) (ident2 *Use
 	return
 }
 
-func (f_sym11 *FakeService) Save(ident1 *User) (ident2 error) {
-	if f_sym11.SaveHook == nil {
-		panic("Service.Save() called but FakeService.SaveHook is nil")
+func (f_sym11 *FakeService) GetByID(ident1 kallax.ULID) (ident2 *User, ident3 error) {
+	if f_sym11.GetByIDHook == nil {
+		panic("Service.GetByID() called but FakeService.GetByIDHook is nil")
 	}
 
-	invocation_sym11 := new(ServiceSaveInvocation)
-	f_sym11.SaveCalls = append(f_sym11.SaveCalls, invocation_sym11)
+	invocation_sym11 := new(ServiceGetByIDInvocation)
+	f_sym11.GetByIDCalls = append(f_sym11.GetByIDCalls, invocation_sym11)
 
 	invocation_sym11.Parameters.Ident1 = ident1
 
-	ident2 = f_sym11.SaveHook(ident1)
+	ident2, ident3 = f_sym11.GetByIDHook(ident1)
 
 	invocation_sym11.Results.Ident2 = ident2
+	invocation_sym11.Results.Ident3 = ident3
 
 	return
 }
 
-// SetSaveStub configures Service.Save to always return the given values
-func (f_sym12 *FakeService) SetSaveStub(ident2 error) {
-	f_sym12.SaveHook = func(*User) error {
-		return ident2
+// SetGetByIDStub configures Service.GetByID to always return the given values
+func (f_sym12 *FakeService) SetGetByIDStub(ident2 *User, ident3 error) {
+	f_sym12.GetByIDHook = func(kallax.ULID) (*User, error) {
+		return ident2, ident3
 	}
 }
 
-// SetSaveInvocation configures Service.Save to return the given results when called with the given parameters
+// SetGetByIDInvocation configures Service.GetByID to return the given results when called with the given parameters
 // If no match is found for an invocation the result(s) of the fallback function are returned
-func (f_sym13 *FakeService) SetSaveInvocation(calls_sym13 []*ServiceSaveInvocation, fallback_sym13 func() error) {
-	f_sym13.SaveHook = func(ident1 *User) (ident2 error) {
+func (f_sym13 *FakeService) SetGetByIDInvocation(calls_sym13 []*ServiceGetByIDInvocation, fallback_sym13 func() (*User, error)) {
+	f_sym13.GetByIDHook = func(ident1 kallax.ULID) (ident2 *User, ident3 error) {
 		for _, call_sym13 := range calls_sym13 {
 			if reflect.DeepEqual(call_sym13.Parameters.Ident1, ident1) {
 				ident2 = call_sym13.Results.Ident2
+				ident3 = call_sym13.Results.Ident3
 
 				return
 			}
 		}
 
 		return fallback_sym13()
+	}
+}
+
+// GetByIDCalled returns true if FakeService.GetByID was called
+func (f *FakeService) GetByIDCalled() bool {
+	return len(f.GetByIDCalls) != 0
+}
+
+// AssertGetByIDCalled calls t.Error if FakeService.GetByID was not called
+func (f *FakeService) AssertGetByIDCalled(t ServiceTestingT) {
+	t.Helper()
+	if len(f.GetByIDCalls) == 0 {
+		t.Error("FakeService.GetByID not called, expected at least one")
+	}
+}
+
+// GetByIDNotCalled returns true if FakeService.GetByID was not called
+func (f *FakeService) GetByIDNotCalled() bool {
+	return len(f.GetByIDCalls) == 0
+}
+
+// AssertGetByIDNotCalled calls t.Error if FakeService.GetByID was called
+func (f *FakeService) AssertGetByIDNotCalled(t ServiceTestingT) {
+	t.Helper()
+	if len(f.GetByIDCalls) != 0 {
+		t.Error("FakeService.GetByID called, expected none")
+	}
+}
+
+// GetByIDCalledOnce returns true if FakeService.GetByID was called exactly once
+func (f *FakeService) GetByIDCalledOnce() bool {
+	return len(f.GetByIDCalls) == 1
+}
+
+// AssertGetByIDCalledOnce calls t.Error if FakeService.GetByID was not called exactly once
+func (f *FakeService) AssertGetByIDCalledOnce(t ServiceTestingT) {
+	t.Helper()
+	if len(f.GetByIDCalls) != 1 {
+		t.Errorf("FakeService.GetByID called %d times, expected 1", len(f.GetByIDCalls))
+	}
+}
+
+// GetByIDCalledN returns true if FakeService.GetByID was called at least n times
+func (f *FakeService) GetByIDCalledN(n int) bool {
+	return len(f.GetByIDCalls) >= n
+}
+
+// AssertGetByIDCalledN calls t.Error if FakeService.GetByID was called less than n times
+func (f *FakeService) AssertGetByIDCalledN(t ServiceTestingT, n int) {
+	t.Helper()
+	if len(f.GetByIDCalls) < n {
+		t.Errorf("FakeService.GetByID called %d times, expected >= %d", len(f.GetByIDCalls), n)
+	}
+}
+
+// GetByIDCalledWith returns true if FakeService.GetByID was called with the given values
+func (f_sym14 *FakeService) GetByIDCalledWith(ident1 kallax.ULID) bool {
+	for _, call_sym14 := range f_sym14.GetByIDCalls {
+		if reflect.DeepEqual(call_sym14.Parameters.Ident1, ident1) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// AssertGetByIDCalledWith calls t.Error if FakeService.GetByID was not called with the given values
+func (f_sym15 *FakeService) AssertGetByIDCalledWith(t ServiceTestingT, ident1 kallax.ULID) {
+	t.Helper()
+	var found_sym15 bool
+	for _, call_sym15 := range f_sym15.GetByIDCalls {
+		if reflect.DeepEqual(call_sym15.Parameters.Ident1, ident1) {
+			found_sym15 = true
+			break
+		}
+	}
+
+	if !found_sym15 {
+		t.Error("FakeService.GetByID not called with expected parameters")
+	}
+}
+
+// GetByIDCalledOnceWith returns true if FakeService.GetByID was called exactly once with the given values
+func (f_sym16 *FakeService) GetByIDCalledOnceWith(ident1 kallax.ULID) bool {
+	var count_sym16 int
+	for _, call_sym16 := range f_sym16.GetByIDCalls {
+		if reflect.DeepEqual(call_sym16.Parameters.Ident1, ident1) {
+			count_sym16++
+		}
+	}
+
+	return count_sym16 == 1
+}
+
+// AssertGetByIDCalledOnceWith calls t.Error if FakeService.GetByID was not called exactly once with the given values
+func (f_sym17 *FakeService) AssertGetByIDCalledOnceWith(t ServiceTestingT, ident1 kallax.ULID) {
+	t.Helper()
+	var count_sym17 int
+	for _, call_sym17 := range f_sym17.GetByIDCalls {
+		if reflect.DeepEqual(call_sym17.Parameters.Ident1, ident1) {
+			count_sym17++
+		}
+	}
+
+	if count_sym17 != 1 {
+		t.Errorf("FakeService.GetByID called %d times with expected parameters, expected one", count_sym17)
+	}
+}
+
+// GetByIDResultsForCall returns the result values for the first call to FakeService.GetByID with the given values
+func (f_sym18 *FakeService) GetByIDResultsForCall(ident1 kallax.ULID) (ident2 *User, ident3 error, found_sym18 bool) {
+	for _, call_sym18 := range f_sym18.GetByIDCalls {
+		if reflect.DeepEqual(call_sym18.Parameters.Ident1, ident1) {
+			ident2 = call_sym18.Results.Ident2
+			ident3 = call_sym18.Results.Ident3
+			found_sym18 = true
+			break
+		}
+	}
+
+	return
+}
+
+func (f_sym19 *FakeService) Save(ident1 *User) (ident2 error) {
+	if f_sym19.SaveHook == nil {
+		panic("Service.Save() called but FakeService.SaveHook is nil")
+	}
+
+	invocation_sym19 := new(ServiceSaveInvocation)
+	f_sym19.SaveCalls = append(f_sym19.SaveCalls, invocation_sym19)
+
+	invocation_sym19.Parameters.Ident1 = ident1
+
+	ident2 = f_sym19.SaveHook(ident1)
+
+	invocation_sym19.Results.Ident2 = ident2
+
+	return
+}
+
+// SetSaveStub configures Service.Save to always return the given values
+func (f_sym20 *FakeService) SetSaveStub(ident2 error) {
+	f_sym20.SaveHook = func(*User) error {
+		return ident2
+	}
+}
+
+// SetSaveInvocation configures Service.Save to return the given results when called with the given parameters
+// If no match is found for an invocation the result(s) of the fallback function are returned
+func (f_sym21 *FakeService) SetSaveInvocation(calls_sym21 []*ServiceSaveInvocation, fallback_sym21 func() error) {
+	f_sym21.SaveHook = func(ident1 *User) (ident2 error) {
+		for _, call_sym21 := range calls_sym21 {
+			if reflect.DeepEqual(call_sym21.Parameters.Ident1, ident1) {
+				ident2 = call_sym21.Results.Ident2
+
+				return
+			}
+		}
+
+		return fallback_sym21()
 	}
 }
 
@@ -388,9 +589,9 @@ func (f *FakeService) AssertSaveCalledN(t ServiceTestingT, n int) {
 }
 
 // SaveCalledWith returns true if FakeService.Save was called with the given values
-func (f_sym14 *FakeService) SaveCalledWith(ident1 *User) bool {
-	for _, call_sym14 := range f_sym14.SaveCalls {
-		if reflect.DeepEqual(call_sym14.Parameters.Ident1, ident1) {
+func (f_sym22 *FakeService) SaveCalledWith(ident1 *User) bool {
+	for _, call_sym22 := range f_sym22.SaveCalls {
+		if reflect.DeepEqual(call_sym22.Parameters.Ident1, ident1) {
 			return true
 		}
 	}
@@ -399,54 +600,54 @@ func (f_sym14 *FakeService) SaveCalledWith(ident1 *User) bool {
 }
 
 // AssertSaveCalledWith calls t.Error if FakeService.Save was not called with the given values
-func (f_sym15 *FakeService) AssertSaveCalledWith(t ServiceTestingT, ident1 *User) {
+func (f_sym23 *FakeService) AssertSaveCalledWith(t ServiceTestingT, ident1 *User) {
 	t.Helper()
-	var found_sym15 bool
-	for _, call_sym15 := range f_sym15.SaveCalls {
-		if reflect.DeepEqual(call_sym15.Parameters.Ident1, ident1) {
-			found_sym15 = true
+	var found_sym23 bool
+	for _, call_sym23 := range f_sym23.SaveCalls {
+		if reflect.DeepEqual(call_sym23.Parameters.Ident1, ident1) {
+			found_sym23 = true
 			break
 		}
 	}
 
-	if !found_sym15 {
+	if !found_sym23 {
 		t.Error("FakeService.Save not called with expected parameters")
 	}
 }
 
 // SaveCalledOnceWith returns true if FakeService.Save was called exactly once with the given values
-func (f_sym16 *FakeService) SaveCalledOnceWith(ident1 *User) bool {
-	var count_sym16 int
-	for _, call_sym16 := range f_sym16.SaveCalls {
-		if reflect.DeepEqual(call_sym16.Parameters.Ident1, ident1) {
-			count_sym16++
+func (f_sym24 *FakeService) SaveCalledOnceWith(ident1 *User) bool {
+	var count_sym24 int
+	for _, call_sym24 := range f_sym24.SaveCalls {
+		if reflect.DeepEqual(call_sym24.Parameters.Ident1, ident1) {
+			count_sym24++
 		}
 	}
 
-	return count_sym16 == 1
+	return count_sym24 == 1
 }
 
 // AssertSaveCalledOnceWith calls t.Error if FakeService.Save was not called exactly once with the given values
-func (f_sym17 *FakeService) AssertSaveCalledOnceWith(t ServiceTestingT, ident1 *User) {
+func (f_sym25 *FakeService) AssertSaveCalledOnceWith(t ServiceTestingT, ident1 *User) {
 	t.Helper()
-	var count_sym17 int
-	for _, call_sym17 := range f_sym17.SaveCalls {
-		if reflect.DeepEqual(call_sym17.Parameters.Ident1, ident1) {
-			count_sym17++
+	var count_sym25 int
+	for _, call_sym25 := range f_sym25.SaveCalls {
+		if reflect.DeepEqual(call_sym25.Parameters.Ident1, ident1) {
+			count_sym25++
 		}
 	}
 
-	if count_sym17 != 1 {
-		t.Errorf("FakeService.Save called %d times with expected parameters, expected one", count_sym17)
+	if count_sym25 != 1 {
+		t.Errorf("FakeService.Save called %d times with expected parameters, expected one", count_sym25)
 	}
 }
 
 // SaveResultsForCall returns the result values for the first call to FakeService.Save with the given values
-func (f_sym18 *FakeService) SaveResultsForCall(ident1 *User) (ident2 error, found_sym18 bool) {
-	for _, call_sym18 := range f_sym18.SaveCalls {
-		if reflect.DeepEqual(call_sym18.Parameters.Ident1, ident1) {
-			ident2 = call_sym18.Results.Ident2
-			found_sym18 = true
+func (f_sym26 *FakeService) SaveResultsForCall(ident1 *User) (ident2 error, found_sym26 bool) {
+	for _, call_sym26 := range f_sym26.SaveCalls {
+		if reflect.DeepEqual(call_sym26.Parameters.Ident1, ident1) {
+			ident2 = call_sym26.Results.Ident2
+			found_sym26 = true
 			break
 		}
 	}

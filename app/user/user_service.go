@@ -1,6 +1,9 @@
 package user
 
-import "github.com/ifreddyrondon/capture/app/postgres"
+import (
+	"github.com/ifreddyrondon/capture/app/postgres"
+	"gopkg.in/src-d/go-kallax.v1"
+)
 
 const uniqueConstraintEmail = "uix_users_email"
 
@@ -8,6 +11,8 @@ const uniqueConstraintEmail = "uix_users_email"
 type GetterService interface {
 	// Get a user by email
 	GetByEmail(string) (*User, error)
+	// Get a user by id
+	GetByID(kallax.ULID) (*User, error)
 }
 
 // Service is the interface to be implemented by user services
@@ -44,10 +49,15 @@ func (s *StoreService) Save(user *User) error {
 }
 
 // GetByEmail will look for a user with the same email address, or return
-// user.ErrNotFound if no user is found. Any other errors raised by the sql
-// package are passed through.
+// user.ErrNotFound if no user is found.
 //
 // ByEmail is NOT case sensitive.
 func (s *StoreService) GetByEmail(email string) (*User, error) {
-	return s.store.Get(email)
+	return s.store.GetByEmail(email)
+}
+
+// GetByID will look for a user with the same ID, or return
+// user.ErrNotFound if no user is found.
+func (s *StoreService) GetByID(id kallax.ULID) (*User, error) {
+	return s.store.GetByID(id)
 }
