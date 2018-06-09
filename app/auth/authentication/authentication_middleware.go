@@ -1,7 +1,6 @@
 package authentication
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion/render"
@@ -28,13 +27,7 @@ func NewAuthentication(strategy Strategy, render render.Render) *Authentication 
 // Authenticate validate if an user is authorized to continue or 401.
 func (a *Authentication) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var payload json.RawMessage
-		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-			_ = a.render(w).BadRequest(err)
-			return
-		}
-
-		u, err := a.strategy.Validate(payload)
+		u, err := a.strategy.Validate(r)
 		if err != nil {
 			if a.strategy.IsErrCredentials(err) {
 				httpErr := bastionJSON.HTTPError{

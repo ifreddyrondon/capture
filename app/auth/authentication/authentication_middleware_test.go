@@ -160,7 +160,7 @@ func setupWithMockStrategy(mock authentication.Strategy) *bastion.Bastion {
 
 type mockStrategyFailValidate struct{}
 
-func (m *mockStrategyFailValidate) Validate(payload []byte) (*user.User, error) {
+func (m *mockStrategyFailValidate) Validate(r *http.Request) (*user.User, error) {
 	return nil, errors.New("test")
 }
 func (m *mockStrategyFailValidate) IsErrCredentials(err error) bool {
@@ -168,31 +168,6 @@ func (m *mockStrategyFailValidate) IsErrCredentials(err error) bool {
 }
 func (m *mockStrategyFailValidate) IsErrDecoding(err error) bool {
 	return false
-}
-
-func TestTokenAuthFailureBadRequestJSON(t *testing.T) {
-	t.Parallel()
-
-	app := setupWithMockStrategy(&mockStrategyFailValidate{})
-
-	e := bastion.Tester(t, app)
-	tc := struct {
-		payload  []byte
-		response map[string]interface{}
-	}{
-		payload: []byte("{"),
-		response: map[string]interface{}{
-			"status":  400.0,
-			"error":   "Bad Request",
-			"message": "unexpected EOF",
-		},
-	}
-
-	e.POST("/auth/token-auth").
-		WithBytes(tc.payload).
-		Expect().
-		Status(http.StatusBadRequest).
-		JSON().Object().Equal(tc.response)
 }
 
 func TestTokenAuthFailureInternalServerError(t *testing.T) {

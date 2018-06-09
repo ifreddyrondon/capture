@@ -3,12 +3,14 @@ package basic_test
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 
-	"gopkg.in/src-d/go-kallax.v1"
-
 	"github.com/stretchr/testify/assert"
+	kallax "gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/stretchr/testify/require"
 
@@ -55,8 +57,10 @@ func TestValidateSuccess(t *testing.T) {
 	strategy, teardown := setup(t)
 	defer teardown()
 
-	body := []byte(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
-	u, err := strategy.Validate(body)
+	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
+	req := httptest.NewRequest("GET", "/", body)
+
+	u, err := strategy.Validate(req)
 	assert.Nil(t, err)
 	assert.Equal(t, testUserEmail, u.Email)
 }
@@ -66,25 +70,26 @@ func TestValidateInvalidCredentials(t *testing.T) {
 	defer teardown()
 
 	tt := []struct {
-		name    string
-		payload []byte
-		errs    []string
+		name string
+		body io.Reader
+		errs []string
 	}{
 		{
-			name:    "invalid credentials",
-			payload: []byte(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, "123")),
-			errs:    []string{"invalid email or password"},
+			name: "invalid credentials",
+			body: strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, "123")),
+			errs: []string{"invalid email or password"},
 		},
 		{
-			name:    "missing email",
-			payload: []byte(fmt.Sprintf(`{"email":"%v","password":"%v"}`, "bla@example.com", "123")),
-			errs:    []string{"invalid email or password"},
+			name: "missing email",
+			body: strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, "bla@example.com", "123")),
+			errs: []string{"invalid email or password"},
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := strategy.Validate(tc.payload)
+			req := httptest.NewRequest("GET", "/", tc.body)
+			_, err := strategy.Validate(req)
 			assert.Error(t, err)
 			assert.True(t, strategy.IsErrCredentials(err))
 			for _, v := range tc.errs {
@@ -111,25 +116,26 @@ func TestValidateFailsDecoding(t *testing.T) {
 	strategy := basic.New(userService)
 
 	tt := []struct {
-		name    string
-		payload []byte
-		errs    []string
+		name string
+		body io.Reader
+		errs []string
 	}{
 		{
-			name:    "invalid json",
-			payload: []byte("{"),
-			errs:    []string{"cannot unmarshal json into valid credentials"},
+			name: "invalid json",
+			body: strings.NewReader("{"),
+			errs: []string{"unexpected EOF"},
 		},
 		{
-			name:    "missing data",
-			payload: []byte("{}"),
-			errs:    []string{"email must not be blank", "password must not be blank"},
+			name: "missing data",
+			body: strings.NewReader("{}"),
+			errs: []string{"email must not be blank", "password must not be blank"},
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := strategy.Validate(tc.payload)
+			req := httptest.NewRequest("GET", "/", tc.body)
+			_, err := strategy.Validate(req)
 			assert.Error(t, err)
 			assert.True(t, strategy.IsErrDecoding(err))
 			for _, v := range tc.errs {
@@ -144,8 +150,9 @@ func TestValidateFailsUnknowErr(t *testing.T) {
 
 	userService := &MockUserGetterServiceFail{}
 	strategy := basic.New(userService)
-	body := []byte(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
-	_, err := strategy.Validate(body)
+	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
+	req := httptest.NewRequest("GET", "/", body)
+	_, err := strategy.Validate(req)
 	assert.EqualError(t, err, "test")
 	assert.False(t, strategy.IsErrCredentials(err))
 	assert.False(t, strategy.IsErrDecoding(err))

@@ -1,14 +1,22 @@
 package basic
 
 import (
+	json "encoding/json"
 	"errors"
-
-	"github.com/markbates/validate"
+	"net/http"
 
 	"github.com/ifreddyrondon/capture/app/user"
 )
 
 var errInvalidCredentials = errors.New("invalid email or password")
+
+type decodingErr struct {
+	err error
+}
+
+func (d *decodingErr) Error() string {
+	return d.err.Error()
+}
 
 // Basic strategy mechanisms
 type Basic struct {
@@ -21,10 +29,10 @@ func New(service user.GetterService) *Basic {
 }
 
 // Validate basic credentials.
-func (b *Basic) Validate(payload []byte) (*user.User, error) {
+func (b *Basic) Validate(r *http.Request) (*user.User, error) {
 	var cre Crendentials
-	if err := cre.UnmarshalJSON(payload); err != nil {
-		return nil, err
+	if err := json.NewDecoder(r.Body).Decode(&cre); err != nil {
+		return nil, &decodingErr{err: err}
 	}
 
 	u, err := b.service.GetByEmail(cre.Email)
@@ -48,10 +56,7 @@ func (b *Basic) IsErrCredentials(err error) bool {
 
 // IsErrDecoding check if an error is for invalid decoding credentials.
 func (b *Basic) IsErrDecoding(err error) bool {
-	if _, ok := err.(*validate.Errors); ok {
-		return true
-	}
-	if err == errInvalidPayload {
+	if _, ok := err.(*decodingErr); ok {
 		return true
 	}
 	return false
