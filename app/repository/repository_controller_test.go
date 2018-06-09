@@ -5,13 +5,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/app/auth/authorization"
-
-	"github.com/ifreddyrondon/capture/app/repository"
-
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/capture/app/auth/authorization"
+	"github.com/ifreddyrondon/capture/app/repository"
+	"github.com/ifreddyrondon/capture/app/user"
+	kallax "gopkg.in/src-d/go-kallax.v1"
 )
+
+var mockUser = &user.User{Email: "test@example.com", ID: kallax.NewULID()}
 
 type MockService struct{}
 
@@ -22,7 +24,7 @@ func (r *MockService) Save(c *repository.Repository) error {
 type mockStrategySuccess struct{}
 
 func (m *mockStrategySuccess) IsAuthorizedREQ(r *http.Request) (string, error) {
-	return "test", nil
+	return mockUser.ID.String(), nil
 }
 func (m *mockStrategySuccess) IsNotAuthorizedErr(err error) bool {
 	return false
@@ -37,10 +39,21 @@ func (m *mockStrategyFail) IsNotAuthorizedErr(err error) bool {
 	return true
 }
 
+type mockUserGetterService struct{}
+
+func (m *mockUserGetterService) GetByEmail(email string) (*user.User, error) {
+	return mockUser, nil
+}
+
+func (m *mockUserGetterService) GetByID(id kallax.ULID) (*user.User, error) {
+	return mockUser, nil
+}
+
 func setupControllerMockService(strategy authorization.Strategy) *bastion.Bastion {
 	service := &MockService{}
-	midl := authorization.NewAuthorization(strategy, json.NewRender)
-	controller := repository.NewController(service, json.NewRender, midl)
+	authMidl := authorization.NewAuthorization(strategy, json.NewRender)
+	userMidl := user.NewMiddleware(&mockUserGetterService{}, json.NewRender)
+	controller := repository.NewController(service, json.NewRender, authMidl, userMidl)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/repository/", controller.Router())
@@ -49,8 +62,9 @@ func setupControllerMockService(strategy authorization.Strategy) *bastion.Bastio
 
 func setupController(t *testing.T, strategy authorization.Strategy) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
-	midl := authorization.NewAuthorization(strategy, json.NewRender)
-	controller := repository.NewController(service, json.NewRender, midl)
+	authMidl := authorization.NewAuthorization(strategy, json.NewRender)
+	userMidl := user.NewMiddleware(&mockUserGetterService{}, json.NewRender)
+	controller := repository.NewController(service, json.NewRender, authMidl, userMidl)
 
 	app := bastion.New(bastion.Options{})
 	app.APIRouter.Mount("/repository/", controller.Router())

@@ -26,6 +26,7 @@ func New(db *gorm.DB) *bastion.Bastion {
 	userStore.Migrate()
 	userService := user.NewService(userStore)
 	userController := user.NewController(userService, json.NewRender)
+	userMiddleware := user.NewMiddleware(userService, json.NewRender)
 	app.APIRouter.Mount("/users/", userController.Router())
 
 	authenticationStrategy := basic.New(userService)
@@ -42,7 +43,7 @@ func New(db *gorm.DB) *bastion.Bastion {
 	repoStore.Drop()
 	repoStore.Migrate()
 	repoService := repository.NewService(repoStore)
-	repoController := repository.NewController(repoService, json.NewRender, authorizationMiddleware)
+	repoController := repository.NewController(repoService, json.NewRender, authorizationMiddleware, userMiddleware)
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
 	captureStore := capture.NewPGStore(db)
