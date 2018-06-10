@@ -17,6 +17,7 @@ type Controller struct {
 	render         render.Render
 	authorization  *authorization.Authorization
 	userMiddleware *user.Middleware
+	ctxUserManager *user.ContextManager
 }
 
 // NewController returns a new Controller
@@ -26,6 +27,7 @@ func NewController(service Service, render render.Render, authMiddleware *author
 		render:         render,
 		authorization:  authMiddleware,
 		userMiddleware: userMiddleware,
+		ctxUserManager: user.NewContextManager(),
 	}
 }
 
@@ -48,6 +50,14 @@ func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 		_ = c.render(w).BadRequest(err)
 		return
 	}
+
+	userID, err := c.ctxUserManager.GetUserID(r.Context())
+	if err != nil {
+		_ = c.render(w).InternalServerError(err)
+		return
+	}
+
+	repo.UserID = userID
 
 	if err := c.service.Save(&repo); err != nil {
 		_ = c.render(w).InternalServerError(err)

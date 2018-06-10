@@ -81,7 +81,7 @@ func TestMarshalJSON(t *testing.T) {
 
 	d, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
 
-	expected := []byte(`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","name":"test","current_branch":"","shared":true,"createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z"}`)
+	expected := []byte(`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","name":"test","current_branch":"","shared":true,"createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","owner":"00000000-0000-0000-0000-000000000000"}`)
 	c := repository.Repository{
 		Name: "test",
 		ID: func() kallax.ULID {

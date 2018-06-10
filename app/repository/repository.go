@@ -20,6 +20,7 @@ type Repository struct {
 	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
 	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
 	DeletedAt     *time.Time  `json:"-"`
+	UserID        kallax.ULID `json:"owner"`
 }
 
 // UnmarshalJSON decodes the repository from a JSON body.
