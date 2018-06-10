@@ -24,7 +24,7 @@ var (
 type Controller struct {
 	service    Service
 	render     render.Render
-	ctxManager *contextManager
+	ctxManager *ContextManager
 }
 
 // NewController returns a new Controller
@@ -32,7 +32,7 @@ func NewController(service Service, render render.Render) *Controller {
 	return &Controller{
 		service:    service,
 		render:     render,
-		ctxManager: &contextManager{},
+		ctxManager: NewContextManager(),
 	}
 }
 
@@ -111,9 +111,8 @@ func (c *Controller) captureCtx(next http.Handler) http.Handler {
 }
 
 func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
-	capt := c.ctxManager.Get(r.Context())
-	if capt == nil {
-		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+	capt, err := c.ctxManager.GetCapture(r.Context())
+	if err != nil {
 		_ = c.render(w).InternalServerError(err)
 		return
 	}
@@ -121,9 +120,8 @@ func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
-	capt := c.ctxManager.Get(r.Context())
-	if capt == nil {
-		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+	capt, err := c.ctxManager.GetCapture(r.Context())
+	if err != nil {
 		_ = c.render(w).InternalServerError(err)
 		return
 	}
@@ -135,9 +133,8 @@ func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Controller) update(w http.ResponseWriter, r *http.Request) {
-	capt := c.ctxManager.Get(r.Context())
-	if capt == nil {
-		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+	capt, err := c.ctxManager.GetCapture(r.Context())
+	if err != nil {
 		_ = c.render(w).InternalServerError(err)
 		return
 	}

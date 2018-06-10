@@ -11,12 +11,6 @@ import (
 	"github.com/ifreddyrondon/capture/app/user"
 )
 
-type ctxKey string
-
-const (
-	userKey ctxKey = "user"
-)
-
 func TestContextManagerGetUserOK(t *testing.T) {
 	ctxManager := user.NewContextManager()
 	ctx := context.Background()
