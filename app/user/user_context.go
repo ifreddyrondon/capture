@@ -2,13 +2,20 @@ package user
 
 import (
 	"context"
-	"log"
+	"errors"
+
+	kallax "gopkg.in/src-d/go-kallax.v1"
 )
 
 type ctxKey string
 
 const (
 	userKey ctxKey = "user"
+)
+
+var (
+	errMissingUser    = errors.New("user not found in context")
+	errWrongUserValue = errors.New("user value set incorrectly in context")
 )
 
 // ContextManager handle user through the context
@@ -24,17 +31,26 @@ func (c *ContextManager) WithUser(ctx context.Context, user *User) context.Conte
 	return context.WithValue(ctx, userKey, user)
 }
 
-// Get will return the user assigned to the context, or nil if there
+// GetUser returns the user assigned to the context, or error if there
 // is any error or there isn't a user.
-func (c *ContextManager) Get(ctx context.Context) *User {
+func (c *ContextManager) GetUser(ctx context.Context) (*User, error) {
 	tmp := ctx.Value(userKey)
 	if tmp == nil {
-		return nil
+		return nil, errMissingUser
 	}
 	user, ok := tmp.(*User)
 	if !ok {
-		log.Printf("context: user value set incorrectly. type=%T, value=%#v", tmp, tmp)
-		return nil
+		return nil, errWrongUserValue
 	}
-	return user
+	return user, nil
+}
+
+// GetUserID will return the user ID assigned to the context, or error if there
+// is any error or there isn't a user.
+func (c *ContextManager) GetUserID(ctx context.Context) (kallax.ULID, error) {
+	u, err := c.GetUser(ctx)
+	if err != nil {
+		return kallax.ULID{}, err
+	}
+	return u.ID, nil
 }

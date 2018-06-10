@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/ifreddyrondon/capture/app/auth/authentication"
@@ -48,9 +47,8 @@ func (c *Controller) Router() http.Handler {
 }
 
 func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
-	u := c.ctxManager.Get(r.Context())
-	if u == nil {
-		err := errors.New(http.StatusText(http.StatusUnprocessableEntity))
+	u, err := c.ctxManager.GetUser(r.Context())
+	if err != nil {
 		_ = c.render(w).InternalServerError(err)
 		return
 	}
