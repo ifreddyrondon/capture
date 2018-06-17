@@ -47,6 +47,12 @@
   version = "v1.0"
 
 [[projects]]
+  name = "github.com/felixge/httpsnoop"
+  packages = ["."]
+  revision = "eadd4fad6aac69ae62379194fe0219f3dbc80fd3"
+  version = "v1.0.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/gavv/monotime"
   packages = ["."]
@@ -74,11 +80,12 @@
   name = "github.com/ifreddyrondon/bastion"
   packages = [
     ".",
+    "middleware",
     "render",
     "render/json"
   ]
-  revision = "42ac7fc8b7aa65d2864d49ebad78efed461aae65"
-  version = "v1.4.0"
+  revision = "1d7629641a501a73b7c02b3380cffb92773f0142"
+  version = "v1.5.0"
 
 [[projects]]
   name = "github.com/imkira/go-interpol"
@@ -376,6 +383,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "4d6eaaf318cf586b725dd0b6ce37accbe11e477b99d766b9953f1ec0edc96f1c"
+  inputs-digest = "fd6f2f3dbb635e5e6e685faeed857bd2219034fa7a7586a6a02a3442bd89b8af"
   solver-name = "gps-cdcl"
   solver-version = 1
