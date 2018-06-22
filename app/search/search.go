@@ -1,13 +1,19 @@
 package search
 
-// Filter struct allows to filter a collection given a filter id.
-type Filter struct {
-	id, name string
+// FilterValue defines a value that a Filter can have.
+type FilterValue struct {
+	ID, Name string
 }
 
-// NewFilter returns a new instance of Filter
+// Filter struct allows to filter a collection by an identifier.
+type Filter struct {
+	ID, Name string
+	values   []FilterValue
+}
+
+// NewFilter returns a new instance of Filter.
 func NewFilter(id, name string) *Filter {
-	return &Filter{id: id, name: name}
+	return &Filter{ID: id, Name: name}
 }
 
 // Sort struct allows to sort a collection given a sort id.
@@ -22,12 +28,12 @@ func NewSort(id, name string) *Sort {
 
 // Paging struct allows to do pagination into a collection.
 type Paging struct {
-	total, offset, limit int
+	Total, Offset, Limit int64
 }
 
 // NewPaging returns a new instance of Paging
-func NewPaging(total, offset, limit int) *Paging {
-	return &Paging{total: total, offset: offset, limit: limit}
+func NewPaging(total, offset, limit int64) *Paging {
+	return &Paging{Total: total, Offset: offset, Limit: limit}
 }
 
 // Params struct containst the data to perform filter sort and paging over a collection.
