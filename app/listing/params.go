@@ -1,4 +1,4 @@
-package search
+package listing
 
 // FilterValue defines a value that a Filter can have.
 type FilterValue struct {
@@ -24,23 +24,4 @@ type Sort struct {
 // NewSort returns a new instance of Sort
 func NewSort(id, name string) *Sort {
 	return &Sort{id: id, name: name}
-}
-
-// Paging struct allows to do pagination into a collection.
-type Paging struct {
-	Total, Offset, Limit int64
-}
-
-// NewPaging returns a new instance of Paging
-func NewPaging(total, offset, limit int64) *Paging {
-	return &Paging{Total: total, Offset: offset, Limit: limit}
-}
-
-// Params struct containst the data to perform filter sort and paging over a collection.
-type Params struct {
-	Paging
-	AvailableSort []Sort
-	Sort
-	AvailableFilter []Filter
-	Filter          Filter
 }
