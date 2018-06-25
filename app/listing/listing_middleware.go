@@ -3,11 +3,13 @@ package listing
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/ifreddyrondon/capture/app/listing/paging"
 )
 
 // Params containst the info to perform filter sort and paging over a collection.
 type Params struct {
-	Paging
+	paging.Paging
 	AvailableSort []Sort
 	Sort
 	AvailableFilter []Filter
@@ -16,7 +18,7 @@ type Params struct {
 
 func defaultParams() *Params {
 	return &Params{
-		Paging: newPagingDefault(),
+		Paging: paging.NewDefaults(),
 	}
 }
 
@@ -40,9 +42,9 @@ func NewListing(...Options) *Listing {
 func (l *Listing) List(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
-		paging := &Paging{}
-		paging.decode(params, l.defautls.Paging)
-		fmt.Printf("%+v\n", paging)
+		pag := &paging.Paging{}
+		pag.Decode(params, l.defautls.Paging)
+		fmt.Printf("%+v\n", pag)
 
 		next.ServeHTTP(w, r)
 	})
