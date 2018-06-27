@@ -1,6 +1,7 @@
 package paging
 
 import (
+	"errors"
 	"net/url"
 	"strconv"
 )
@@ -8,6 +9,13 @@ import (
 const (
 	defaultLimit  = 10
 	defaultOffset = 0
+)
+
+var (
+	// ErrInvalidOffsetValue expected error when fails parse offset value to int
+	ErrInvalidOffsetValue = errors.New("invalid offset value")
+	// ErrInvalidLimitValue expected error when fails parse limit value to int
+	ErrInvalidLimitValue = errors.New("invalid limit value")
 )
 
 // Paging struct allows to do pagination into a collection.
@@ -29,7 +37,7 @@ func (p *Paging) Decode(params url.Values, defaults Paging) error {
 	if ok {
 		p.Offset, err = strconv.ParseInt(offsetStr[0], 10, 64)
 		if err != nil {
-			return err
+			return ErrInvalidOffsetValue
 		}
 	} else {
 		p.Offset = defaults.Offset
@@ -38,7 +46,7 @@ func (p *Paging) Decode(params url.Values, defaults Paging) error {
 	if ok {
 		p.Limit, err = strconv.ParseInt(limitStr[0], 10, 64)
 		if err != nil {
-			return err
+			return ErrInvalidLimitValue
 		}
 	} else {
 		p.Limit = defaults.Limit

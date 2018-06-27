@@ -16,19 +16,41 @@ func TestNewDefaults(t *testing.T) {
 	assert.Equal(t, int64(0), result.Total)
 }
 
-func TestDecode(t *testing.T) {
+func TestDecodeOK(t *testing.T) {
 	tt := []struct {
-		name     string
-		params   url.Values
-		defaults paging.Paging
-		result   paging.Paging
+		name   string
+		params url.Values
+		result paging.Paging
 	}{
+		{
+			"decode with no params and defaults from paging.NewDefaults",
+			map[string][]string{},
+			paging.NewDefaults(),
+		},
 		{
 			"decode with new limit and default offset from paging.NewDefaults",
 			map[string][]string{"limit": []string{"1"}},
-			paging.NewDefaults(),
 			func() paging.Paging {
 				p := paging.NewDefaults()
+				p.Limit = 1
+				return p
+			}(),
+		},
+		{
+			"decode with new offset and default limit from paging.NewDefaults",
+			map[string][]string{"offset": []string{"1"}},
+			func() paging.Paging {
+				p := paging.NewDefaults()
+				p.Offset = 1
+				return p
+			}(),
+		},
+		{
+			"decode with new offset and limit",
+			map[string][]string{"offset": []string{"1"}, "limit": []string{"1"}},
+			func() paging.Paging {
+				p := paging.NewDefaults()
+				p.Offset = 1
 				p.Limit = 1
 				return p
 			}(),
@@ -38,9 +60,38 @@ func TestDecode(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			var p paging.Paging
-			p.Decode(tc.params, tc.defaults)
+			err := p.Decode(tc.params, paging.NewDefaults())
+			assert.Nil(t, err)
 			assert.Equal(t, p.Limit, tc.result.Limit)
 			assert.Equal(t, p.Offset, tc.result.Offset)
+		})
+	}
+}
+
+func TestDecodeBad(t *testing.T) {
+	tt := []struct {
+		name   string
+		params url.Values
+		err    string
+	}{
+		{
+			"decode with invalid limit",
+			map[string][]string{"limit": []string{"a"}},
+			"invalid limit value",
+		},
+		{
+			"decode with invalid offset",
+			map[string][]string{"offset": []string{"a"}},
+			"invalid offset value",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var p paging.Paging
+			err := p.Decode(tc.params, paging.NewDefaults())
+			assert.NotNil(t, err)
+			assert.EqualError(t, err, tc.err)
 		})
 	}
 }
