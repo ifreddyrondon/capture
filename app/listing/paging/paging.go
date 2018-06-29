@@ -12,10 +12,14 @@ const (
 )
 
 var (
-	// ErrInvalidOffsetValue expected error when fails parse offset value to int
-	ErrInvalidOffsetValue = errors.New("invalid offset value")
-	// ErrInvalidLimitValue expected error when fails parse limit value to int
-	ErrInvalidLimitValue = errors.New("invalid limit value")
+	// ErrInvalidOffsetValueNotANumber expected error when fails parsing the offset value to int.
+	ErrInvalidOffsetValueNotANumber = errors.New("invalid offset value, must be a number")
+	// ErrInvalidOffsetValueLessThanZero expected error when offset value is less than zero.
+	ErrInvalidOffsetValueLessThanZero = errors.New("invalid offset value, must be greater than zero")
+	// ErrInvalidLimitValueNotANumber expected error when fails parse limit value to int
+	ErrInvalidLimitValueNotANumber = errors.New("invalid limit value, must be a number")
+	// ErrInvalidLimitValueLessThanZero expected error when limit value is less than zero.
+	ErrInvalidLimitValueLessThanZero = errors.New("invalid limit value, must be greater than zero")
 )
 
 // Paging struct allows to do pagination into a collection.
@@ -32,24 +36,30 @@ func NewDefaults() Paging {
 // instance with these. If a value is missing from the params then
 // it'll be filled by their equivalent default value.
 func (p *Paging) Decode(params url.Values, defaults Paging) error {
-	var err error
+	p.Offset = defaults.Offset
+	p.Limit = defaults.Limit
+
 	offsetStr, ok := params["offset"]
 	if ok {
-		p.Offset, err = strconv.ParseInt(offsetStr[0], 10, 64)
+		off, err := strconv.ParseInt(offsetStr[0], 10, 64)
 		if err != nil {
-			return ErrInvalidOffsetValue
+			return ErrInvalidOffsetValueNotANumber
 		}
-	} else {
-		p.Offset = defaults.Offset
+		if off < 0 {
+			return ErrInvalidOffsetValueLessThanZero
+		}
+		p.Offset = off
 	}
 	limitStr, ok := params["limit"]
 	if ok {
-		p.Limit, err = strconv.ParseInt(limitStr[0], 10, 64)
+		l, err := strconv.ParseInt(limitStr[0], 10, 64)
 		if err != nil {
-			return ErrInvalidLimitValue
+			return ErrInvalidLimitValueNotANumber
 		}
-	} else {
-		p.Limit = defaults.Limit
+		if l < 0 {
+			return ErrInvalidLimitValueLessThanZero
+		}
+		p.Limit = l
 	}
-	return err
+	return nil
 }

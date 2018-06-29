@@ -77,12 +77,22 @@ func TestDecodeBad(t *testing.T) {
 		{
 			"decode with invalid limit",
 			map[string][]string{"limit": []string{"a"}},
-			"invalid limit value",
+			"invalid limit value, must be a number",
 		},
 		{
-			"decode with invalid offset",
+			"decode with invalid limit",
+			map[string][]string{"limit": []string{"-1"}},
+			"invalid limit value, must be greater than zero",
+		},
+		{
+			"decode with invalid offset (not a number)",
 			map[string][]string{"offset": []string{"a"}},
-			"invalid offset value",
+			"invalid offset value, must be a number",
+		},
+		{
+			"decode with invalid offset (less than 0)",
+			map[string][]string{"offset": []string{"-1"}},
+			"invalid offset value, must be greater than zero",
 		},
 	}
 
