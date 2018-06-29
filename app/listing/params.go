@@ -2,23 +2,21 @@ package listing
 
 import (
 	"net/url"
-
-	"github.com/ifreddyrondon/capture/app/listing/paging"
 )
 
 // Params containst the info to perform filter sort and paging over a collection.
 type Params struct {
-	paging.Paging
-	AvailableSort []Sort
-	Sort
-	AvailableFilter []Filter
-	Filter          Filter
+	Paging
+	// AvailableSort []Sort
+	// Sort
+	// AvailableFilter []Filter
+	// Filter          Filter
 }
 
-// NewParamsDefault returns a new instance of Params with defaul values.
-func NewParamsDefault() *Params {
+// NewParams returns a new instance of Params with defaul values.
+func NewParams() *Params {
 	return &Params{
-		Paging: paging.NewDefaults(),
+		Paging: NewPaging(),
 	}
 }
 
@@ -33,18 +31,13 @@ func (p *Params) Decode(params url.Values, defaults Params) error {
 	return nil
 }
 
-// FilterValue defines a value that a Filter can have.
-type FilterValue struct {
-	ID, Name string
-}
+// // FilterValue defines a value that a Filter can have.
+// type FilterValue struct {
+// 	ID, Name string
+// }
 
-// Filter struct allows to filter a collection by an identifier.
-type Filter struct {
-	ID, Name string
-	values   []FilterValue
-}
-
-// Sort struct allows to sort a collection given a sort id.
-type Sort struct {
-	id, name string
-}
+// // Filter struct allows to filter a collection by an identifier.
+// type Filter struct {
+// 	ID, Name string
+// 	values   []FilterValue
+// }

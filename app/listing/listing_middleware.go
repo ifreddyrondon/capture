@@ -3,9 +3,8 @@ package listing
 import (
 	"net/http"
 
-	"github.com/ifreddyrondon/bastion/render/json"
-
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/bastion/render/json"
 )
 
 // Listing middleware
@@ -15,16 +14,17 @@ type Listing struct {
 	render     render.Render
 }
 
-// Options are function to modify the defaults params values
-type Options func(*Listing)
-
 // NewListing retuns a new instance of Listing middleware.
-// It receives a list of options to modify the default values.
-func NewListing(...Options) *Listing {
+// It receives a list of Option to modify the default values.
+func NewListing(options ...Option) *Listing {
 	l := &Listing{
-		defautls:   NewParamsDefault(),
+		defautls:   NewParams(),
 		ctxManager: NewContextManager(),
 		render:     json.NewRender,
+	}
+
+	for _, o := range options {
+		o(l)
 	}
 
 	return l

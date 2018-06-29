@@ -1,4 +1,4 @@
-package paging
+package listing
 
 import (
 	"errors"
@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	defaultLimit  = 10
-	defaultOffset = 0
+	defaultMaxAllowedLimit = 100
+	defaultLimit           = 10
+	defaultOffset          = 0
 )
 
 var (
@@ -24,12 +25,20 @@ var (
 
 // Paging struct allows to do pagination into a collection.
 type Paging struct {
-	Total, Offset, Limit int64
+	maxAllowedLimit int
+	Limit           int
+	Total, Offset   int64
 }
 
-// NewDefaults returns a new instance of Paging with defaults values.
-func NewDefaults() Paging {
-	return Paging{Offset: defaultOffset, Limit: defaultLimit}
+// NewPaging returns a new instance of Paging with defaults values.
+func NewPaging() Paging {
+	p := Paging{
+		maxAllowedLimit: defaultMaxAllowedLimit,
+		Offset:          defaultOffset,
+		Limit:           defaultLimit,
+	}
+
+	return p
 }
 
 // Decode gets url.Values (with query params) and fill the Paging
@@ -52,12 +61,15 @@ func (p *Paging) Decode(params url.Values, defaults Paging) error {
 	}
 	limitStr, ok := params["limit"]
 	if ok {
-		l, err := strconv.ParseInt(limitStr[0], 10, 64)
+		l, err := strconv.Atoi(limitStr[0])
 		if err != nil {
 			return ErrInvalidLimitValueNotANumber
 		}
 		if l < 0 {
 			return ErrInvalidLimitValueLessThanZero
+		}
+		if l > defaults.maxAllowedLimit {
+			l = defaults.maxAllowedLimit
 		}
 		p.Limit = l
 	}
