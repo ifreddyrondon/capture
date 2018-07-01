@@ -25,7 +25,7 @@ var (
 
 // Paging struct allows to do pagination into a collection.
 type Paging struct {
-	maxAllowedLimit int
+	MaxAllowedLimit int
 	Limit           int
 	Total, Offset   int64
 }
@@ -33,7 +33,7 @@ type Paging struct {
 // NewPaging returns a new instance of Paging with defaults values.
 func NewPaging() Paging {
 	p := Paging{
-		maxAllowedLimit: defaultMaxAllowedLimit,
+		MaxAllowedLimit: defaultMaxAllowedLimit,
 		Offset:          defaultOffset,
 		Limit:           defaultLimit,
 	}
@@ -47,6 +47,7 @@ func NewPaging() Paging {
 func (p *Paging) Decode(params url.Values, defaults Paging) error {
 	p.Offset = defaults.Offset
 	p.Limit = defaults.Limit
+	p.MaxAllowedLimit = defaults.MaxAllowedLimit
 
 	offsetStr, ok := params["offset"]
 	if ok {
@@ -68,8 +69,8 @@ func (p *Paging) Decode(params url.Values, defaults Paging) error {
 		if l < 0 {
 			return ErrInvalidLimitValueLessThanZero
 		}
-		if l > defaults.maxAllowedLimit {
-			l = defaults.maxAllowedLimit
+		if l > defaults.MaxAllowedLimit {
+			l = defaults.MaxAllowedLimit
 		}
 		p.Limit = l
 	}

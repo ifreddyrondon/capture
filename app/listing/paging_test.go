@@ -8,15 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewDefaults(t *testing.T) {
+func TestNewPaging(t *testing.T) {
 	result := listing.NewPaging()
 	assert.NotNil(t, result)
 	assert.Equal(t, 10, result.Limit)
+	assert.Equal(t, 100, result.MaxAllowedLimit)
 	assert.Equal(t, int64(0), result.Offset)
 	assert.Equal(t, int64(0), result.Total)
 }
 
-func TestDecodeOK(t *testing.T) {
+func TestPagingDecodeOK(t *testing.T) {
 	tt := []struct {
 		name   string
 		params url.Values
@@ -74,11 +75,12 @@ func TestDecodeOK(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, p.Limit, tc.result.Limit)
 			assert.Equal(t, p.Offset, tc.result.Offset)
+			assert.Equal(t, p.MaxAllowedLimit, tc.result.MaxAllowedLimit)
 		})
 	}
 }
 
-func TestDecodeBad(t *testing.T) {
+func TestPagingDecodeBad(t *testing.T) {
 	tt := []struct {
 		name   string
 		params url.Values

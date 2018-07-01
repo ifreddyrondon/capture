@@ -6,9 +6,8 @@ import (
 
 // Params containst the info to perform filter sort and paging over a collection.
 type Params struct {
-	Paging
-	// AvailableSort []Sort
-	// Sort
+	Paging Paging
+	Sorting
 	// AvailableFilter []Filter
 	// Filter          Filter
 }

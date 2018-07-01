@@ -13,6 +13,6 @@ func Limit(limit int) Option {
 // MaxAllowedLimit set the max allowed limit paging default for the middleware.
 func MaxAllowedLimit(maxAllowed int) Option {
 	return func(l *Listing) {
-		l.defautls.Paging.maxAllowedLimit = maxAllowed
+		l.defautls.Paging.MaxAllowedLimit = maxAllowed
 	}
 }
