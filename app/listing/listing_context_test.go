@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestContextManagerGetCaptureMissingCapture(t *testing.T) {
+func TestContextManagerGetListingMissingInstance(t *testing.T) {
 	ctxManager := listing.NewContextManager()
 	ctx := context.Background()
 
-	_, err := ctxManager.GetParams(ctx)
-	assert.EqualError(t, err, "listing params not found in context")
+	_, err := ctxManager.GetListing(ctx)
+	assert.EqualError(t, err, "listing not found in context")
 }

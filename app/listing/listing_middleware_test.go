@@ -5,22 +5,22 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/app/listing"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/capture/app/listing"
+	"github.com/ifreddyrondon/capture/app/listing/paging"
+	"github.com/stretchr/testify/assert"
 	httpexpect "gopkg.in/gavv/httpexpect.v1"
 )
 
-func setup(options ...listing.Option) (*httptest.Server, *listing.Params, func()) {
+func setup(options ...listing.Option) (*httptest.Server, *listing.Listing, func()) {
 	r := chi.NewRouter()
-	var resultContainer listing.Params
+	var resultContainer listing.Listing
 
-	listingMiddl := listing.NewListing(options...)
-	r.Use(listingMiddl.List)
+	midl := listing.NewURLParams(options...)
+	r.Use(midl.Get)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		p, err := listing.NewContextManager().GetParams(r.Context())
+		p, err := listing.NewContextManager().GetListing(r.Context())
 		if err != nil {
 			_ = json.NewRender(w).InternalServerError(err)
 			return
@@ -67,20 +67,7 @@ func TestListingMiddlewareGettingDefaults(t *testing.T) {
 		Status(http.StatusOK)
 
 	assert.Equal(t, 10, resultContainer.Paging.Limit)
-	assert.Equal(t, int64(0), resultContainer.Paging.Offset)
-}
-
-func TestListingMiddlewareGettingDefaultsDefinedByOptions(t *testing.T) {
-	t.Parallel()
-
-	server, resultContainer, teardown := setup(listing.Limit(100))
-	defer teardown()
-	e := httpexpect.New(t, server.URL)
-	e.GET("/").
-		Expect().
-		Status(http.StatusOK)
-
-	assert.Equal(t, 100, resultContainer.Paging.Limit)
+	assert.Equal(t, 100, resultContainer.Paging.MaxAllowedLimit)
 	assert.Equal(t, int64(0), resultContainer.Paging.Offset)
 }
 
@@ -98,33 +85,41 @@ func TestListingMiddlewareOkGettingOffset(t *testing.T) {
 	assert.Equal(t, int64(11), resultContainer.Paging.Offset)
 }
 
-func TestListingMiddlewareOkGettingLimit(t *testing.T) {
+func TestListingMiddlewareOkWithOptions(t *testing.T) {
 	t.Parallel()
 
 	tt := []struct {
-		name       string
-		limitQuery string
-		opts       []listing.Option
-		result     listing.Paging
+		name      string
+		urlParams string
+		opts      []listing.Option
+		result    listing.Listing
 	}{
 		{
-			"get limit by query",
-			"11",
-			[]listing.Option{},
-			func() listing.Paging {
-				p := listing.NewPaging()
-				p.Limit = 11
-				return p
+			"get new default limit changed by option",
+			"",
+			[]listing.Option{listing.Limit(50)},
+			func() listing.Listing {
+				return listing.Listing{
+					Paging: paging.Paging{
+						Limit:           50,
+						Offset:          paging.DefaultOffset,
+						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
+					},
+				}
 			}(),
 		},
 		{
-			"get limit by query when change max allowed limit ",
-			"110",
+			"get limit by query when change max allowed limit",
+			"limit=110",
 			[]listing.Option{listing.MaxAllowedLimit(120)},
-			func() listing.Paging {
-				p := listing.NewPaging()
-				p.Limit = 110
-				return p
+			func() listing.Listing {
+				return listing.Listing{
+					Paging: paging.Paging{
+						Limit:           110,
+						Offset:          paging.DefaultOffset,
+						MaxAllowedLimit: 120,
+					},
+				}
 			}(),
 		},
 	}
@@ -134,12 +129,13 @@ func TestListingMiddlewareOkGettingLimit(t *testing.T) {
 			server, resultContainer, teardown := setup(tc.opts...)
 			defer teardown()
 			e := httpexpect.New(t, server.URL)
-			e.GET("/").WithQuery("limit", tc.limitQuery).
+			e.GET("/").WithQueryString(tc.urlParams).
 				Expect().
 				Status(http.StatusOK)
 
-			assert.Equal(t, tc.result.Limit, resultContainer.Paging.Limit)
-			assert.Equal(t, tc.result.Offset, resultContainer.Paging.Offset)
+			assert.Equal(t, tc.result.Paging.Limit, resultContainer.Paging.Limit)
+			assert.Equal(t, tc.result.Paging.Offset, resultContainer.Paging.Offset)
+			assert.Equal(t, tc.result.Paging.MaxAllowedLimit, resultContainer.Paging.MaxAllowedLimit)
 		})
 	}
 }

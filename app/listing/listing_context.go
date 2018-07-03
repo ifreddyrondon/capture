@@ -8,12 +8,12 @@ import (
 type ctxKey string
 
 const (
-	paramsKey ctxKey = "listing_params"
+	paramsKey ctxKey = "listing_value"
 )
 
 var (
-	errMissingListingParams    = errors.New("listing params not found in context")
-	errWrongListingValueParams = errors.New("listing params value set incorrectly in context")
+	errMissingListing    = errors.New("listing not found in context")
+	errWrongListingValue = errors.New("listing value set incorrectly in context")
 )
 
 // ContextManager handle the listing object through the context
@@ -24,20 +24,20 @@ func NewContextManager() *ContextManager {
 	return &ContextManager{}
 }
 
-func (c *ContextManager) withParams(ctx context.Context, p *Params) context.Context {
-	return context.WithValue(ctx, paramsKey, p)
+func (c *ContextManager) withParams(ctx context.Context, l *Listing) context.Context {
+	return context.WithValue(ctx, paramsKey, l)
 }
 
-// GetParams will return the listing params reference assigned to the context, or nil if there
-// is any error or there isn't a Params.
-func (c *ContextManager) GetParams(ctx context.Context) (*Params, error) {
+// GetListing will return the listing reference assigned to the context, or nil if there
+// is any error or there isn't a Listing instance.
+func (c *ContextManager) GetListing(ctx context.Context) (*Listing, error) {
 	tmp := ctx.Value(paramsKey)
 	if tmp == nil {
-		return nil, errMissingListingParams
+		return nil, errMissingListing
 	}
-	p, ok := tmp.(*Params)
+	l, ok := tmp.(*Listing)
 	if !ok {
-		return nil, errWrongListingValueParams
+		return nil, errWrongListingValue
 	}
-	return p, nil
+	return l, nil
 }
