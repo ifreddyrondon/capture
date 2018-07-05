@@ -86,13 +86,13 @@ func TestSortingDecodeBad(t *testing.T) {
 		err       string
 	}{
 		{
-			"given a sort query not when non sorting criteria",
+			"given a sort query when non sorting criteria",
 			map[string][]string{"sort": []string{"foo_desc"}},
 			[]sorting.Sort{},
 			"there's no order criteria with the id foo_desc",
 		},
 		{
-			"given a sort query not when none match sorting criteria",
+			"given a sort query when none match sorting criteria",
 			map[string][]string{"sort": []string{"foo_desc"}},
 			[]sorting.Sort{
 				sorting.NewSort("created_at_desc", "Created date descending"),

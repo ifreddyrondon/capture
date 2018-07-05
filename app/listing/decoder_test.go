@@ -6,6 +6,7 @@ import (
 
 	"github.com/ifreddyrondon/capture/app/listing"
 	"github.com/ifreddyrondon/capture/app/listing/paging"
+	"github.com/ifreddyrondon/capture/app/listing/sorting"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,6 +28,7 @@ func TestDecodeOK(t *testing.T) {
 						Offset:          paging.DefaultOffset,
 						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 					},
+					Sorting: sorting.Sorting{},
 				}
 			}(),
 		},
@@ -41,6 +43,7 @@ func TestDecodeOK(t *testing.T) {
 						Offset:          paging.DefaultOffset,
 						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 					},
+					Sorting: sorting.Sorting{},
 				}
 			}(),
 		},
@@ -54,6 +57,27 @@ func TestDecodeOK(t *testing.T) {
 						Limit:           105,
 						Offset:          1,
 						MaxAllowedLimit: 110,
+					},
+					Sorting: sorting.Sorting{},
+				}
+			}(),
+		},
+		{
+			"given a sort params and sort criteria option should decode sorting with sort and availables criteria",
+			map[string][]string{"sort": []string{"created_at_desc"}},
+			[]func(*listing.Decoder){listing.DecodeSortCriterias(sorting.NewSort("created_at_desc", "Created date descending"))},
+			func() listing.Listing {
+				return listing.Listing{
+					Paging: paging.Paging{
+						Limit:           paging.DefaultLimit,
+						Offset:          paging.DefaultOffset,
+						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
+					},
+					Sorting: sorting.Sorting{
+						Sort: sorting.NewSort("created_at_desc", "Created date descending"),
+						Available: []sorting.Sort{
+							sorting.NewSort("created_at_desc", "Created date descending"),
+						},
 					},
 				}
 			}(),
@@ -82,6 +106,11 @@ func TestDecodeFails(t *testing.T) {
 			"given a not number limit param should return an error when decode paging",
 			map[string][]string{"limit": []string{"a"}},
 			"invalid limit value, must be a number",
+		},
+		{
+			"given a sort query when non sorting criteria",
+			map[string][]string{"sort": []string{"a"}},
+			"there's no order criteria with the id a",
 		},
 	}
 

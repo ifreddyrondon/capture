@@ -2,12 +2,13 @@ package listing
 
 import (
 	"github.com/ifreddyrondon/capture/app/listing/paging"
+	"github.com/ifreddyrondon/capture/app/listing/sorting"
 )
 
 // Listing containst the info to perform filter sort and paging over a collection.
 type Listing struct {
 	Paging paging.Paging
-	// sorting.Sorting
+	sorting.Sorting
 	// AvailableFilter []Filter
 	// Filter          Filter
 }
