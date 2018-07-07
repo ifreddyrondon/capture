@@ -11,7 +11,7 @@ const errSortKeyNotAvailable = "there's no order criteria with the id %v"
 type Decoder struct {
 	params url.Values
 
-	defaultCriteria Sort
+	defaultCriteria *Sort
 	criterias       []Sort
 }
 
@@ -23,7 +23,7 @@ func NewDecoder(params url.Values, criterias ...Sort) *Decoder {
 	d := &Decoder{params: params, criterias: criterias}
 
 	if len(criterias) > 0 {
-		d.defaultCriteria = criterias[0]
+		d.defaultCriteria = &criterias[0]
 	}
 
 	return d
@@ -60,6 +60,5 @@ func paramsInAvailables(sortKey string, availables []Sort) *Sort {
 
 func (dec *Decoder) fillDefaults(s *Sorting) {
 	s.Available = dec.criterias
-	s.Sort.ID = dec.defaultCriteria.ID
-	s.Sort.Name = dec.defaultCriteria.Name
+	s.Sort = dec.defaultCriteria
 }

@@ -9,6 +9,9 @@ import (
 )
 
 func TestDecodeOK(t *testing.T) {
+	createdDescSort := sorting.NewSort("created_at_desc", "Created date descending")
+	createdAscSort := sorting.NewSort("created_at_asc", "Created date ascendant")
+
 	tt := []struct {
 		name      string
 		urlParams url.Values
@@ -24,44 +27,28 @@ func TestDecodeOK(t *testing.T) {
 		{
 			"given non sort query params present and one sort criteria",
 			map[string][]string{},
-			[]sorting.Sort{
-				sorting.NewSort("created_at_desc", "Created date descending"),
-			},
+			[]sorting.Sort{createdDescSort},
 			sorting.Sorting{
-				Sort: sorting.NewSort("created_at_desc", "Created date descending"),
-				Available: []sorting.Sort{
-					sorting.NewSort("created_at_desc", "Created date descending"),
-				},
+				Sort:      &createdDescSort,
+				Available: []sorting.Sort{createdDescSort},
 			},
 		},
 		{
 			"given non sort query params present and one some sort criteria",
 			map[string][]string{},
-			[]sorting.Sort{
-				sorting.NewSort("created_at_desc", "Created date descending"),
-				sorting.NewSort("created_at_asc", "Created date ascendant"),
-			},
+			[]sorting.Sort{createdDescSort, createdAscSort},
 			sorting.Sorting{
-				Sort: sorting.NewSort("created_at_desc", "Created date descending"),
-				Available: []sorting.Sort{
-					sorting.NewSort("created_at_desc", "Created date descending"),
-					sorting.NewSort("created_at_asc", "Created date ascendant"),
-				},
+				Sort:      &createdDescSort,
+				Available: []sorting.Sort{createdDescSort, createdAscSort},
 			},
 		},
 		{
 			"given created_at_desc sort query params present and one some sort criteria",
 			map[string][]string{"sort": []string{"created_at_asc"}},
-			[]sorting.Sort{
-				sorting.NewSort("created_at_desc", "Created date descending"),
-				sorting.NewSort("created_at_asc", "Created date ascendant"),
-			},
+			[]sorting.Sort{createdDescSort, createdAscSort},
 			sorting.Sorting{
-				Sort: sorting.NewSort("created_at_asc", "Created date ascendant"),
-				Available: []sorting.Sort{
-					sorting.NewSort("created_at_desc", "Created date descending"),
-					sorting.NewSort("created_at_asc", "Created date ascendant"),
-				},
+				Sort:      &createdAscSort,
+				Available: []sorting.Sort{createdDescSort, createdAscSort},
 			},
 		},
 	}
@@ -71,8 +58,7 @@ func TestDecodeOK(t *testing.T) {
 			var s sorting.Sorting
 			err := sorting.NewDecoder(tc.urlParams, tc.criterias...).Decode(&s)
 			assert.Nil(t, err)
-			assert.Equal(t, tc.result.Sort.ID, s.Sort.ID)
-			assert.Equal(t, tc.result.Sort.Name, s.Sort.Name)
+			assert.Equal(t, tc.result.Sort, s.Sort)
 			assert.Equal(t, len(tc.result.Available), len(s.Available))
 		})
 	}
