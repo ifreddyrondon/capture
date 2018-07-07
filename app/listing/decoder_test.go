@@ -11,6 +11,8 @@ import (
 )
 
 func TestDecodeOK(t *testing.T) {
+	createdDescSort := sorting.NewSort("created_at_desc", "Created date descending")
+
 	tt := []struct {
 		name      string
 		urlParams url.Values
@@ -74,10 +76,8 @@ func TestDecodeOK(t *testing.T) {
 						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 					},
 					Sorting: sorting.Sorting{
-						Sort: sorting.NewSort("created_at_desc", "Created date descending"),
-						Available: []sorting.Sort{
-							sorting.NewSort("created_at_desc", "Created date descending"),
-						},
+						Sort:      &createdDescSort,
+						Available: []sorting.Sort{createdDescSort},
 					},
 				}
 			}(),
@@ -89,9 +89,8 @@ func TestDecodeOK(t *testing.T) {
 			var l listing.Listing
 			err := listing.NewDecoder(tc.urlParams, tc.opts...).Decode(&l)
 			assert.Nil(t, err)
-			assert.Equal(t, l.Paging.Limit, tc.result.Paging.Limit)
-			assert.Equal(t, l.Paging.Offset, tc.result.Paging.Offset)
-			assert.Equal(t, l.Paging.MaxAllowedLimit, tc.result.Paging.MaxAllowedLimit)
+			assert.Equal(t, l.Paging, tc.result.Paging)
+			assert.Equal(t, l.Sorting, tc.result.Sorting)
 		})
 	}
 }
