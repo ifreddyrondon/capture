@@ -30,9 +30,8 @@ func NewDecoder(params url.Values, criterias ...Sort) *Decoder {
 }
 
 // Decode reads the sort-encoded value from params and stores it
-// in the value pointed to by v.
-// If a value is missing from the params, it'll be filled by
-// their equivalent default value.
+// in the value pointed to by v. If a value is missing from the params
+// it'll be filled by their equivalent default value.
 func (dec *Decoder) Decode(v *Sorting) error {
 	dec.fillDefaults(v)
 
