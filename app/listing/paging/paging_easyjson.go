@@ -50,10 +50,3 @@ func easyjson3c4140EncodeGithubComIfreddyrondonCaptureAppListingPaging(out *jwri
 	}
 	out.RawByte('}')
 }
-
-// MarshalJSON supports json.Marshaler interface
-func (v Paging) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson3c4140EncodeGithubComIfreddyrondonCaptureAppListingPaging(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
