@@ -8,22 +8,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewBooleanBuilder(t *testing.T) {
-	f := filtering.NewBooleanBuilder("shared", "shared collections filter", "shared collection", "private collection")
+func TestNewBooleanDecoder(t *testing.T) {
+	f := filtering.NewBooleanDecoder("shared", "shared collections filter", "shared collection", "private collection")
 	assert.Equal(t, "shared", f.ID)
 	assert.Equal(t, "shared collections filter", f.Name)
 }
 
-func TestBooleanBuilderValidateOK(t *testing.T) {
+func TestBooleanDecoderPresentOK(t *testing.T) {
 	tt := []struct {
 		name     string
-		builder  *filtering.BooleanBuilder
+		decoder  *filtering.BooleanDecoder
 		params   url.Values
 		expected *filtering.Filter
 	}{
 		{
 			"should return true value when param with true value",
-			filtering.NewBooleanBuilder("shared", "test", "shared", "private"),
+			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
 			map[string][]string{"shared": []string{"true"}},
 			&filtering.Filter{
 				FilterID: filtering.NewFilterID("shared", "test"),
@@ -33,7 +33,7 @@ func TestBooleanBuilderValidateOK(t *testing.T) {
 		},
 		{
 			"should return false value when param with false value",
-			filtering.NewBooleanBuilder("shared", "test", "shared", "private"),
+			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
 			map[string][]string{"shared": []string{"false"}},
 			&filtering.Filter{
 				FilterID: filtering.NewFilterID("shared", "test"),
@@ -45,7 +45,7 @@ func TestBooleanBuilderValidateOK(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.builder.Validate(tc.params)
+			result := tc.decoder.Present(tc.params)
 			assert.Equal(t, tc.expected.ID, result.ID)
 			assert.Equal(t, tc.expected.Name, result.Name)
 			assert.Equal(t, tc.expected.Type, result.Type)
@@ -56,34 +56,34 @@ func TestBooleanBuilderValidateOK(t *testing.T) {
 	}
 }
 
-func TestBooleanBuilderValidateFails(t *testing.T) {
+func TestBooleanDecoderPresentFails(t *testing.T) {
 	tt := []struct {
 		name    string
-		builder *filtering.BooleanBuilder
+		decoder *filtering.BooleanDecoder
 		params  url.Values
 	}{
 		{
 			"should return nil when not value found",
-			filtering.NewBooleanBuilder("shared", "test", "shared", "private"),
+			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
 			map[string][]string{"shared": []string{"abc"}},
 		},
 		{
 			"should return nil when not params found",
-			filtering.NewBooleanBuilder("shared", "test", "shared", "private"),
+			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
 			map[string][]string{"foo": []string{"abc"}},
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.builder.Validate(tc.params)
+			result := tc.decoder.Present(tc.params)
 			assert.Nil(t, result)
 		})
 	}
 }
 
-func TestBooleanBuilderWithValues(t *testing.T) {
-	builder := filtering.NewBooleanBuilder("shared", "test", "shared", "private")
+func TestBooleanDecoderWithValues(t *testing.T) {
+	decoder := filtering.NewBooleanDecoder("shared", "test", "shared", "private")
 	expected := &filtering.Filter{
 		FilterID: filtering.NewFilterID("shared", "test"),
 		Type:     "boolean",
@@ -92,7 +92,7 @@ func TestBooleanBuilderWithValues(t *testing.T) {
 			filtering.NewFilterValue("false", "private"),
 		},
 	}
-	result := builder.WithValues()
+	result := decoder.WithValues()
 	assert.Equal(t, expected.ID, result.ID)
 	assert.Equal(t, expected.Name, result.Name)
 	assert.Equal(t, expected.Type, result.Type)

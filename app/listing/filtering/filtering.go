@@ -43,12 +43,12 @@ func NewFilter(id FilterID, typef string, values ...FilterValue) *Filter {
 	}
 }
 
-// FilterBuilder interface to validate and returns Filter's.
-type FilterBuilder interface {
-	// Validate gets the url params and check if a filter is present within them,
+// FilterDecoder interface to validate and returns Filter's.
+type FilterDecoder interface {
+	// Present gets the url params and check if a filter is present within them,
 	// if it's present validates if its value is valid.
 	// Returns a Filter with the applied value or nil is not present.
-	Validate(url.Values) *Filter
+	Present(url.Values) *Filter
 	// WithValues returns a filter with all their posible values.
 	WithValues() *Filter
 }
