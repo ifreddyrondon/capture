@@ -2,6 +2,8 @@ package filtering
 
 import (
 	"net/url"
+
+	jwriter "github.com/mailru/easyjson/jwriter"
 )
 
 // Value is the struct where the posibles filter values should be stored.
@@ -50,4 +52,11 @@ type FilterDecoder interface {
 type Filtering struct {
 	Filters   []Filter `json:"filters,omitempty"`
 	Available []Filter `json:"available,omitempty"`
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Filtering) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson8834d2f0EncodeGithubComIfreddyrondonCaptureAppListingFiltering1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
 }

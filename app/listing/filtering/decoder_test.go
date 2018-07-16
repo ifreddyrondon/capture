@@ -13,6 +13,8 @@ func TestDecodeOK(t *testing.T) {
 
 	vNew := filtering.NewValue("new", "New")
 	vUsed := filtering.NewValue("used", "Used")
+	vTrue := filtering.NewValue("true", "shared")
+	vFalse := filtering.NewValue("false", "private")
 	text := filtering.NewText("condition", "test", vNew, vUsed)
 	boolean := filtering.NewBoolean("shared", "test", "shared", "private")
 
@@ -58,13 +60,10 @@ func TestDecodeOK(t *testing.T) {
 						Values: []filtering.Value{vNew, vUsed},
 					},
 					filtering.Filter{
-						ID:   "shared",
-						Name: "test",
-						Type: "boolean",
-						Values: []filtering.Value{
-							filtering.NewValue("true", "shared"),
-							filtering.NewValue("false", "private"),
-						},
+						ID:     "shared",
+						Name:   "test",
+						Type:   "boolean",
+						Values: []filtering.Value{vTrue, vFalse},
 					},
 				},
 			},
@@ -136,13 +135,10 @@ func TestDecodeOK(t *testing.T) {
 						Values: []filtering.Value{vNew, vUsed},
 					},
 					filtering.Filter{
-						ID:   "shared",
-						Name: "test",
-						Type: "boolean",
-						Values: []filtering.Value{
-							filtering.NewValue("true", "shared"),
-							filtering.NewValue("false", "private"),
-						},
+						ID:     "shared",
+						Name:   "test",
+						Type:   "boolean",
+						Values: []filtering.Value{vTrue, vFalse},
 					},
 				},
 			},
@@ -163,7 +159,7 @@ func TestDecodeOK(t *testing.T) {
 						ID:     "shared",
 						Name:   "test",
 						Type:   "boolean",
-						Values: []filtering.Value{filtering.NewValue("true", "shared")},
+						Values: []filtering.Value{vTrue},
 					},
 				},
 				Available: []filtering.Filter{
@@ -174,13 +170,10 @@ func TestDecodeOK(t *testing.T) {
 						Values: []filtering.Value{vNew, vUsed},
 					},
 					filtering.Filter{
-						ID:   "shared",
-						Name: "test",
-						Type: "boolean",
-						Values: []filtering.Value{
-							filtering.NewValue("true", "shared"),
-							filtering.NewValue("false", "private"),
-						},
+						ID:     "shared",
+						Name:   "test",
+						Type:   "boolean",
+						Values: []filtering.Value{vTrue, vFalse},
 					},
 				},
 			},
@@ -207,6 +200,8 @@ func TestDecodeMissing(t *testing.T) {
 
 	vNew := filtering.NewValue("new", "New")
 	vUsed := filtering.NewValue("used", "Used")
+	vTrue := filtering.NewValue("true", "shared")
+	vFalse := filtering.NewValue("false", "private")
 	text := filtering.NewText("condition", "test", vNew, vUsed)
 	boolean := filtering.NewBoolean("shared", "test", "shared", "private")
 
@@ -262,13 +257,10 @@ func TestDecodeMissing(t *testing.T) {
 						Values: []filtering.Value{vNew, vUsed},
 					},
 					filtering.Filter{
-						ID:   "shared",
-						Name: "test",
-						Type: "boolean",
-						Values: []filtering.Value{
-							filtering.NewValue("true", "shared"),
-							filtering.NewValue("false", "private"),
-						},
+						ID:     "shared",
+						Name:   "test",
+						Type:   "boolean",
+						Values: []filtering.Value{vTrue, vFalse},
 					},
 				},
 			},
@@ -287,13 +279,10 @@ func TestDecodeMissing(t *testing.T) {
 						Values: []filtering.Value{vNew, vUsed},
 					},
 					filtering.Filter{
-						ID:   "shared",
-						Name: "test",
-						Type: "boolean",
-						Values: []filtering.Value{
-							filtering.NewValue("true", "shared"),
-							filtering.NewValue("false", "private"),
-						},
+						ID:     "shared",
+						Name:   "test",
+						Type:   "boolean",
+						Values: []filtering.Value{vTrue, vFalse},
 					},
 				},
 			},
@@ -308,7 +297,7 @@ func TestDecodeMissing(t *testing.T) {
 						ID:     "shared",
 						Name:   "test",
 						Type:   "boolean",
-						Values: []filtering.Value{filtering.NewValue("false", "private")},
+						Values: []filtering.Value{vFalse},
 					},
 				},
 				Available: []filtering.Filter{
@@ -319,13 +308,10 @@ func TestDecodeMissing(t *testing.T) {
 						Values: []filtering.Value{vNew, vUsed},
 					},
 					filtering.Filter{
-						ID:   "shared",
-						Name: "test",
-						Type: "boolean",
-						Values: []filtering.Value{
-							filtering.NewValue("true", "shared"),
-							filtering.NewValue("false", "private"),
-						},
+						ID:     "shared",
+						Name:   "test",
+						Type:   "boolean",
+						Values: []filtering.Value{vTrue, vFalse},
 					},
 				},
 			},
