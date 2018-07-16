@@ -22,42 +22,35 @@ func easyjsonDe046902EncodeGithubComIfreddyrondonCaptureAppListing(out *jwriter.
 	out.RawByte('{')
 	first := true
 	_ = first
-	if !first {
-		out.RawByte(',')
-	}
-	first = false
-	out.RawString("\"paging\":")
-	out.Raw((in.Paging).MarshalJSON())
-	if in.Sort != nil {
-		if !first {
-			out.RawByte(',')
-		}
-		first = false
-		out.RawString("\"sort\":")
-		if in.Sort == nil {
-			out.RawString("null")
+	if true {
+		const prefix string = ",\"paging\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
 		} else {
-			out.Raw((*in.Sort).MarshalJSON())
+			out.RawString(prefix)
 		}
+		out.Raw((in.Paging).MarshalJSON())
 	}
-	if len(in.Available) != 0 {
-		if !first {
-			out.RawByte(',')
-		}
-		first = false
-		out.RawString("\"available\":")
-		if in.Available == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
-			out.RawString("null")
+	if true {
+		const prefix string = ",\"sorting\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
 		} else {
-			out.RawByte('[')
-			for v2, v3 := range in.Available {
-				if v2 > 0 {
-					out.RawByte(',')
-				}
-				out.Raw((v3).MarshalJSON())
-			}
-			out.RawByte(']')
+			out.RawString(prefix)
 		}
+		out.Raw((in.Sorting).MarshalJSON())
+	}
+	if true {
+		const prefix string = ",\"filtering\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.Raw((in.Filtering).MarshalJSON())
 	}
 	out.RawByte('}')
 }

@@ -1,6 +1,7 @@
 package listing
 
 import (
+	"github.com/ifreddyrondon/capture/app/listing/filtering"
 	"github.com/ifreddyrondon/capture/app/listing/paging"
 	"github.com/ifreddyrondon/capture/app/listing/sorting"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -8,8 +9,9 @@ import (
 
 // Listing containst the info to perform filter sort and paging over a collection.
 type Listing struct {
-	Paging paging.Paging `json:"paging"`
-	sorting.Sorting
+	Paging    paging.Paging       `json:"paging,omitempty"`
+	Sorting   sorting.Sorting     `json:"sorting,omitempty"`
+	Filtering filtering.Filtering `json:"filtering,omitempty"`
 }
 
 // MarshalJSON supports json.Marshaler interface
