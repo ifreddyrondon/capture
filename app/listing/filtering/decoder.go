@@ -18,15 +18,13 @@ func NewDecoder(params url.Values, decoders ...FilterDecoder) *Decoder {
 // in the value pointed to by v. If a value is missing from the params
 // it'll be filled by their equivalent default value.
 func (dec *Decoder) Decode(v *Filtering) error {
-	var filtering Filtering
-
 	for _, decoder := range dec.decoders {
 		filter := decoder.Present(dec.params)
 		if filter != nil {
-			filtering.Filters = append(filtering.Filters, *filter)
+			v.Filters = append(v.Filters, *filter)
 		}
 
-		filtering.Available = append(filtering.Available, *decoder.WithValues())
+		v.Available = append(v.Available, *decoder.WithValues())
 	}
 
 	return nil

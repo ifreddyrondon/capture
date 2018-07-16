@@ -13,7 +13,7 @@ func TestBooleanPresentOK(t *testing.T) {
 
 	tt := []struct {
 		name     string
-		decoder  *filtering.Boolean
+		boolean  *filtering.Boolean
 		params   url.Values
 		expected *filtering.Filter
 	}{
@@ -43,7 +43,7 @@ func TestBooleanPresentOK(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.decoder.Present(tc.params)
+			result := tc.boolean.Present(tc.params)
 			assert.Equal(t, tc.expected.ID, result.ID)
 			assert.Equal(t, tc.expected.Name, result.Name)
 			assert.Equal(t, tc.expected.Type, result.Type)
@@ -59,7 +59,7 @@ func TestBooleanPresentFails(t *testing.T) {
 
 	tt := []struct {
 		name    string
-		decoder *filtering.Boolean
+		boolean *filtering.Boolean
 		params  url.Values
 	}{
 		{
@@ -76,7 +76,7 @@ func TestBooleanPresentFails(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.decoder.Present(tc.params)
+			result := tc.boolean.Present(tc.params)
 			assert.Nil(t, result)
 		})
 	}
@@ -85,7 +85,7 @@ func TestBooleanPresentFails(t *testing.T) {
 func TestBooleanWithValues(t *testing.T) {
 	t.Parallel()
 
-	decoder := filtering.NewBoolean("shared", "test", "shared", "private")
+	boolean := filtering.NewBoolean("shared", "test", "shared", "private")
 	expected := &filtering.Filter{
 		ID:   "shared",
 		Name: "test",
@@ -95,7 +95,7 @@ func TestBooleanWithValues(t *testing.T) {
 			filtering.NewValue("false", "private"),
 		},
 	}
-	result := decoder.WithValues()
+	result := boolean.WithValues()
 	assert.Equal(t, expected.ID, result.ID)
 	assert.Equal(t, expected.Name, result.Name)
 	assert.Equal(t, expected.Type, result.Type)

@@ -16,7 +16,7 @@ func TestTextPresentOK(t *testing.T) {
 
 	tt := []struct {
 		name     string
-		decoder  *filtering.Text
+		text     *filtering.Text
 		params   url.Values
 		expected *filtering.Filter
 	}{
@@ -46,7 +46,7 @@ func TestTextPresentOK(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.decoder.Present(tc.params)
+			result := tc.text.Present(tc.params)
 			assert.Equal(t, tc.expected.ID, result.ID)
 			assert.Equal(t, tc.expected.Name, result.Name)
 			assert.Equal(t, tc.expected.Type, result.Type)
@@ -62,9 +62,9 @@ func TestTextPresentFails(t *testing.T) {
 
 	vNew := filtering.NewValue("new", "New")
 	tt := []struct {
-		name    string
-		decoder *filtering.Text
-		params  url.Values
+		name   string
+		text   *filtering.Text
+		params url.Values
 	}{
 		{
 			"should return nil when not value found",
@@ -80,7 +80,7 @@ func TestTextPresentFails(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := tc.decoder.Present(tc.params)
+			result := tc.text.Present(tc.params)
 			assert.Nil(t, result)
 		})
 	}
@@ -93,14 +93,14 @@ func TestTextWithValues(t *testing.T) {
 		filtering.NewValue("new", "New"),
 		filtering.NewValue("used", "Used"),
 	}
-	decoder := filtering.NewText("condition", "test", values...)
+	text := filtering.NewText("condition", "test", values...)
 	expected := &filtering.Filter{
 		ID:     "condition",
 		Name:   "test",
 		Type:   "text",
 		Values: values,
 	}
-	result := decoder.WithValues()
+	result := text.WithValues()
 	assert.Equal(t, expected.ID, result.ID)
 	assert.Equal(t, expected.Name, result.Name)
 	assert.Equal(t, expected.Type, result.Type)
