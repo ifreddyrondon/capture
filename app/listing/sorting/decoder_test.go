@@ -9,6 +9,8 @@ import (
 )
 
 func TestDecodeOK(t *testing.T) {
+	t.Parallel()
+
 	createdDescSort := sorting.NewSort("created_at_desc", "Created date descending")
 	createdAscSort := sorting.NewSort("created_at_asc", "Created date ascendant")
 
@@ -65,6 +67,8 @@ func TestDecodeOK(t *testing.T) {
 }
 
 func TestSortingDecodeBad(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name      string
 		urlParams url.Values

@@ -9,6 +9,8 @@ import (
 )
 
 func TestDecodeOK(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name      string
 		urlParams url.Values
@@ -114,6 +116,8 @@ func TestDecodeOK(t *testing.T) {
 }
 
 func TestDecodeFails(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name      string
 		urlParams url.Values

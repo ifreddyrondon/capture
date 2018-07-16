@@ -11,6 +11,8 @@ import (
 )
 
 func TestMarshalListing(t *testing.T) {
+	t.Parallel()
+
 	createdDescSort := sorting.NewSort("created_at_desc", "Created date descending")
 	createdAscSort := sorting.NewSort("created_at_asc", "Created date ascendant")
 

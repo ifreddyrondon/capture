@@ -4,42 +4,33 @@ import (
 	"net/url"
 )
 
-// FilterID is a helper struct with the necessaries fields to identify a filter.
-// It should be used as embedded struct.
-type FilterID struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+// Value is the struct where the posibles filter values should be stored.
+type Value struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Result int64  `json:"result,omitempty"`
 }
 
-// NewFilterID returns a new FilterID instance.
-func NewFilterID(id, name string) FilterID {
-	return FilterID{ID: id, Name: name}
-}
-
-// FilterValue is the struct where the posibles filter values should be stored.
-type FilterValue struct {
-	FilterID
-	Result int64 `json:"result,omitempty"`
-}
-
-// NewFilterValue returns a new FilterValue instance.
-func NewFilterValue(id, name string) FilterValue {
-	return FilterValue{FilterID: NewFilterID(id, name)}
+// NewValue returns a new Value instance.
+func NewValue(id, name string) Value {
+	return Value{ID: id, Name: name}
 }
 
 // Filter struct that represent a filter
 type Filter struct {
-	FilterID
-	Type   string        `json:"type"`
-	Values []FilterValue `json:"values"`
+	ID     string  `json:"id"`
+	Name   string  `json:"name"`
+	Type   string  `json:"type"`
+	Values []Value `json:"values"`
 }
 
 // NewFilter returns a new Filter instance.
-func NewFilter(id FilterID, typef string, values ...FilterValue) *Filter {
+func NewFilter(id, name, typef string, values ...Value) *Filter {
 	return &Filter{
-		FilterID: id,
-		Type:     typef,
-		Values:   values,
+		ID:     id,
+		Name:   name,
+		Type:   typef,
+		Values: values,
 	}
 }
 

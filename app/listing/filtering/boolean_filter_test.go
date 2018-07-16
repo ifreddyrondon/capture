@@ -8,37 +8,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewBooleanDecoder(t *testing.T) {
-	f := filtering.NewBooleanDecoder("shared", "shared collections filter", "shared collection", "private collection")
-	assert.Equal(t, "shared", f.ID)
-	assert.Equal(t, "shared collections filter", f.Name)
-}
+func TestBooleanPresentOK(t *testing.T) {
+	t.Parallel()
 
-func TestBooleanDecoderPresentOK(t *testing.T) {
 	tt := []struct {
 		name     string
-		decoder  *filtering.BooleanDecoder
+		decoder  *filtering.Boolean
 		params   url.Values
 		expected *filtering.Filter
 	}{
 		{
 			"should return true value when param with true value",
-			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
+			filtering.NewBoolean("shared", "test", "shared", "private"),
 			map[string][]string{"shared": []string{"true"}},
 			&filtering.Filter{
-				FilterID: filtering.NewFilterID("shared", "test"),
-				Type:     "boolean",
-				Values:   []filtering.FilterValue{filtering.NewFilterValue("true", "shared")},
+				ID:     "shared",
+				Name:   "test",
+				Type:   "boolean",
+				Values: []filtering.Value{filtering.NewValue("true", "shared")},
 			},
 		},
 		{
 			"should return false value when param with false value",
-			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
+			filtering.NewBoolean("shared", "test", "shared", "private"),
 			map[string][]string{"shared": []string{"false"}},
 			&filtering.Filter{
-				FilterID: filtering.NewFilterID("shared", "test"),
-				Type:     "boolean",
-				Values:   []filtering.FilterValue{filtering.NewFilterValue("false", "private")},
+				ID:     "shared",
+				Name:   "test",
+				Type:   "boolean",
+				Values: []filtering.Value{filtering.NewValue("false", "private")},
 			},
 		},
 	}
@@ -56,20 +54,22 @@ func TestBooleanDecoderPresentOK(t *testing.T) {
 	}
 }
 
-func TestBooleanDecoderPresentFails(t *testing.T) {
+func TestBooleanPresentFails(t *testing.T) {
+	t.Parallel()
+
 	tt := []struct {
 		name    string
-		decoder *filtering.BooleanDecoder
+		decoder *filtering.Boolean
 		params  url.Values
 	}{
 		{
 			"should return nil when not value found",
-			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
+			filtering.NewBoolean("shared", "test", "shared", "private"),
 			map[string][]string{"shared": []string{"abc"}},
 		},
 		{
 			"should return nil when not params found",
-			filtering.NewBooleanDecoder("shared", "test", "shared", "private"),
+			filtering.NewBoolean("shared", "test", "shared", "private"),
 			map[string][]string{"foo": []string{"abc"}},
 		},
 	}
@@ -82,14 +82,17 @@ func TestBooleanDecoderPresentFails(t *testing.T) {
 	}
 }
 
-func TestBooleanDecoderWithValues(t *testing.T) {
-	decoder := filtering.NewBooleanDecoder("shared", "test", "shared", "private")
+func TestBooleanWithValues(t *testing.T) {
+	t.Parallel()
+
+	decoder := filtering.NewBoolean("shared", "test", "shared", "private")
 	expected := &filtering.Filter{
-		FilterID: filtering.NewFilterID("shared", "test"),
-		Type:     "boolean",
-		Values: []filtering.FilterValue{
-			filtering.NewFilterValue("true", "shared"),
-			filtering.NewFilterValue("false", "private"),
+		ID:   "shared",
+		Name: "test",
+		Type: "boolean",
+		Values: []filtering.Value{
+			filtering.NewValue("true", "shared"),
+			filtering.NewValue("false", "private"),
 		},
 	}
 	result := decoder.WithValues()

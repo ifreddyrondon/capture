@@ -8,42 +8,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewTextDecoder(t *testing.T) {
-	vNew := filtering.NewFilterValue("new", "New")
-	vUsed := filtering.NewFilterValue("used", "Used")
-	f := filtering.NewTextDecoder("condition", "Condición", vNew, vUsed)
-	assert.Equal(t, "condition", f.ID)
-	assert.Equal(t, "Condición", f.Name)
-}
+func TestTextPresentOK(t *testing.T) {
+	t.Parallel()
 
-func TestTextDecoderPresentOK(t *testing.T) {
-	vNew := filtering.NewFilterValue("new", "New")
-	vUsed := filtering.NewFilterValue("used", "Used")
+	vNew := filtering.NewValue("new", "New")
+	vUsed := filtering.NewValue("used", "Used")
 
 	tt := []struct {
 		name     string
-		decoder  *filtering.TextDecoder
+		decoder  *filtering.Text
 		params   url.Values
 		expected *filtering.Filter
 	}{
 		{
 			"should return new value when param with condition with new value",
-			filtering.NewTextDecoder("condition", "test", vNew),
+			filtering.NewText("condition", "test", vNew),
 			map[string][]string{"condition": []string{"new"}},
 			&filtering.Filter{
-				FilterID: filtering.NewFilterID("condition", "test"),
-				Type:     "text",
-				Values:   []filtering.FilterValue{filtering.NewFilterValue("new", "New")},
+				ID:     "condition",
+				Name:   "test",
+				Type:   "text",
+				Values: []filtering.Value{filtering.NewValue("new", "New")},
 			},
 		},
 		{
 			"should return used value when param with condition with used value",
-			filtering.NewTextDecoder("condition", "test", vUsed),
+			filtering.NewText("condition", "test", vUsed),
 			map[string][]string{"condition": []string{"used"}},
 			&filtering.Filter{
-				FilterID: filtering.NewFilterID("condition", "test"),
-				Type:     "text",
-				Values:   []filtering.FilterValue{filtering.NewFilterValue("used", "Used")},
+				ID:     "condition",
+				Name:   "test",
+				Type:   "text",
+				Values: []filtering.Value{filtering.NewValue("used", "Used")},
 			},
 		},
 	}
@@ -61,21 +57,23 @@ func TestTextDecoderPresentOK(t *testing.T) {
 	}
 }
 
-func TestTextDecoderPresentFails(t *testing.T) {
-	vNew := filtering.NewFilterValue("new", "New")
+func TestTextPresentFails(t *testing.T) {
+	t.Parallel()
+
+	vNew := filtering.NewValue("new", "New")
 	tt := []struct {
 		name    string
-		decoder *filtering.TextDecoder
+		decoder *filtering.Text
 		params  url.Values
 	}{
 		{
 			"should return nil when not value found",
-			filtering.NewTextDecoder("condition", "test", vNew),
+			filtering.NewText("condition", "test", vNew),
 			map[string][]string{"condition": []string{"abc"}},
 		},
 		{
 			"should return nil when not params found",
-			filtering.NewTextDecoder("condition", "test", vNew),
+			filtering.NewText("condition", "test", vNew),
 			map[string][]string{"foo": []string{"abc"}},
 		},
 	}
@@ -88,16 +86,19 @@ func TestTextDecoderPresentFails(t *testing.T) {
 	}
 }
 
-func TestTextDecoderWithValues(t *testing.T) {
-	values := []filtering.FilterValue{
-		filtering.NewFilterValue("new", "New"),
-		filtering.NewFilterValue("used", "Used"),
+func TestTextWithValues(t *testing.T) {
+	t.Parallel()
+
+	values := []filtering.Value{
+		filtering.NewValue("new", "New"),
+		filtering.NewValue("used", "Used"),
 	}
-	decoder := filtering.NewTextDecoder("condition", "test", values...)
+	decoder := filtering.NewText("condition", "test", values...)
 	expected := &filtering.Filter{
-		FilterID: filtering.NewFilterID("condition", "test"),
-		Type:     "text",
-		Values:   values,
+		ID:     "condition",
+		Name:   "test",
+		Type:   "text",
+		Values: values,
 	}
 	result := decoder.WithValues()
 	assert.Equal(t, expected.ID, result.ID)

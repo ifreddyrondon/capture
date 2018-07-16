@@ -9,6 +9,8 @@ import (
 )
 
 func TestContextManagerGetListingMissingInstance(t *testing.T) {
+	t.Parallel()
+
 	ctxManager := listing.NewContextManager()
 	ctx := context.Background()
 
