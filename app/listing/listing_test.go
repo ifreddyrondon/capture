@@ -37,7 +37,7 @@ func TestMarshalListing(t *testing.T) {
 					MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 				},
 			},
-			`{"paging":{"max_allowed_limit":100,"limit":10,"offset":0},"sorting":{},"filtering":{}}`,
+			`{"paging":{"max_allowed_limit":100,"limit":10,"offset":0}}`,
 		},
 		{
 			"given a listing with Paging that includes total should marshal paging with total",
@@ -49,7 +49,7 @@ func TestMarshalListing(t *testing.T) {
 					Total:           1000,
 				},
 			},
-			`{"paging":{"max_allowed_limit":100,"limit":10,"offset":0,"total":1000},"sorting":{},"filtering":{}}`,
+			`{"paging":{"max_allowed_limit":100,"limit":10,"offset":0,"total":1000}}`,
 		},
 		{
 			"given a listing with Paging and Sorting should marshal both",
@@ -59,12 +59,12 @@ func TestMarshalListing(t *testing.T) {
 					Offset:          10,
 					MaxAllowedLimit: 50,
 				},
-				Sorting: sorting.Sorting{
+				Sorting: &sorting.Sorting{
 					Sort:      &createdDescSort,
 					Available: []sorting.Sort{createdDescSort, createdAscSort},
 				},
 			},
-			`{"paging":{"max_allowed_limit":50,"limit":20,"offset":10},"sorting":{"sort":{"id":"created_at_desc","name":"Created date descending"},"available":[{"id":"created_at_desc","name":"Created date descending"},{"id":"created_at_asc","name":"Created date ascendant"}]},"filtering":{}}`,
+			`{"paging":{"max_allowed_limit":50,"limit":20,"offset":10},"sorting":{"sort":{"id":"created_at_desc","name":"Created date descending"},"available":[{"id":"created_at_desc","name":"Created date descending"},{"id":"created_at_asc","name":"Created date ascendant"}]}}`,
 		},
 		{
 			"given a listing with Paging, Sorting and Filtering should marshal all",
@@ -74,11 +74,11 @@ func TestMarshalListing(t *testing.T) {
 					Offset:          10,
 					MaxAllowedLimit: 50,
 				},
-				Sorting: sorting.Sorting{
+				Sorting: &sorting.Sorting{
 					Sort:      &createdDescSort,
 					Available: []sorting.Sort{createdDescSort, createdAscSort},
 				},
-				Filtering: filtering.Filtering{
+				Filtering: &filtering.Filtering{
 					Filters: []filtering.Filter{
 						filtering.Filter{
 							ID:     "condition",

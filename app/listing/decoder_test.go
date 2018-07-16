@@ -32,7 +32,6 @@ func TestDecodeOK(t *testing.T) {
 						Offset:          paging.DefaultOffset,
 						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 					},
-					Sorting: sorting.Sorting{},
 				}
 			}(),
 		},
@@ -47,7 +46,6 @@ func TestDecodeOK(t *testing.T) {
 						Offset:          paging.DefaultOffset,
 						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 					},
-					Sorting: sorting.Sorting{},
 				}
 			}(),
 		},
@@ -62,7 +60,6 @@ func TestDecodeOK(t *testing.T) {
 						Offset:          1,
 						MaxAllowedLimit: 110,
 					},
-					Sorting: sorting.Sorting{},
 				}
 			}(),
 		},
@@ -77,7 +74,7 @@ func TestDecodeOK(t *testing.T) {
 						Offset:          paging.DefaultOffset,
 						MaxAllowedLimit: paging.DefaultMaxAllowedLimit,
 					},
-					Sorting: sorting.Sorting{
+					Sorting: &sorting.Sorting{
 						Sort:      &createdDescSort,
 						Available: []sorting.Sort{createdDescSort},
 					},
@@ -103,16 +100,19 @@ func TestDecodeFails(t *testing.T) {
 	tt := []struct {
 		name      string
 		urlParams url.Values
+		opts      []func(*listing.Decoder)
 		err       string
 	}{
 		{
 			"given a not number limit param should return an error when decode paging",
 			map[string][]string{"limit": []string{"a"}},
+			[]func(*listing.Decoder){},
 			"invalid limit value, must be a number",
 		},
 		{
-			"given a sort query when non sorting criteria",
+			"given a sort query when non match sorting criteria",
 			map[string][]string{"sort": []string{"a"}},
+			[]func(*listing.Decoder){listing.DecodeSortCriterias(sorting.NewSort("created_at_desc", "Created date descending"))},
 			"there's no order criteria with the id a",
 		},
 	}
@@ -120,7 +120,7 @@ func TestDecodeFails(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			var l listing.Listing
-			err := listing.NewDecoder(tc.urlParams).Decode(&l)
+			err := listing.NewDecoder(tc.urlParams, tc.opts...).Decode(&l)
 			assert.NotNil(t, err)
 			assert.EqualError(t, err, tc.err)
 		})

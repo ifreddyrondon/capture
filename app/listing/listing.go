@@ -9,9 +9,9 @@ import (
 
 // Listing containst the info to perform filter sort and paging over a collection.
 type Listing struct {
-	Paging    paging.Paging       `json:"paging,omitempty"`
-	Sorting   sorting.Sorting     `json:"sorting,omitempty"`
-	Filtering filtering.Filtering `json:"filtering,omitempty"`
+	Paging    paging.Paging        `json:"paging,omitempty"`
+	Sorting   *sorting.Sorting     `json:"sorting,omitempty"`
+	Filtering *filtering.Filtering `json:"filtering,omitempty"`
 }
 
 // MarshalJSON supports json.Marshaler interface

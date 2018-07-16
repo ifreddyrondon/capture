@@ -58,9 +58,22 @@ func (dec *Decoder) Decode(v *Listing) error {
 		return err
 	}
 
-	if err := dec.sortingDecoder.Decode(&v.Sorting); err != nil {
-		return err
+	if len(dec.sortCriterias) > 0 {
+		if err := decodeSorting(dec, v); err != nil {
+			return err
+		}
 	}
 
+	return nil
+}
+
+func decodeSorting(dec *Decoder, v *Listing) error {
+	if v.Sorting == nil {
+		v.Sorting = &sorting.Sorting{}
+	}
+
+	if err := dec.sortingDecoder.Decode(v.Sorting); err != nil {
+		return err
+	}
 	return nil
 }
