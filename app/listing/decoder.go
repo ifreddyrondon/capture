@@ -4,7 +4,6 @@ import (
 	"net/url"
 
 	"github.com/ifreddyrondon/capture/app/listing/filtering"
-
 	"github.com/ifreddyrondon/capture/app/listing/paging"
 	"github.com/ifreddyrondon/capture/app/listing/sorting"
 )
@@ -41,24 +40,18 @@ func DecodeFilter(criterias ...filtering.FilterDecoder) func(*Decoder) {
 
 // A Decoder reads and decodes Listing values from url.Values.
 type Decoder struct {
-	pagingDecoder      *paging.Decoder
+	params             url.Values
 	pagingOpts         []paging.Option
-	sortingDecoder     *sorting.Decoder
 	sortCriterias      []sorting.Sort
-	filteringDecoder   *filtering.Decoder
 	filteringCriterias []filtering.FilterDecoder
 }
 
 // NewDecoder returns a new decoder that reads from params.
 func NewDecoder(params url.Values, opts ...func(*Decoder)) *Decoder {
-	d := &Decoder{}
+	d := &Decoder{params: params}
 	for _, o := range opts {
 		o(d)
 	}
-
-	d.pagingDecoder = paging.NewDecoder(params, d.pagingOpts...)
-	d.sortingDecoder = sorting.NewDecoder(params, d.sortCriterias...)
-	d.filteringDecoder = filtering.NewDecoder(params, d.filteringCriterias...)
 
 	return d
 }
@@ -66,22 +59,28 @@ func NewDecoder(params url.Values, opts ...func(*Decoder)) *Decoder {
 // Decode reads the Params values from url params and
 // stores it in the value pointed to by v.
 func (dec *Decoder) Decode(v *Listing) error {
-	if err := dec.pagingDecoder.Decode(&v.Paging); err != nil {
+	if err := dec.paging(v); err != nil {
 		return err
 	}
 
-	if err := decodeSorting(dec, v); err != nil {
+	if err := dec.sorting(v); err != nil {
 		return err
 	}
 
-	if err := decodeFiltering(dec, v); err != nil {
-		return err
-	}
+	dec.filtering(v)
 
 	return nil
 }
 
-func decodeSorting(dec *Decoder, v *Listing) error {
+func (dec *Decoder) paging(v *Listing) error {
+	decoder := paging.NewDecoder(dec.params, dec.pagingOpts...)
+	if err := decoder.Decode(&v.Paging); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (dec *Decoder) sorting(v *Listing) error {
 	if len(dec.sortCriterias) < 1 {
 		return nil
 	}
@@ -90,23 +89,22 @@ func decodeSorting(dec *Decoder, v *Listing) error {
 		v.Sorting = &sorting.Sorting{}
 	}
 
-	if err := dec.sortingDecoder.Decode(v.Sorting); err != nil {
+	decoder := sorting.NewDecoder(dec.params, dec.sortCriterias...)
+	if err := decoder.Decode(v.Sorting); err != nil {
 		return err
 	}
 	return nil
 }
 
-func decodeFiltering(dec *Decoder, v *Listing) error {
+func (dec *Decoder) filtering(v *Listing) {
 	if len(dec.filteringCriterias) < 1 {
-		return nil
+		return
 	}
 
 	if v.Filtering == nil {
 		v.Filtering = &filtering.Filtering{}
 	}
 
-	if err := dec.filteringDecoder.Decode(v.Filtering); err != nil {
-		return err
-	}
-	return nil
+	decoder := filtering.NewDecoder(dec.params, dec.filteringCriterias...)
+	decoder.Decode(v.Filtering)
 }
