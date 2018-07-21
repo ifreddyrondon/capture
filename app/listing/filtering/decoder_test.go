@@ -13,9 +13,9 @@ func TestDecodeOK(t *testing.T) {
 
 	vNew := filtering.NewValue("new", "New")
 	vUsed := filtering.NewValue("used", "Used")
+	text := filtering.NewText("condition", "test", vNew, vUsed)
 	vTrue := filtering.NewValue("true", "shared")
 	vFalse := filtering.NewValue("false", "private")
-	text := filtering.NewText("condition", "test", vNew, vUsed)
 	boolean := filtering.NewBoolean("shared", "test", "shared", "private")
 
 	tt := []struct {

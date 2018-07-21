@@ -5,9 +5,46 @@ import (
 
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/capture/app/listing/filtering"
+	"github.com/ifreddyrondon/capture/app/listing/sorting"
 )
 
-// URLParams is a middleware that parses the url query params from a request and stores it
+// Option allows to modify the defaults midleware values.
+type Option func(*Params)
+
+// Limit set the paging limit default.
+func Limit(limit int) Option {
+	return func(p *Params) {
+		o := DecodeLimit(limit)
+		p.optionsDecoder = append(p.optionsDecoder, o)
+	}
+}
+
+// MaxAllowedLimit set the max allowed limit default.
+func MaxAllowedLimit(maxAllowed int) Option {
+	return func(p *Params) {
+		o := DecodeMaxAllowedLimit(maxAllowed)
+		p.optionsDecoder = append(p.optionsDecoder, o)
+	}
+}
+
+// Sort set criterias to sort
+func Sort(criterias ...sorting.Sort) Option {
+	return func(p *Params) {
+		o := DecodeSort(criterias...)
+		p.optionsDecoder = append(p.optionsDecoder, o)
+	}
+}
+
+// Filter set criterias to filter
+func Filter(criterias ...filtering.FilterDecoder) Option {
+	return func(p *Params) {
+		o := DecodeFilter(criterias...)
+		p.optionsDecoder = append(p.optionsDecoder, o)
+	}
+}
+
+// Params is a middleware that parses the url query params from a request and stores it
 // on the context as a Listing under the key `listing_value`. It can be accessed through
 // listing.GetListing.
 //
@@ -27,35 +64,16 @@ import (
 //
 // 	  // do something with listing
 // }
-type URLParams struct {
+type Params struct {
 	optionsDecoder []func(*Decoder)
 	ctxManager     *ContextManager
 	render         render.Render
 }
 
-// Option allows to modify the defaults midleware values.
-type Option func(*URLParams)
-
-// Limit set the paging limit default.
-func Limit(limit int) Option {
-	return func(dec *URLParams) {
-		o := DecodeLimit(limit)
-		dec.optionsDecoder = append(dec.optionsDecoder, o)
-	}
-}
-
-// MaxAllowedLimit set the max allowed limit default.
-func MaxAllowedLimit(maxAllowed int) Option {
-	return func(dec *URLParams) {
-		o := DecodeMaxAllowedLimit(maxAllowed)
-		dec.optionsDecoder = append(dec.optionsDecoder, o)
-	}
-}
-
-// NewURLParams retuns a new instance of Listing middleware.
+// NewParams retuns a new instance of Params middleware.
 // It receives a list of Option to modify the default values.
-func NewURLParams(options ...Option) *URLParams {
-	l := &URLParams{
+func NewParams(options ...Option) *Params {
+	l := &Params{
 		ctxManager: NewContextManager(),
 		render:     json.NewRender,
 	}
@@ -69,7 +87,7 @@ func NewURLParams(options ...Option) *URLParams {
 
 // Get collect all the listing params and stores it on the context
 // as a Listing under the key `listing_value`.
-func (m *URLParams) Get(next http.Handler) http.Handler {
+func (m *Params) Get(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var l Listing
 

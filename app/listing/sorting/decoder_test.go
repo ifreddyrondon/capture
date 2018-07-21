@@ -46,6 +46,15 @@ func TestDecodeOK(t *testing.T) {
 		},
 		{
 			"given created_at_desc sort query params present and one some sort criteria",
+			map[string][]string{"sort": []string{"created_at_desc"}},
+			[]sorting.Sort{createdDescSort, createdAscSort},
+			sorting.Sorting{
+				Sort:      &createdDescSort,
+				Available: []sorting.Sort{createdDescSort, createdAscSort},
+			},
+		},
+		{
+			"given created_at_desc sort query params present and one some sort criteria",
 			map[string][]string{"sort": []string{"created_at_asc"}},
 			[]sorting.Sort{createdDescSort, createdAscSort},
 			sorting.Sorting{
