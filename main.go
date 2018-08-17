@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/ifreddyrondon/capture/app"
 	"github.com/ifreddyrondon/capture/database"
@@ -9,9 +10,10 @@ import (
 
 func main() {
 	ds := database.Open("postgres://localhost/captures_app?sslmode=disable")
-	app := app.New(ds.DB)
-	app.RegisterOnShutdown(ds.OnShutdown)
-	if err := app.Serve(); err != nil {
-		log.Printf("%v", err)
+	bastion := app.New(ds.DB)
+	bastion.RegisterOnShutdown(ds.OnShutdown)
+	if err := bastion.Serve(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v", err)
+		os.Exit(1)
 	}
 }
