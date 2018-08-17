@@ -9,12 +9,12 @@ import (
 
 // Controller handler the branch's routes
 type Controller struct {
-	render render.Render
+	render render.APIRenderer
 }
 
 // NewController returns a new Controller
-func NewController(render render.Render) *Controller {
-	return &Controller{render: render}
+func NewController() *Controller {
+	return &Controller{render: render.NewJSON()}
 }
 
 // Router creates a REST router for the branch resource
@@ -26,5 +26,5 @@ func (h *Controller) Router() http.Handler {
 
 func (h *Controller) list(w http.ResponseWriter, r *http.Request) {
 	b := Branch{}
-	_ = h.render(w).Send(b)
+	h.render.Send(w, b)
 }

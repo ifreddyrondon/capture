@@ -9,8 +9,6 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render/json"
-
 	"github.com/ifreddyrondon/capture/app/capture"
 
 	"github.com/stretchr/testify/assert"
@@ -19,8 +17,8 @@ import (
 func setup(t *testing.T) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
 
-	controller := capture.NewController(service, json.NewRender)
-	app := bastion.New(bastion.Options{})
+	controller := capture.NewController(service)
+	app := bastion.New()
 	app.APIRouter.Mount("/captures/", controller.Router())
 
 	return app, teardown

@@ -20,17 +20,17 @@ type tokenJSON struct {
 // Controller handler the auth routes
 type Controller struct {
 	middleware *authentication.Authentication
-	render     render.Render
+	render     render.APIRenderer
 	service    *jwt.Service
 	ctxManager *user.ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(middleware *authentication.Authentication, service *jwt.Service, render render.Render) *Controller {
+func NewController(middleware *authentication.Authentication, service *jwt.Service) *Controller {
 	return &Controller{
 		middleware: middleware,
 		service:    service,
-		render:     render,
+		render:     render.NewJSON(),
 		ctxManager: user.NewContextManager(),
 	}
 }
@@ -49,14 +49,14 @@ func (c *Controller) Router() http.Handler {
 func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
 	u, err := c.ctxManager.GetUser(r.Context())
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 
 	token, err := c.service.GenerateToken(u.ID.String())
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 	}
 
-	_ = c.render(w).Send(tokenJSON{Token: token})
+	c.render.Send(w, tokenJSON{Token: token})
 }

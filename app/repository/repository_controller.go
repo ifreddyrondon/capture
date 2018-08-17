@@ -14,17 +14,17 @@ import (
 // Controller handler the repository routes
 type Controller struct {
 	service        Service
-	render         render.Render
+	render         render.APIRenderer
 	authorization  *authorization.Authorization
 	userMiddleware *user.Middleware
 	ctxUserManager *user.ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render, authMiddleware *authorization.Authorization, userMiddleware *user.Middleware) *Controller {
+func NewController(service Service, authMiddleware *authorization.Authorization, userMiddleware *user.Middleware) *Controller {
 	return &Controller{
 		service:        service,
-		render:         render,
+		render:         render.NewJSON(),
 		authorization:  authMiddleware,
 		userMiddleware: userMiddleware,
 		ctxUserManager: user.NewContextManager(),
@@ -47,22 +47,22 @@ func (c *Controller) Router() http.Handler {
 func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	var repo Repository
 	if err := json.NewDecoder(r.Body).Decode(&repo); err != nil {
-		_ = c.render(w).BadRequest(err)
+		c.render.BadRequest(w, err)
 		return
 	}
 
 	userID, err := c.ctxUserManager.GetUserID(r.Context())
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 
 	repo.UserID = userID
 
 	if err := c.service.Save(&repo); err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 
-	_ = c.render(w).Created(repo)
+	c.render.Created(w, repo)
 }

@@ -4,22 +4,21 @@ import (
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion/render"
-	bastionJSON "github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/capture/app/user"
 )
 
 // Authentication is a middleware to validate request credentials.
 type Authentication struct {
 	strategy   Strategy
-	render     render.Render
+	render     render.APIRenderer
 	ctxManager *user.ContextManager
 }
 
 // NewAuthentication returns a new instance of Authentication middleware
-func NewAuthentication(strategy Strategy, render render.Render) *Authentication {
+func NewAuthentication(strategy Strategy) *Authentication {
 	return &Authentication{
 		strategy:   strategy,
-		render:     render,
+		render:     render.NewJSON(),
 		ctxManager: user.NewContextManager(),
 	}
 }
@@ -30,19 +29,19 @@ func (a *Authentication) Authenticate(next http.Handler) http.Handler {
 		u, err := a.strategy.Validate(r)
 		if err != nil {
 			if a.strategy.IsErrCredentials(err) {
-				httpErr := bastionJSON.HTTPError{
+				httpErr := render.HTTPError{
 					Status:  http.StatusUnauthorized,
-					Errors:  http.StatusText(http.StatusUnauthorized),
+					Error:   http.StatusText(http.StatusUnauthorized),
 					Message: err.Error(),
 				}
-				_ = a.render(w).Response(http.StatusUnauthorized, httpErr)
+				a.render.Response(w, http.StatusUnauthorized, httpErr)
 				return
 			}
 			if a.strategy.IsErrDecoding(err) {
-				_ = a.render(w).BadRequest(err)
+				a.render.BadRequest(w, err)
 				return
 			}
-			_ = a.render(w).InternalServerError(err)
+			a.render.InternalServerError(w, err)
 			return
 		}
 		ctx := a.ctxManager.WithUser(r.Context(), u)

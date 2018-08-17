@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/app/auth/authorization"
@@ -22,11 +21,11 @@ func setupApp(authorizationStrategy authorization.Strategy) *bastion.Bastion {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
-	middl := authorization.NewAuthorization(authorizationStrategy, json.NewRender)
+	middle := authorization.NewAuthorization(authorizationStrategy)
 
-	app := bastion.New(bastion.Options{})
+	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(middl.IsAuthorizedREQ)
+		r.Use(middle.IsAuthorizedREQ)
 		r.Get("/", handler)
 		r.Post("/", handler)
 	})
@@ -109,7 +108,7 @@ func TestAuthorizationFailInternalServerError(t *testing.T) {
 	response := map[string]interface{}{
 		"status":  500.0,
 		"error":   "Internal Server Error",
-		"message": "test",
+		"message": "looks like something went wrong",
 	}
 
 	token, err := jwtService.GenerateToken("123")

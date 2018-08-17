@@ -6,18 +6,17 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
-	bastionJSON "github.com/ifreddyrondon/bastion/render/json"
 )
 
 // Controller handler the user's routes
 type Controller struct {
 	service Service
-	render  render.Render
+	render  render.APIRenderer
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render) *Controller {
-	return &Controller{service: service, render: render}
+func NewController(service Service) *Controller {
+	return &Controller{service: service, render: render.NewJSON()}
 }
 
 // Router creates a REST router for the user resource
@@ -31,24 +30,24 @@ func (c *Controller) Router() http.Handler {
 func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		_ = c.render(w).BadRequest(err)
+		c.render.BadRequest(w, err)
 		return
 	}
 
 	if err := c.service.Save(&user); err != nil {
 		if _, ok := err.(*emailDuplicateError); ok {
-			httpErr := bastionJSON.HTTPError{
+			httpErr := render.HTTPError{
 				Status:  http.StatusConflict,
-				Errors:  http.StatusText(http.StatusConflict),
+				Error:   http.StatusText(http.StatusConflict),
 				Message: err.Error(),
 			}
-			_ = c.render(w).Response(http.StatusConflict, httpErr)
+			c.render.Response(w, http.StatusConflict, httpErr)
 			return
 		}
 
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 
-	_ = c.render(w).Created(user)
+	c.render.Created(w, user)
 }

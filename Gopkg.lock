@@ -81,11 +81,10 @@
   packages = [
     ".",
     "middleware",
-    "render",
-    "render/json"
+    "render"
   ]
-  revision = "1d7629641a501a73b7c02b3380cffb92773f0142"
-  version = "v1.5.0"
+  revision = "af3f8708f605e7cfd977db6b6dd50d342835b566"
+  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/imkira/go-interpol"
@@ -383,6 +382,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fd6f2f3dbb635e5e6e685faeed857bd2219034fa7a7586a6a02a3442bd89b8af"
+  inputs-digest = "3c913dd4fb97ac4bfe4abae1ecf3ca09692b7fe33481f3af018cf534235afe7d"
   solver-name = "gps-cdcl"
   solver-version = 1

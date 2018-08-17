@@ -23,15 +23,15 @@ var (
 // Controller handler the capture's routes
 type Controller struct {
 	service    Service
-	render     render.Render
+	render     render.APIRenderer
 	ctxManager *ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(service Service, render render.Render) *Controller {
+func NewController(service Service) *Controller {
 	return &Controller{
 		service:    service,
-		render:     render,
+		render:     render.NewJSON(),
 		ctxManager: NewContextManager(),
 	}
 }
@@ -56,53 +56,53 @@ func (c *Controller) list(w http.ResponseWriter, r *http.Request) {
 	start := 0
 	captures, err := c.service.List(start, count)
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 
-	_ = c.render(w).Send(captures)
+	c.render.Send(w, captures)
 }
 
 func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	var captures Captures
 	if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
-		_ = c.render(w).BadRequest(err)
+		c.render.BadRequest(w, err)
 		return
 	}
 
 	if len(captures) == 1 {
 		if err := c.service.Save(captures[0]); err != nil {
-			_ = c.render(w).InternalServerError(err)
+			c.render.InternalServerError(w, err)
 			return
 		}
-		_ = c.render(w).Created(captures[0])
+		c.render.Created(w, captures[0])
 		return
 	}
 
 	captures, err := c.service.SaveBulk(captures...)
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
-	_ = c.render(w).Created(captures)
+	c.render.Created(w, captures)
 }
 
 func (c *Controller) captureCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captureID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
 		if err != nil {
-			log.Println(err)
-			_ = c.render(w).BadRequest(ErrorBadRequest)
+			log.Println(w, err)
+			c.render.BadRequest(w, ErrorBadRequest)
 			return
 		}
 		var capt *Capture
 		capt, err = c.service.Get(captureID)
 		if capt == nil {
-			_ = c.render(w).NotFound(err)
+			c.render.NotFound(w, err)
 			return
 		}
 		if err != nil {
-			_ = c.render(w).InternalServerError(err)
+			c.render.InternalServerError(w, err)
 			return
 		}
 		ctx := c.ctxManager.WithCapture(r.Context(), capt)
@@ -113,41 +113,41 @@ func (c *Controller) captureCtx(next http.Handler) http.Handler {
 func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
 	capt, err := c.ctxManager.GetCapture(r.Context())
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
-	_ = c.render(w).Send(capt)
+	c.render.Send(w, capt)
 }
 
 func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
 	capt, err := c.ctxManager.GetCapture(r.Context())
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 	if err := c.service.Delete(capt); err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
-	c.render(w).NoContent()
+	c.render.NoContent(w)
 }
 
 func (c *Controller) update(w http.ResponseWriter, r *http.Request) {
 	capt, err := c.ctxManager.GetCapture(r.Context())
 	if err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
 
 	var updates Capture
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-		_ = c.render(w).BadRequest(err)
+		c.render.BadRequest(w, err)
 		return
 	}
 
 	if err := c.service.Update(capt, updates); err != nil {
-		_ = c.render(w).InternalServerError(err)
+		c.render.InternalServerError(w, err)
 		return
 	}
-	_ = c.render(w).Send(capt)
+	c.render.Send(w, capt)
 }

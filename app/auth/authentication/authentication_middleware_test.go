@@ -7,13 +7,12 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 
 	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/app/auth/authentication"
-	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/app/user"
 	"github.com/ifreddyrondon/capture/database"
 	"github.com/jinzhu/gorm"
@@ -55,9 +54,9 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	userService.Save(&u)
 
 	strategy := basic.New(userService)
-	middleware := authentication.NewAuthentication(strategy, json.NewRender)
+	middleware := authentication.NewAuthentication(strategy)
 
-	app := bastion.New(bastion.Options{})
+	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
 		r.Use(middleware.Authenticate)
 		r.Post("/", handler)
@@ -147,9 +146,9 @@ func TestTokenAuthFailureBadRequestCredentials(t *testing.T) {
 }
 
 func setupWithMockStrategy(mock authentication.Strategy) *bastion.Bastion {
-	middleware := authentication.NewAuthentication(mock, json.NewRender)
+	middleware := authentication.NewAuthentication(mock)
 
-	app := bastion.New(bastion.Options{})
+	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
 		r.Use(middleware.Authenticate)
 		r.Post("/", handler)
@@ -184,7 +183,7 @@ func TestTokenAuthFailureInternalServerError(t *testing.T) {
 		response: map[string]interface{}{
 			"status":  500.0,
 			"error":   "Internal Server Error",
-			"message": "test",
+			"message": "looks like something went wrong",
 		},
 	}
 

@@ -14,15 +14,15 @@ type Middleware struct {
 	authorizationCtxManager *authorization.ContextManager
 	userCtxManager          *ContextManager
 	service                 GetterService
-	render                  render.Render
+	render                  render.APIRenderer
 }
 
 // NewMiddleware returns a new instance of Middleware
-func NewMiddleware(service GetterService, render render.Render) *Middleware {
+func NewMiddleware(service GetterService) *Middleware {
 	return &Middleware{
 		authorizationCtxManager: authorization.NewContextManager(),
 		service:                 service,
-		render:                  render,
+		render:                  render.NewJSON(),
 	}
 }
 
@@ -32,16 +32,16 @@ func (m *Middleware) LoggedUser(next http.Handler) http.Handler {
 		subjectID := m.authorizationCtxManager.Get(r.Context())
 		userID, err := kallax.NewULIDFromText(subjectID)
 		if err != nil {
-			_ = m.render(w).BadRequest(err)
+			m.render.BadRequest(w, err)
 			return
 		}
 		u, err := m.service.GetByID(userID)
 		if err != nil {
 			if err == ErrNotFound {
-				_ = m.render(w).NotFound(err)
+				m.render.NotFound(w, err)
 				return
 			}
-			_ = m.render(w).InternalServerError(err)
+			m.render.InternalServerError(w, err)
 			return
 		}
 		ctx := m.userCtxManager.WithUser(r.Context(), u)

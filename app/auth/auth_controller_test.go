@@ -5,18 +5,17 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/jinzhu/gorm"
-	"github.com/stretchr/testify/require"
-
 	"github.com/ifreddyrondon/capture/app/auth"
 	"github.com/ifreddyrondon/capture/app/auth/authentication"
 	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/app/auth/jwt"
+	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/require"
+
 	"github.com/ifreddyrondon/capture/app/user"
 	"github.com/ifreddyrondon/capture/database"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render/json"
 )
 
 var (
@@ -50,10 +49,10 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	userService.Save(&u)
 	strategy := basic.New(userService)
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
-	middleware := authentication.NewAuthentication(strategy, json.NewRender)
-	controller := auth.NewController(middleware, jwtService, json.NewRender)
+	middleware := authentication.NewAuthentication(strategy)
+	controller := auth.NewController(middleware, jwtService)
 
-	app := bastion.New(bastion.Options{})
+	app := bastion.New()
 	app.APIRouter.Mount("/auth/", controller.Router())
 
 	return app, teardown

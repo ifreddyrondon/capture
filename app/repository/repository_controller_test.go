@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/capture/app/auth/authorization"
 	"github.com/ifreddyrondon/capture/app/repository"
 	"github.com/ifreddyrondon/capture/app/user"
@@ -51,22 +50,22 @@ func (m *mockUserGetterService) GetByID(id kallax.ULID) (*user.User, error) {
 
 func setupControllerMockService(strategy authorization.Strategy) *bastion.Bastion {
 	service := &MockService{}
-	authMidl := authorization.NewAuthorization(strategy, json.NewRender)
-	userMidl := user.NewMiddleware(&mockUserGetterService{}, json.NewRender)
-	controller := repository.NewController(service, json.NewRender, authMidl, userMidl)
+	authMiddleware := authorization.NewAuthorization(strategy)
+	userMiddleware := user.NewMiddleware(&mockUserGetterService{})
+	controller := repository.NewController(service, authMiddleware, userMiddleware)
 
-	app := bastion.New(bastion.Options{})
+	app := bastion.New()
 	app.APIRouter.Mount("/repository/", controller.Router())
 	return app
 }
 
 func setupController(t *testing.T, strategy authorization.Strategy) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
-	authMidl := authorization.NewAuthorization(strategy, json.NewRender)
-	userMidl := user.NewMiddleware(&mockUserGetterService{}, json.NewRender)
-	controller := repository.NewController(service, json.NewRender, authMidl, userMidl)
+	authMiddleware := authorization.NewAuthorization(strategy)
+	userMiddleware := user.NewMiddleware(&mockUserGetterService{})
+	controller := repository.NewController(service, authMiddleware, userMiddleware)
 
-	app := bastion.New(bastion.Options{})
+	app := bastion.New()
 	app.APIRouter.Mount("/repository/", controller.Router())
 
 	return app, teardown

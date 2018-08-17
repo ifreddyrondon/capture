@@ -4,22 +4,21 @@ import (
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/bastion/render/json"
 )
 
 // Authorization is a middleware to validate
 // if the request can access the resource using a validation strategy
 type Authorization struct {
 	strategy   Strategy
-	render     render.Render
+	render     render.APIRenderer
 	ctxManager *ContextManager
 }
 
 // NewAuthorization returns a new instance of Authorization middleware
-func NewAuthorization(strategy Strategy, render render.Render) *Authorization {
+func NewAuthorization(strategy Strategy) *Authorization {
 	return &Authorization{
 		strategy:   strategy,
-		render:     render,
+		render:     render.NewJSON(),
 		ctxManager: NewContextManager(),
 	}
 }
@@ -30,15 +29,15 @@ func (a *Authorization) IsAuthorizedREQ(next http.Handler) http.Handler {
 		subjectID, err := a.strategy.IsAuthorizedREQ(r)
 		if err != nil {
 			if a.strategy.IsNotAuthorizedErr(err) {
-				httpErr := json.HTTPError{
+				httpErr := render.HTTPError{
 					Status:  http.StatusForbidden,
-					Errors:  http.StatusText(http.StatusForbidden),
+					Error:   http.StatusText(http.StatusForbidden),
 					Message: err.Error(),
 				}
-				_ = a.render(w).Response(http.StatusForbidden, httpErr)
+				a.render.Response(w, http.StatusForbidden, httpErr)
 				return
 			}
-			_ = a.render(w).InternalServerError(err)
+			a.render.InternalServerError(w, err)
 			return
 		}
 		ctx := a.ctxManager.WithSubjectID(r.Context(), subjectID)

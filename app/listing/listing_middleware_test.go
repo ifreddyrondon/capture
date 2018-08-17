@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/bastion/render/json"
+	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/app/listing"
 	"github.com/ifreddyrondon/capture/app/listing/filtering"
 	"github.com/ifreddyrondon/capture/app/listing/paging"
@@ -19,12 +19,12 @@ func setup(options ...listing.Option) (*httptest.Server, *listing.Listing, func(
 	r := chi.NewRouter()
 	var resultContainer listing.Listing
 
-	midl := listing.NewParams(options...)
-	r.Use(midl.Get)
+	middleware := listing.NewParams(options...)
+	r.Use(middleware.Get)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		p, err := listing.NewContextManager().GetListing(r.Context())
 		if err != nil {
-			_ = json.NewRender(w).InternalServerError(err)
+			render.NewJSON().InternalServerError(w, err)
 			return
 		}
 

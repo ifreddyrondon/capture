@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/bastion/render/json"
 	"github.com/ifreddyrondon/capture/app/listing/filtering"
 	"github.com/ifreddyrondon/capture/app/listing/sorting"
 )
@@ -28,18 +27,18 @@ func MaxAllowedLimit(maxAllowed int) Option {
 	}
 }
 
-// Sort set criterias to sort
-func Sort(criterias ...sorting.Sort) Option {
+// Sort set criteria to sort
+func Sort(criteria ...sorting.Sort) Option {
 	return func(p *Params) {
-		o := DecodeSort(criterias...)
+		o := DecodeSort(criteria...)
 		p.optionsDecoder = append(p.optionsDecoder, o)
 	}
 }
 
-// Filter set criterias to filter
-func Filter(criterias ...filtering.FilterDecoder) Option {
+// Filter set criteria to filter
+func Filter(criteria ...filtering.FilterDecoder) Option {
 	return func(p *Params) {
-		o := DecodeFilter(criterias...)
+		o := DecodeFilter(criteria...)
 		p.optionsDecoder = append(p.optionsDecoder, o)
 	}
 }
@@ -67,15 +66,15 @@ func Filter(criterias ...filtering.FilterDecoder) Option {
 type Params struct {
 	optionsDecoder []func(*Decoder)
 	ctxManager     *ContextManager
-	render         render.Render
+	render         render.APIRenderer
 }
 
-// NewParams retuns a new instance of Params middleware.
+// NewParams returns a new instance of Params middleware.
 // It receives a list of Option to modify the default values.
 func NewParams(options ...Option) *Params {
 	l := &Params{
 		ctxManager: NewContextManager(),
-		render:     json.NewRender,
+		render:     render.NewJSON(),
 	}
 
 	for _, o := range options {
@@ -92,7 +91,7 @@ func (m *Params) Get(next http.Handler) http.Handler {
 		var l Listing
 
 		if err := NewDecoder(r.URL.Query(), m.optionsDecoder...).Decode(&l); err != nil {
-			_ = m.render(w).BadRequest(err)
+			m.render.BadRequest(w, err)
 			return
 		}
 

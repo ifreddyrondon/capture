@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render/json"
 
 	"github.com/ifreddyrondon/capture/app/user"
 )
@@ -14,8 +13,8 @@ import (
 func setupController(t *testing.T) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
 
-	controller := user.NewController(service, json.NewRender)
-	app := bastion.New(bastion.Options{})
+	controller := user.NewController(service)
+	app := bastion.New()
 	app.APIRouter.Mount("/users/", controller.Router())
 
 	return app, teardown
@@ -137,15 +136,15 @@ func TestCreateFailSave(t *testing.T) {
 
 	service := user.NewFakeServiceDefaultPanic()
 	service.SaveHook = func(*user.User) error { return errors.New("test") }
-	controller := user.NewController(service, json.NewRender)
-	app := bastion.New(bastion.Options{})
+	controller := user.NewController(service)
+	app := bastion.New()
 	app.APIRouter.Mount("/users/", controller.Router())
 
 	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{
 		"status":  500.0,
 		"error":   "Internal Server Error",
-		"message": "test",
+		"message": "looks like something went wrong",
 	}
 
 	e := bastion.Tester(t, app)
