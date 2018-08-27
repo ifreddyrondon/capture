@@ -1,6 +1,6 @@
 package sorting
 
-import jwriter "github.com/mailru/easyjson/jwriter"
+import "github.com/mailru/easyjson/jwriter"
 
 // Sort criteria.
 type Sort struct {

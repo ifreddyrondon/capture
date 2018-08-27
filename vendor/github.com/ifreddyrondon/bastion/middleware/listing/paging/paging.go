@@ -1,6 +1,6 @@
 package paging
 
-import jwriter "github.com/mailru/easyjson/jwriter"
+import "github.com/mailru/easyjson/jwriter"
 
 // Paging struct allows to do pagination into a collection.
 type Paging struct {

@@ -12,18 +12,18 @@ type Decoder struct {
 	params url.Values
 
 	defaultCriteria *Sort
-	criterias       []Sort
+	criteria        []Sort
 }
 
 // NewDecoder returns a new decoder that reads from query params.
 //
 // The first sort criteria if present will be the default Sort
 // when decode url query params and not params present.
-func NewDecoder(params url.Values, criterias ...Sort) *Decoder {
-	d := &Decoder{params: params, criterias: criterias}
+func NewDecoder(params url.Values, criteria ...Sort) *Decoder {
+	d := &Decoder{params: params, criteria: criteria}
 
-	if len(criterias) > 0 {
-		d.defaultCriteria = &criterias[0]
+	if len(criteria) > 0 {
+		d.defaultCriteria = &criteria[0]
 	}
 
 	return d
@@ -37,7 +37,7 @@ func (dec *Decoder) Decode(v *Sorting) error {
 
 	sortStr, ok := dec.params["sort"]
 	if ok {
-		sort := paramsInAvailables(sortStr[0], dec.criterias)
+		sort := paramsInAvailable(sortStr[0], dec.criteria)
 		if sort == nil {
 			return fmt.Errorf(errSortKeyNotAvailable, sortStr[0])
 		}
@@ -47,8 +47,8 @@ func (dec *Decoder) Decode(v *Sorting) error {
 	return nil
 }
 
-func paramsInAvailables(sortKey string, availables []Sort) *Sort {
-	for _, sort := range availables {
+func paramsInAvailable(sortKey string, available []Sort) *Sort {
+	for _, sort := range available {
 		if sortKey == sort.ID {
 			return &sort
 		}
@@ -58,6 +58,6 @@ func paramsInAvailables(sortKey string, availables []Sort) *Sort {
 }
 
 func (dec *Decoder) fillDefaults(s *Sorting) {
-	s.Available = dec.criterias
+	s.Available = dec.criteria
 	s.Sort = dec.defaultCriteria
 }

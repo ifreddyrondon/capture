@@ -9,7 +9,7 @@ const (
 )
 
 // Boolean validates boolean values and returns a Filter.
-// It returns a Filter with two posible values true or false.
+// The Filter returned will be true or false.
 type Boolean struct {
 	id, name   string
 	trueValue  Value
@@ -26,7 +26,7 @@ func NewBoolean(id, name string, trueValName, falseValName string) *Boolean {
 	}
 }
 
-// Present gets the url params and check if a boolean filter is present,
+// Present gets a url and check if a boolean filter is present,
 // if it's present validates if its value are true or false.
 // Returns a Filter with the applied value or nil is not present.
 func (b *Boolean) Present(keys url.Values) *Filter {

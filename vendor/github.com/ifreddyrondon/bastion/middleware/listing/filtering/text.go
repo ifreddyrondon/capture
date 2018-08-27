@@ -35,8 +35,8 @@ func (b *Text) Present(keys url.Values) *Filter {
 	return nil
 }
 
-func checkValues(availables []Value, paramVal string) *Value {
-	for _, v := range availables {
+func checkValues(available []Value, paramVal string) *Value {
+	for _, v := range available {
 		if v.ID == paramVal {
 			return &v
 		}

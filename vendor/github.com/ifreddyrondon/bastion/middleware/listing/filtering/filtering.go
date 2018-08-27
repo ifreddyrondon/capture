@@ -3,7 +3,7 @@ package filtering
 import (
 	"net/url"
 
-	jwriter "github.com/mailru/easyjson/jwriter"
+	"github.com/mailru/easyjson/jwriter"
 )
 
 // Value is the struct where the posibles filter values should be stored.

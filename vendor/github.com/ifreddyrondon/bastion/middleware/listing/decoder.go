@@ -3,9 +3,9 @@ package listing
 import (
 	"net/url"
 
-	"github.com/ifreddyrondon/capture/app/listing/filtering"
-	"github.com/ifreddyrondon/capture/app/listing/paging"
-	"github.com/ifreddyrondon/capture/app/listing/sorting"
+	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
+	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
+	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 )
 
 // DecodeLimit set the paging limit default.
@@ -24,26 +24,26 @@ func DecodeMaxAllowedLimit(maxAllowed int) func(*Decoder) {
 	}
 }
 
-// DecodeSort set criterias to sort
-func DecodeSort(criterias ...sorting.Sort) func(*Decoder) {
+// DecodeSort set criteria to sort
+func DecodeSort(criteria ...sorting.Sort) func(*Decoder) {
 	return func(dec *Decoder) {
-		dec.sortCriterias = append(dec.sortCriterias, criterias...)
+		dec.sortCriteria = append(dec.sortCriteria, criteria...)
 	}
 }
 
-// DecodeFilter set criterias to filter
-func DecodeFilter(criterias ...filtering.FilterDecoder) func(*Decoder) {
+// DecodeFilter set criteria to filter
+func DecodeFilter(criteria ...filtering.FilterDecoder) func(*Decoder) {
 	return func(dec *Decoder) {
-		dec.filteringCriterias = append(dec.filteringCriterias, criterias...)
+		dec.filteringCriteria = append(dec.filteringCriteria, criteria...)
 	}
 }
 
 // A Decoder reads and decodes Listing values from url.Values.
 type Decoder struct {
-	params             url.Values
-	pagingOpts         []paging.Option
-	sortCriterias      []sorting.Sort
-	filteringCriterias []filtering.FilterDecoder
+	params            url.Values
+	pagingOpts        []paging.Option
+	sortCriteria      []sorting.Sort
+	filteringCriteria []filtering.FilterDecoder
 }
 
 // NewDecoder returns a new decoder that reads from params.
@@ -81,7 +81,7 @@ func (dec *Decoder) paging(v *Listing) error {
 }
 
 func (dec *Decoder) sorting(v *Listing) error {
-	if len(dec.sortCriterias) < 1 {
+	if len(dec.sortCriteria) < 1 {
 		return nil
 	}
 
@@ -89,7 +89,7 @@ func (dec *Decoder) sorting(v *Listing) error {
 		v.Sorting = &sorting.Sorting{}
 	}
 
-	decoder := sorting.NewDecoder(dec.params, dec.sortCriterias...)
+	decoder := sorting.NewDecoder(dec.params, dec.sortCriteria...)
 	if err := decoder.Decode(v.Sorting); err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (dec *Decoder) sorting(v *Listing) error {
 }
 
 func (dec *Decoder) filtering(v *Listing) {
-	if len(dec.filteringCriterias) < 1 {
+	if len(dec.filteringCriteria) < 1 {
 		return
 	}
 
@@ -105,6 +105,6 @@ func (dec *Decoder) filtering(v *Listing) {
 		v.Filtering = &filtering.Filtering{}
 	}
 
-	decoder := filtering.NewDecoder(dec.params, dec.filteringCriterias...)
+	decoder := filtering.NewDecoder(dec.params, dec.filteringCriteria...)
 	decoder.Decode(v.Filtering)
 }

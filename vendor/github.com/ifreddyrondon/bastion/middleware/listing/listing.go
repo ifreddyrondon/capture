@@ -1,13 +1,13 @@
 package listing
 
 import (
-	"github.com/ifreddyrondon/capture/app/listing/filtering"
-	"github.com/ifreddyrondon/capture/app/listing/paging"
-	"github.com/ifreddyrondon/capture/app/listing/sorting"
-	jwriter "github.com/mailru/easyjson/jwriter"
+	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
+	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
+	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
+	"github.com/mailru/easyjson/jwriter"
 )
 
-// Listing containst the info to perform filter sort and paging over a collection.
+// Listing holds the info to perform filtering, sorting and paging over a collection.
 type Listing struct {
 	Paging    paging.Paging        `json:"paging,omitempty"`
 	Sorting   *sorting.Sorting     `json:"sorting,omitempty"`
