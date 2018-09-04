@@ -1,6 +1,7 @@
 package basic_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -9,14 +10,14 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/internal/config"
 	"github.com/stretchr/testify/assert"
-	kallax "gopkg.in/src-d/go-kallax.v1"
+	"gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/app/user"
-	"github.com/ifreddyrondon/capture/database"
 	"github.com/jinzhu/gorm"
 )
 
@@ -32,8 +33,9 @@ const (
 
 func getDB() *gorm.DB {
 	once.Do(func() {
-		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
-		db = ds.DB
+		src := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
+		cfg, _ := config.New(config.Source(bytes.NewBuffer(src)))
+		db = cfg.Database
 	})
 	return db
 }

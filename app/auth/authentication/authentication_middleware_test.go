@@ -1,6 +1,7 @@
 package authentication_test
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 	"sync"
@@ -8,13 +9,13 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/app/auth/authentication/strategy/basic"
+	"github.com/ifreddyrondon/capture/internal/config"
 
 	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/app/auth/authentication"
 	"github.com/ifreddyrondon/capture/app/user"
-	"github.com/ifreddyrondon/capture/database"
 	"github.com/jinzhu/gorm"
 )
 
@@ -35,8 +36,9 @@ const (
 
 func getDB() *gorm.DB {
 	once.Do(func() {
-		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
-		db = ds.DB
+		src := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
+		cfg, _ := config.New(config.Source(bytes.NewBuffer(src)))
+		db = cfg.Database
 	})
 	return db
 }

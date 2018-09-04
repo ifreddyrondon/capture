@@ -1,11 +1,12 @@
 package capture_test
 
 import (
+	"bytes"
 	"sync"
 	"testing"
 
 	"github.com/ifreddyrondon/capture/app/capture"
-	"github.com/ifreddyrondon/capture/database"
+	"github.com/ifreddyrondon/capture/internal/config"
 	"github.com/jinzhu/gorm"
 )
 
@@ -14,8 +15,9 @@ var db *gorm.DB
 
 func getDB() *gorm.DB {
 	once.Do(func() {
-		ds := database.Open("postgres://localhost/captures_app_test?sslmode=disable")
-		db = ds.DB
+		src := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
+		cfg, _ := config.New(config.Source(bytes.NewBuffer(src)))
+		db = cfg.Database
 	})
 	return db
 }

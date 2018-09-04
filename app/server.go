@@ -11,14 +11,14 @@ import (
 	"github.com/ifreddyrondon/capture/app/capture"
 	"github.com/ifreddyrondon/capture/app/repository"
 	"github.com/ifreddyrondon/capture/app/user"
-	"github.com/jinzhu/gorm"
+	"github.com/ifreddyrondon/capture/internal/config"
 )
 
 // New returns a bastion ready instance with all the app config
-func New(db *gorm.DB) *bastion.Bastion {
-	app := bastion.New()
+func New(cfg *config.Config) *bastion.Bastion {
+	app := bastion.New(bastion.Addr(cfg.ADDR))
 
-	userStore := user.NewPGStore(db)
+	userStore := user.NewPGStore(cfg.Database)
 	userStore.Drop()
 	userStore.Migrate()
 	userService := user.NewService(userStore)
@@ -36,14 +36,14 @@ func New(db *gorm.DB) *bastion.Bastion {
 
 	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 
-	repoStore := repository.NewPGStore(db)
+	repoStore := repository.NewPGStore(cfg.Database)
 	repoStore.Drop()
 	repoStore.Migrate()
 	repoService := repository.NewService(repoStore)
 	repoController := repository.NewController(repoService, authorizationMiddleware, userMiddleware)
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
-	captureStore := capture.NewPGStore(db)
+	captureStore := capture.NewPGStore(cfg.Database)
 	captureStore.Drop()
 	captureStore.Migrate()
 	captureService := capture.NewService(captureStore)
