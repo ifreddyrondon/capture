@@ -16,27 +16,31 @@ type Constants struct {
 }
 
 // Source set the configuration source in case you aren't allowed to read a file.
-func Source(source io.Reader) func(*Config) {
-	return func(cfg *Config) {
+func Source(source io.Reader) func(*configOpts) {
+	return func(cfg *configOpts) {
 		cfg.source = source
 	}
 }
 
+type configOpts struct {
+	source io.Reader
+}
+
+// Config represent the global app configuration
 type Config struct {
 	Constants
 	Database *gorm.DB
-	source   io.Reader
 }
 
 // NewConfig is used to generate a configuration instance which will be passed around the codebase
-func New(opts ...func(*Config)) (*Config, error) {
-	var cfg Config
-
+func New(opts ...func(*configOpts)) (*Config, error) {
+	var cfgOpts configOpts
 	for _, opt := range opts {
-		opt(&cfg)
+		opt(&cfgOpts)
 	}
 
-	constants, err := initViper(&cfg)
+	var cfg Config
+	constants, err := initViper(&cfgOpts)
 	cfg.Constants = constants
 	if err != nil {
 		return &cfg, err
@@ -57,7 +61,7 @@ func (cfg *Config) OnShutdown() {
 	}
 }
 
-func initViper(cfg *Config) (Constants, error) {
+func initViper(cfg *configOpts) (Constants, error) {
 	viper.SetDefault("ADDR", defaultAddr)
 
 	var err error
