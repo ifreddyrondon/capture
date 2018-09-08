@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ifreddyrondon/capture/app"
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/internal/config"
 )
 
@@ -14,7 +14,7 @@ func main() {
 	if err != nil {
 		log.Panicln("Configuration error", err)
 	}
-	bastion := app.New(cfg)
+	bastion := features.New(cfg)
 	bastion.RegisterOnShutdown(cfg.OnShutdown)
 	if err := bastion.Serve(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v", err)

@@ -70,6 +70,7 @@ func initViper(cfg *configOpts) (Constants, error) {
 		err = viper.ReadConfig(cfg.source)
 	} else {
 		viper.SetConfigName("config")
+		viper.AddConfigPath("./config")
 		viper.AddConfigPath(".")
 		err = viper.ReadInConfig()
 		viper.AutomaticEnv()
