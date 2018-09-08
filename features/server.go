@@ -18,10 +18,7 @@ import (
 func New(cfg *config.Config) *bastion.Bastion {
 	app := bastion.New(bastion.Addr(cfg.ADDR))
 
-	userStore := user.NewPGStore(cfg.Database)
-	userStore.Drop()
-	userStore.Migrate()
-	userService := user.NewService(userStore)
+	userService := cfg.Container.Get("user-service").(user.Store)
 	userController := user.NewController(userService)
 	userMiddleware := user.NewMiddleware(userService)
 	app.APIRouter.Mount("/users/", userController.Router())
@@ -36,17 +33,11 @@ func New(cfg *config.Config) *bastion.Bastion {
 
 	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 
-	repoStore := repository.NewPGStore(cfg.Database)
-	repoStore.Drop()
-	repoStore.Migrate()
-	repoService := repository.NewService(repoStore)
+	repoService := cfg.Container.Get("repo-service").(repository.Store)
 	repoController := repository.NewController(repoService, authorizationMiddleware, userMiddleware)
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
-	captureStore := capture.NewPGStore(cfg.Database)
-	captureStore.Drop()
-	captureStore.Migrate()
-	captureService := capture.NewService(captureStore)
+	captureService := cfg.Container.Get("capture-service").(capture.Store)
 	captureController := capture.NewController(captureService)
 	app.APIRouter.Mount("/captures/", captureController.Router())
 

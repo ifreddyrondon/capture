@@ -4,7 +4,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/jinzhu/gorm"
+	"github.com/sarulabs/di"
 	"github.com/spf13/viper"
 )
 
@@ -29,7 +29,7 @@ type configOpts struct {
 // Config represent the global app configuration
 type Config struct {
 	Constants
-	Database *gorm.DB
+	Container di.Container
 }
 
 // NewConfig is used to generate a configuration instance which will be passed around the codebase
@@ -45,20 +45,15 @@ func New(opts ...func(*configOpts)) (*Config, error) {
 	if err != nil {
 		return &cfg, err
 	}
-	db, err := gorm.Open("postgres", cfg.Constants.PG)
-	if err != nil {
-		log.Panic(err)
-	}
-	cfg.Database = db
+	cfg.Container = getResources(&cfg)
+
 	return &cfg, err
 }
 
 // OnShutdown is executed as graceful shutdown.
 func (cfg *Config) OnShutdown() {
-	log.Printf("[finalizer:data source] closing the main session")
-	if err := cfg.Database.Close(); err != nil {
-		log.Fatal(err)
-	}
+	log.Printf("[finalizer:resources] deleting resources")
+	cfg.Container.Delete()
 }
 
 func initViper(cfg *configOpts) (Constants, error) {

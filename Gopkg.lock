@@ -279,6 +279,12 @@
   version = "v1.6.0"
 
 [[projects]]
+  name = "github.com/sarulabs/di"
+  packages = ["."]
+  revision = "5754ca61d4cfc38cca8008fc56ab8c4600d47da6"
+  version = "v2.0.0"
+
+[[projects]]
   name = "github.com/satori/go.uuid"
   packages = ["."]
   revision = "f58768cc1a7a7e77a3bd49e98cdd21419399b6a3"
@@ -462,6 +468,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0a0e5de6f8c6b5bd20d36dcf23cfef8b0b5a3266e92ae59de3ed10fadb4ae066"
+  inputs-digest = "a2fe30dc2086660b7af3098b184890587ad29892d2ac8a014ef3a4e3e7833f3d"
   solver-name = "gps-cdcl"
   solver-version = 1
