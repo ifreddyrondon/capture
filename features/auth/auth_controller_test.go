@@ -1,7 +1,6 @@
 package auth_test
 
 import (
-	"bytes"
 	"net/http"
 	"sync"
 	"testing"
@@ -10,7 +9,6 @@ import (
 	"github.com/ifreddyrondon/capture/features/auth/authentication"
 	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/features/auth/jwt"
-	"github.com/ifreddyrondon/capture/internal/config"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/require"
 
@@ -29,17 +27,19 @@ const (
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
 
-func getDB() *gorm.DB {
+func getDB(t *testing.T) *gorm.DB {
 	once.Do(func() {
-		src := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
-		cfg, _ := config.New(config.Source(bytes.NewBuffer(src)))
-		db = cfg.Database
+		var err error
+		db, err = gorm.Open("postgres", "postgres://localhost/captures_app_test?sslmode=disable")
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 	return db
 }
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	userStore := user.NewPGStore(getDB().Table("auth-users"))
+	userStore := user.NewPGStore(getDB(t).Table("auth-users"))
 	userStore.Migrate()
 	teardown := func() { userStore.Drop() }
 	userService := user.NewService(userStore)

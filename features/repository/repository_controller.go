@@ -1,7 +1,7 @@
 package repository
 
 import (
-	json "encoding/json"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -16,17 +16,17 @@ type Controller struct {
 	service        Service
 	render         render.APIRenderer
 	authorization  *authorization.Authorization
-	userMiddleware *user.Middleware
+	userService    user.GetterService
 	ctxUserManager *user.ContextManager
 }
 
 // NewController returns a new Controller
-func NewController(service Service, authMiddleware *authorization.Authorization, userMiddleware *user.Middleware) *Controller {
+func NewController(service Service, authMiddleware *authorization.Authorization, userService user.GetterService) *Controller {
 	return &Controller{
 		service:        service,
 		render:         render.NewJSON(),
 		authorization:  authMiddleware,
-		userMiddleware: userMiddleware,
+		userService:    userService,
 		ctxUserManager: user.NewContextManager(),
 	}
 }
@@ -37,7 +37,7 @@ func (c *Controller) Router() http.Handler {
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(c.authorization.IsAuthorizedREQ)
-		r.Use(c.userMiddleware.LoggedUser)
+		r.Use(user.LoggedUser(c.userService))
 		r.Post("/", c.create)
 	})
 

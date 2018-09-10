@@ -5,13 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/features/auth/authorization"
-	"github.com/stretchr/testify/require"
-
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
-
+	"github.com/ifreddyrondon/capture/features/auth/authorization"
 	"github.com/ifreddyrondon/capture/features/user"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
@@ -20,7 +18,7 @@ const (
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
 
-func setCtxMidd(subjectID string) func(next http.Handler) http.Handler {
+func setCtxMiddleware(subjectID string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := authorization.NewContextManager().WithSubjectID(r.Context(), subjectID)
@@ -34,38 +32,21 @@ var handler = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte(testUserEmail))
 })
 
-type mockUserGetterServiceFail struct{}
-
-func (m *mockUserGetterServiceFail) GetByEmail(email string) (*user.User, error) {
-	return nil, errors.New("test")
-}
-
-func (m *mockUserGetterServiceFail) GetByID(id kallax.ULID) (*user.User, error) {
-	return nil, errors.New("test")
-}
-
-func getNewMiddleware(service user.GetterService) *user.Middleware {
-	return user.NewMiddleware(service)
-}
-
-func setupWithMockStrategy(subjectID string) *bastion.Bastion {
-	middleware := getNewMiddleware(&mockUserGetterServiceFail{})
-
+func setupMiddleware(subjectID string, service user.GetterService) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(setCtxMidd(subjectID))
-		r.Use(middleware.LoggedUser)
+		r.Use(setCtxMiddleware(subjectID))
+		r.Use(user.LoggedUser(service))
 		r.Get("/", handler)
 	})
 
 	return app
 }
 
-func TestLoggedUserMiddlewareInternalServerError(t *testing.T) {
+func TestLoggedUserMiddlewareBadRequestInvalidUUID(t *testing.T) {
 	t.Parallel()
 
-	app := setupWithMockStrategy("1")
-
+	app := setupMiddleware("1", &user.MockService{})
 	e := bastion.Tester(t, app)
 	tc := struct {
 		response map[string]interface{}
@@ -83,10 +64,10 @@ func TestLoggedUserMiddlewareInternalServerError(t *testing.T) {
 		JSON().Object().Equal(tc.response)
 }
 
-func TestLoggedUserMiddlewareBadRequestInvalidUUID(t *testing.T) {
+func TestLoggedUserMiddlewareInternalServerError(t *testing.T) {
 	t.Parallel()
 
-	app := setupWithMockStrategy(kallax.NewULID().String())
+	app := setupMiddleware(kallax.NewULID().String(), &user.MockService{Err: errors.New("test")})
 
 	e := bastion.Tester(t, app)
 	tc := struct {
@@ -105,36 +86,22 @@ func TestLoggedUserMiddlewareBadRequestInvalidUUID(t *testing.T) {
 		JSON().Object().Equal(tc.response)
 }
 
-func setupMiddleware(t *testing.T, subjectID string) (*bastion.Bastion, func()) {
-	userService, teardown := setupService(t)
-
-	// save a user to test
+func setupServiceMiddleware(t *testing.T) (string, user.GetterService, func()) {
+	service, teardown := setupService(t)
 	u := user.User{Email: testUserEmail}
 	err := u.SetPassword(testUserPassword)
 	require.Nil(t, err)
-	userService.Save(&u)
+	service.Save(&u)
 
-	if subjectID == "" {
-		subjectID = u.ID.String()
-	}
-
-	middleware := getNewMiddleware(userService)
-
-	app := bastion.New()
-	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(setCtxMidd(subjectID))
-		r.Use(middleware.LoggedUser)
-		r.Get("/", handler)
-	})
-
-	return app, teardown
+	return u.ID.String(), service, teardown
 }
 
 func TestLoggedUserMiddlewareOK(t *testing.T) {
 	t.Parallel()
 
-	app, teardown := setupMiddleware(t, "")
+	subjectID, service, teardown := setupServiceMiddleware(t)
 	defer teardown()
+	app := setupMiddleware(subjectID, service)
 
 	e := bastion.Tester(t, app)
 	e.GET("/").
@@ -146,9 +113,10 @@ func TestLoggedUserMiddlewareOK(t *testing.T) {
 func TestLoggedUserMiddlewareUserNotFound(t *testing.T) {
 	t.Parallel()
 
-	// pass a new ulid to setupMiddleware to set another subjectID and force not found user
-	app, teardown := setupMiddleware(t, kallax.NewULID().String())
+	_, service, teardown := setupServiceMiddleware(t)
 	defer teardown()
+	// set another subjectID and force not found user
+	app := setupMiddleware(kallax.NewULID().String(), service)
 
 	e := bastion.Tester(t, app)
 	tc := struct {

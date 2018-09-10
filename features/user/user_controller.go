@@ -8,26 +8,21 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
-// Controller handler the user's routes
-type Controller struct {
-	service Service
-	render  render.APIRenderer
-}
+// Routes returns a configured http.Handler with user resources.
+func Routes(service Service) http.Handler {
+	c := &controller{service: service, render: render.NewJSON()}
 
-// NewController returns a new Controller
-func NewController(service Service) *Controller {
-	return &Controller{service: service, render: render.NewJSON()}
-}
-
-// Router creates a REST router for the user resource
-func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
-
 	r.Post("/", c.create)
 	return r
 }
 
-func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
+type controller struct {
+	service Service
+	render  render.APIRenderer
+}
+
+func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	var user User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		c.render.BadRequest(w, err)

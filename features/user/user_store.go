@@ -58,3 +58,12 @@ func (p *PGStore) GetByID(id kallax.ULID) (*User, error) {
 	}
 	return &result, nil
 }
+
+type MockStore struct {
+	User *User
+	Err  error
+}
+
+func (m *MockStore) Save(user *User) error                  { return m.Err }
+func (m *MockStore) GetByEmail(email string) (*User, error) { return m.User, m.Err }
+func (m *MockStore) GetByID(id kallax.ULID) (*User, error)  { return m.User, m.Err }

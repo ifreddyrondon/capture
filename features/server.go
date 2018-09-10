@@ -2,6 +2,7 @@ package features
 
 import (
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/capture/config"
 	"github.com/ifreddyrondon/capture/features/auth"
 	"github.com/ifreddyrondon/capture/features/auth/authentication"
 	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
@@ -11,7 +12,6 @@ import (
 	"github.com/ifreddyrondon/capture/features/capture"
 	"github.com/ifreddyrondon/capture/features/repository"
 	"github.com/ifreddyrondon/capture/features/user"
-	"github.com/ifreddyrondon/capture/internal/config"
 )
 
 // New returns a bastion ready instance with all the features config
@@ -19,9 +19,7 @@ func New(cfg *config.Config) *bastion.Bastion {
 	app := bastion.New(bastion.Addr(cfg.ADDR))
 
 	userService := cfg.Container.Get("user-service").(user.Store)
-	userController := user.NewController(userService)
-	userMiddleware := user.NewMiddleware(userService)
-	app.APIRouter.Mount("/users/", userController.Router())
+	app.APIRouter.Mount("/users/", user.Routes(userService))
 
 	authenticationStrategy := basic.New(userService)
 	authenticationMiddleware := authentication.NewAuthentication(authenticationStrategy)
@@ -34,7 +32,7 @@ func New(cfg *config.Config) *bastion.Bastion {
 	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 
 	repoService := cfg.Container.Get("repo-service").(repository.Store)
-	repoController := repository.NewController(repoService, authorizationMiddleware, userMiddleware)
+	repoController := repository.NewController(repoService, authorizationMiddleware, userService)
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
 	captureService := cfg.Container.Get("capture-service").(capture.Store)

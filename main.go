@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/ifreddyrondon/capture/config"
 	"github.com/ifreddyrondon/capture/features"
-	"github.com/ifreddyrondon/capture/internal/config"
 )
 
 func main() {

@@ -6,23 +6,20 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-
 	"github.com/ifreddyrondon/capture/features/user"
 )
 
-func setupController(t *testing.T) (*bastion.Bastion, func()) {
-	service, teardown := setupService(t)
-
-	controller := user.NewController(service)
+func setupController(service user.Service) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Mount("/users/", controller.Router())
+	app.APIRouter.Mount("/users/", user.Routes(service))
 
-	return app, teardown
+	return app
 }
 
 func TestCreateValidUser(t *testing.T) {
-	app, teardown := setupController(t)
+	service, teardown := setupService(t)
 	defer teardown()
+	app := setupController(service)
 
 	e := bastion.Tester(t, app)
 	tt := []struct {
@@ -62,8 +59,9 @@ func TestCreateValidUser(t *testing.T) {
 }
 
 func TestCreateINValidUser(t *testing.T) {
-	app, teardown := setupController(t)
+	service, teardown := setupService(t)
 	defer teardown()
+	app := setupController(service)
 
 	e := bastion.Tester(t, app)
 	tt := []struct {
@@ -112,8 +110,9 @@ func TestCreateINValidUser(t *testing.T) {
 }
 
 func TestConflictEmail(t *testing.T) {
-	app, teardown := setupController(t)
+	service, teardown := setupService(t)
 	defer teardown()
+	app := setupController(service)
 
 	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{
@@ -134,11 +133,8 @@ func TestConflictEmail(t *testing.T) {
 func TestCreateFailSave(t *testing.T) {
 	t.Parallel()
 
-	service := user.NewFakeServiceDefaultPanic()
-	service.SaveHook = func(*user.User) error { return errors.New("test") }
-	controller := user.NewController(service)
-	app := bastion.New()
-	app.APIRouter.Mount("/users/", controller.Router())
+	service := &user.MockService{Err: errors.New("test")}
+	app := setupController(service)
 
 	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{

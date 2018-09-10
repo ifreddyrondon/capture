@@ -61,3 +61,12 @@ func (s *StoreService) GetByEmail(email string) (*User, error) {
 func (s *StoreService) GetByID(id kallax.ULID) (*User, error) {
 	return s.store.GetByID(id)
 }
+
+type MockService struct {
+	User *User
+	Err  error
+}
+
+func (m *MockService) Save(user *User) error                  { return m.Err }
+func (m *MockService) GetByEmail(email string) (*User, error) { return m.User, m.Err }
+func (m *MockService) GetByID(id kallax.ULID) (*User, error)  { return m.User, m.Err }

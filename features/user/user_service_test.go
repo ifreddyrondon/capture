@@ -4,10 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"gopkg.in/src-d/go-kallax.v1"
-
 	"github.com/ifreddyrondon/capture/features/user"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func setupService(t *testing.T) (*user.StoreService, func()) {
@@ -18,8 +17,7 @@ func setupService(t *testing.T) (*user.StoreService, func()) {
 func TestSaveUser(t *testing.T) {
 	t.Parallel()
 
-	store := user.NewFakeStoreDefaultPanic()
-	store.SaveHook = func(*user.User) error { return nil }
+	store := &user.MockStore{}
 	service := user.NewService(store)
 
 	u := user.User{Email: "test@example.com"}
@@ -46,21 +44,19 @@ func TestErrWhenSaveUserWithSameEmail(t *testing.T) {
 func TestErrSaveUser(t *testing.T) {
 	t.Parallel()
 
-	store := user.NewFakeStoreDefaultPanic()
-	store.SaveHook = func(*user.User) error { return errors.New("test") }
+	store := &user.MockStore{Err: errors.New("test")}
 	service := user.NewService(store)
-
 	u := user.User{Email: "test@example.com"}
 	err := service.Save(&u)
 	assert.EqualError(t, err, "test")
 }
 
 func TestGetByEmail(t *testing.T) {
-	service, teardown := setupService(t)
-	defer teardown()
+	t.Parallel()
 
 	u := user.User{Email: "test@example.com"}
-	service.Save(&u)
+	store := &user.MockStore{User: &u}
+	service := user.NewService(store)
 
 	tempUser, err := service.GetByEmail("test@example.com")
 	assert.Nil(t, err)

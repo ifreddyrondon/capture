@@ -1,7 +1,6 @@
 package basic_test
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -10,7 +9,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/internal/config"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
 
@@ -31,17 +29,19 @@ const (
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
 
-func getDB() *gorm.DB {
+func getDB(t *testing.T) *gorm.DB {
 	once.Do(func() {
-		src := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
-		cfg, _ := config.New(config.Source(bytes.NewBuffer(src)))
-		db = cfg.Database
+		var err error
+		db, err = gorm.Open("postgres", "postgres://localhost/captures_app_test?sslmode=disable")
+		if err != nil {
+			t.Fatal(err)
+		}
 	})
 	return db
 }
 
 func setup(t *testing.T) (*basic.Basic, func()) {
-	userStore := user.NewPGStore(getDB().Table("basic_auth-users"))
+	userStore := user.NewPGStore(getDB(t).Table("basic_auth-users"))
 	userStore.Migrate()
 	teardown := func() { userStore.Drop() }
 	userService := user.NewService(userStore)

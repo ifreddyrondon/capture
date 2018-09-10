@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	kallax "gopkg.in/src-d/go-kallax.v1"
+	"gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/ifreddyrondon/capture/features/user"
 
