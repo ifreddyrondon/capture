@@ -21,7 +21,7 @@ const (
 func setCtxMiddleware(subjectID string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := authorization.NewContextManager().WithSubjectID(r.Context(), subjectID)
+			ctx := authorization.WithSubjectID(r.Context(), subjectID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

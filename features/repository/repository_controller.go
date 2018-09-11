@@ -13,21 +13,19 @@ import (
 
 // Controller handler the repository routes
 type Controller struct {
-	service        Service
-	render         render.APIRenderer
-	authorization  *authorization.Authorization
-	userService    user.GetterService
-	ctxUserManager *user.ContextManager
+	service       Service
+	render        render.APIRenderer
+	authorization *authorization.Authorization
+	userService   user.GetterService
 }
 
 // NewController returns a new Controller
 func NewController(service Service, authMiddleware *authorization.Authorization, userService user.GetterService) *Controller {
 	return &Controller{
-		service:        service,
-		render:         render.NewJSON(),
-		authorization:  authMiddleware,
-		userService:    userService,
-		ctxUserManager: user.NewContextManager(),
+		service:       service,
+		render:        render.NewJSON(),
+		authorization: authMiddleware,
+		userService:   userService,
 	}
 }
 
@@ -51,7 +49,7 @@ func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := c.ctxUserManager.GetUserID(r.Context())
+	userID, err := user.GetUserID(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return

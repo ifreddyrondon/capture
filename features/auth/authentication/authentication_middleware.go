@@ -9,17 +9,15 @@ import (
 
 // Authentication is a middleware to validate request credentials.
 type Authentication struct {
-	strategy   Strategy
-	render     render.APIRenderer
-	ctxManager *user.ContextManager
+	strategy Strategy
+	render   render.APIRenderer
 }
 
 // NewAuthentication returns a new instance of Authentication middleware
 func NewAuthentication(strategy Strategy) *Authentication {
 	return &Authentication{
-		strategy:   strategy,
-		render:     render.NewJSON(),
-		ctxManager: user.NewContextManager(),
+		strategy: strategy,
+		render:   render.NewJSON(),
 	}
 }
 
@@ -44,7 +42,7 @@ func (a *Authentication) Authenticate(next http.Handler) http.Handler {
 			a.render.InternalServerError(w, err)
 			return
 		}
-		ctx := a.ctxManager.WithUser(r.Context(), u)
+		ctx := user.WithUser(r.Context(), u)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

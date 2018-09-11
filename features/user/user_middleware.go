@@ -11,10 +11,9 @@ import (
 // LoggedUser save the authenticated user in a request context.
 func LoggedUser(service GetterService) func(next http.Handler) http.Handler {
 	json := render.NewJSON()
-	ctxMng := authorization.NewContextManager()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			subjectID := ctxMng.Get(r.Context())
+			subjectID := authorization.GetSubjectID(r.Context())
 			userID, err := kallax.NewULIDFromText(subjectID)
 			if err != nil {
 				json.BadRequest(w, err)

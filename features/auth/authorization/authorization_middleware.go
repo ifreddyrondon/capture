@@ -9,17 +9,15 @@ import (
 // Authorization is a middleware to validate
 // if the request can access the resource using a validation strategy
 type Authorization struct {
-	strategy   Strategy
-	render     render.APIRenderer
-	ctxManager *ContextManager
+	strategy Strategy
+	render   render.APIRenderer
 }
 
 // NewAuthorization returns a new instance of Authorization middleware
 func NewAuthorization(strategy Strategy) *Authorization {
 	return &Authorization{
-		strategy:   strategy,
-		render:     render.NewJSON(),
-		ctxManager: NewContextManager(),
+		strategy: strategy,
+		render:   render.NewJSON(),
 	}
 }
 
@@ -40,7 +38,7 @@ func (a *Authorization) IsAuthorizedREQ(next http.Handler) http.Handler {
 			a.render.InternalServerError(w, err)
 			return
 		}
-		ctx := a.ctxManager.WithSubjectID(r.Context(), subjectID)
+		ctx := WithSubjectID(r.Context(), subjectID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
