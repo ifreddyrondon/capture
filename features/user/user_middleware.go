@@ -29,7 +29,7 @@ func LoggedUser(service GetterService) func(next http.Handler) http.Handler {
 				json.InternalServerError(w, err)
 				return
 			}
-			ctx := NewContextManager().WithUser(r.Context(), u)
+			ctx := WithUser(r.Context(), u)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 		return http.HandlerFunc(fn)

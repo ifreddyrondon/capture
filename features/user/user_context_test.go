@@ -12,42 +12,36 @@ import (
 )
 
 func TestContextManagerGetUserOK(t *testing.T) {
-	ctxManager := user.NewContextManager()
 	ctx := context.Background()
-
 	u := user.User{ID: kallax.NewULID(), Email: "test@example.com"}
-	ctx = ctxManager.WithUser(ctx, &u)
+	ctx = user.WithUser(ctx, &u)
 
-	u2, err := ctxManager.GetUser(ctx)
+	u2, err := user.GetUser(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, u.ID, u2.ID)
 	assert.Equal(t, u.Email, u2.Email)
 }
 
 func TestContextManagerGetUserMissingUser(t *testing.T) {
-	ctxManager := user.NewContextManager()
 	ctx := context.Background()
-
-	_, err := ctxManager.GetUser(ctx)
+	_, err := user.GetUser(ctx)
 	assert.EqualError(t, err, "user not found in context")
 }
 
 func TestContextManagerGetUserIDOK(t *testing.T) {
-	ctxManager := user.NewContextManager()
 	ctx := context.Background()
 
 	u := user.User{ID: kallax.NewULID(), Email: "test@example.com"}
-	ctx = ctxManager.WithUser(ctx, &u)
+	ctx = user.WithUser(ctx, &u)
 
-	id, err := ctxManager.GetUserID(ctx)
+	id, err := user.GetUserID(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, u.ID, id)
 }
 
 func TestContextManagerGetUserIDMissingUser(t *testing.T) {
-	ctxManager := user.NewContextManager()
 	ctx := context.Background()
 
-	_, err := ctxManager.GetUserID(ctx)
+	_, err := user.GetUserID(ctx)
 	assert.EqualError(t, err, "user not found in context")
 }

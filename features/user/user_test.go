@@ -97,7 +97,7 @@ func TestMarshalUser(t *testing.T) {
 	d, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
 
 	expected := []byte(`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","email":"test@example.com","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z"}`)
-	user := user.User{
+	u := user.User{
 		Email: "test@example.com",
 		ID: func() kallax.ULID {
 			id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
@@ -107,7 +107,7 @@ func TestMarshalUser(t *testing.T) {
 		UpdatedAt: d,
 	}
 
-	result, err := json.Marshal(user)
+	result, err := json.Marshal(u)
 	require.Nil(t, err)
 	assert.Equal(t, expected, result)
 }
