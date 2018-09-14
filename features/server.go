@@ -36,8 +36,7 @@ func New(cfg *config.Config) *bastion.Bastion {
 	app.APIRouter.Mount("/repository/", repoController.Router())
 
 	captureService := cfg.Container.Get("capture-service").(capture.Store)
-	captureController := capture.NewController(captureService)
-	app.APIRouter.Mount("/captures/", captureController.Router())
+	app.APIRouter.Mount("/captures/", capture.Routes(captureService))
 
 	branchController := branch.NewController()
 	app.APIRouter.Mount("/branches/", branchController.Router())

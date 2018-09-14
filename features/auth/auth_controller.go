@@ -45,7 +45,7 @@ func (c *Controller) Router() http.Handler {
 }
 
 func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
-	u, err := user.GetUser(r.Context())
+	u, err := user.GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return

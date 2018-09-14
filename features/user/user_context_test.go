@@ -16,7 +16,7 @@ func TestContextManagerGetUserOK(t *testing.T) {
 	u := user.User{ID: kallax.NewULID(), Email: "test@example.com"}
 	ctx = user.WithUser(ctx, &u)
 
-	u2, err := user.GetUser(ctx)
+	u2, err := user.GetFromContext(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, u.ID, u2.ID)
 	assert.Equal(t, u.Email, u2.Email)
@@ -24,7 +24,7 @@ func TestContextManagerGetUserOK(t *testing.T) {
 
 func TestContextManagerGetUserMissingUser(t *testing.T) {
 	ctx := context.Background()
-	_, err := user.GetUser(ctx)
+	_, err := user.GetFromContext(ctx)
 	assert.EqualError(t, err, "user not found in context")
 }
 

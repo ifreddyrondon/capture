@@ -11,21 +11,19 @@ import (
 )
 
 func TestContextManagerGetCaptureOK(t *testing.T) {
-	ctxManager := capture.NewContextManager()
 	ctx := context.Background()
 
-	cap := capture.Capture{ID: kallax.NewULID()}
-	ctx = ctxManager.WithCapture(ctx, &cap)
+	capt := capture.Capture{ID: kallax.NewULID()}
+	ctx = capture.WithCapture(ctx, &capt)
 
-	cap2, err := ctxManager.GetCapture(ctx)
+	capt2, err := capture.GetFromContext(ctx)
 	assert.Nil(t, err)
-	assert.Equal(t, cap.ID, cap2.ID)
+	assert.Equal(t, capt.ID, capt2.ID)
 }
 
 func TestContextManagerGetCaptureMissingCapture(t *testing.T) {
-	ctxManager := capture.NewContextManager()
 	ctx := context.Background()
 
-	_, err := ctxManager.GetCapture(ctx)
+	_, err := capture.GetFromContext(ctx)
 	assert.EqualError(t, err, "capture not found in context")
 }

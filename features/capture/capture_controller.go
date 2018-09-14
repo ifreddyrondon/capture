@@ -20,26 +20,11 @@ var (
 	ErrorBadRequest = errors.New("invalid capture id")
 )
 
-// Controller handler the capture's routes
-type Controller struct {
-	service    Service
-	render     render.APIRenderer
-	ctxManager *ContextManager
-}
+// Routes returns a configured http.Handler with capture resources.
+func Routes(service Service) http.Handler {
+	c := &controller{service: service, render: render.NewJSON()}
 
-// NewController returns a new Controller
-func NewController(service Service) *Controller {
-	return &Controller{
-		service:    service,
-		render:     render.NewJSON(),
-		ctxManager: NewContextManager(),
-	}
-}
-
-// Router creates a REST router for the capture resource
-func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
-
 	r.Get("/", c.list)
 	r.Post("/", c.create)
 	r.Route("/{id}", func(r chi.Router) {
@@ -51,7 +36,13 @@ func (c *Controller) Router() http.Handler {
 	return r
 }
 
-func (c *Controller) list(w http.ResponseWriter, r *http.Request) {
+// Controller handler the capture's routes
+type controller struct {
+	service Service
+	render  render.APIRenderer
+}
+
+func (c *controller) list(w http.ResponseWriter, r *http.Request) {
 	count := 10
 	start := 0
 	captures, err := c.service.List(start, count)
@@ -63,7 +54,7 @@ func (c *Controller) list(w http.ResponseWriter, r *http.Request) {
 	c.render.Send(w, captures)
 }
 
-func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
+func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	var captures Captures
 	if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
 		c.render.BadRequest(w, err)
@@ -87,7 +78,7 @@ func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
 	c.render.Created(w, captures)
 }
 
-func (c *Controller) captureCtx(next http.Handler) http.Handler {
+func (c *controller) captureCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		captureID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
 		if err != nil {
@@ -105,13 +96,13 @@ func (c *Controller) captureCtx(next http.Handler) http.Handler {
 			c.render.InternalServerError(w, err)
 			return
 		}
-		ctx := c.ctxManager.WithCapture(r.Context(), capt)
+		ctx := WithCapture(r.Context(), capt)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
-	capt, err := c.ctxManager.GetCapture(r.Context())
+func (c *controller) get(w http.ResponseWriter, r *http.Request) {
+	capt, err := GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
@@ -119,8 +110,8 @@ func (c *Controller) get(w http.ResponseWriter, r *http.Request) {
 	c.render.Send(w, capt)
 }
 
-func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
-	capt, err := c.ctxManager.GetCapture(r.Context())
+func (c *controller) delete(w http.ResponseWriter, r *http.Request) {
+	capt, err := GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
@@ -132,8 +123,8 @@ func (c *Controller) delete(w http.ResponseWriter, r *http.Request) {
 	c.render.NoContent(w)
 }
 
-func (c *Controller) update(w http.ResponseWriter, r *http.Request) {
-	capt, err := c.ctxManager.GetCapture(r.Context())
+func (c *controller) update(w http.ResponseWriter, r *http.Request) {
+	capt, err := GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return

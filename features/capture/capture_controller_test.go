@@ -16,10 +16,8 @@ import (
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
-
-	controller := capture.NewController(service)
 	app := bastion.New()
-	app.APIRouter.Mount("/captures/", controller.Router())
+	app.APIRouter.Mount("/captures/", capture.Routes(service))
 
 	return app, teardown
 }
