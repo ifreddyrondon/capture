@@ -7,24 +7,20 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
-// Controller handler the branch's routes
-type Controller struct {
-	render render.APIRenderer
-}
+// Routes returns a configured http.Handler with branch resources.
+func Routes() http.Handler {
+	c := &controller{render: render.NewJSON()}
 
-// NewController returns a new Controller
-func NewController() *Controller {
-	return &Controller{render: render.NewJSON()}
-}
-
-// Router creates a REST router for the branch resource
-func (h *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
-	r.Get("/", h.list)
+	r.Get("/", c.list)
 	return r
 }
 
-func (h *Controller) list(w http.ResponseWriter, r *http.Request) {
+type controller struct {
+	render render.APIRenderer
+}
+
+func (h *controller) list(w http.ResponseWriter, r *http.Request) {
 	b := Branch{}
 	h.render.Send(w, b)
 }
