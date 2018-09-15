@@ -14,16 +14,14 @@ import (
 // Routes returns a configured http.Handler with repository resources.
 func Routes(service Service, authMiddleware *authorization.Authorization, userService user.GetterService) http.Handler {
 	c := &controller{
-		authorization: authMiddleware,
-		userService:   userService,
-		service:       service,
-		render:        render.NewJSON(),
+		service: service,
+		render:  render.NewJSON(),
 	}
 
 	r := bastion.NewRouter()
 	r.Route("/", func(r chi.Router) {
-		r.Use(c.authorization.IsAuthorizedREQ)
-		r.Use(user.LoggedUser(c.userService))
+		r.Use(authMiddleware.IsAuthorizedREQ)
+		r.Use(user.LoggedUser(userService))
 		r.Post("/", c.create)
 	})
 
@@ -32,10 +30,8 @@ func Routes(service Service, authMiddleware *authorization.Authorization, userSe
 
 // Controller handler the repository routes
 type controller struct {
-	service       Service
-	render        render.APIRenderer
-	authorization *authorization.Authorization
-	userService   user.GetterService
+	service Service
+	render  render.APIRenderer
 }
 
 func (c *controller) create(w http.ResponseWriter, r *http.Request) {
