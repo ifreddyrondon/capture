@@ -14,10 +14,10 @@ import (
 
 var mockUser = &user.User{Email: "test@example.com", ID: kallax.NewULID()}
 
-type MockService struct{}
+type mockService struct{ err error }
 
-func (r *MockService) Save(c *repository.Repository) error {
-	return errors.New("test")
+func (m *mockService) Save(c *repository.Repository) error {
+	return m.err
 }
 
 type mockStrategySuccess struct{}
@@ -49,22 +49,20 @@ func (m *mockUserGetterService) GetByID(id kallax.ULID) (*user.User, error) {
 }
 
 func setupControllerMockService(strategy authorization.Strategy) *bastion.Bastion {
-	service := &MockService{}
+	service := &mockService{errors.New("test")}
 	authMiddleware := authorization.NewAuthorization(strategy)
-	controller := repository.NewController(service, authMiddleware, &mockUserGetterService{})
 
 	app := bastion.New()
-	app.APIRouter.Mount("/repository/", controller.Router())
+	app.APIRouter.Mount("/repository/", repository.Routes(service, authMiddleware, &mockUserGetterService{}))
 	return app
 }
 
 func setupController(t *testing.T, strategy authorization.Strategy) (*bastion.Bastion, func()) {
 	service, teardown := setupService(t)
 	authMiddleware := authorization.NewAuthorization(strategy)
-	controller := repository.NewController(service, authMiddleware, &mockUserGetterService{})
 
 	app := bastion.New()
-	app.APIRouter.Mount("/repository/", controller.Router())
+	app.APIRouter.Mount("/repository/", repository.Routes(service, authMiddleware, &mockUserGetterService{}))
 
 	return app, teardown
 }

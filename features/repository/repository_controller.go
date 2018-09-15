@@ -11,28 +11,16 @@ import (
 	"github.com/ifreddyrondon/capture/features/user"
 )
 
-// Controller handler the repository routes
-type Controller struct {
-	service       Service
-	render        render.APIRenderer
-	authorization *authorization.Authorization
-	userService   user.GetterService
-}
-
-// NewController returns a new Controller
-func NewController(service Service, authMiddleware *authorization.Authorization, userService user.GetterService) *Controller {
-	return &Controller{
-		service:       service,
-		render:        render.NewJSON(),
+// Routes returns a configured http.Handler with repository resources.
+func Routes(service Service, authMiddleware *authorization.Authorization, userService user.GetterService) http.Handler {
+	c := &controller{
 		authorization: authMiddleware,
 		userService:   userService,
+		service:       service,
+		render:        render.NewJSON(),
 	}
-}
 
-// Router creates a REST router for the user resource
-func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
-
 	r.Route("/", func(r chi.Router) {
 		r.Use(c.authorization.IsAuthorizedREQ)
 		r.Use(user.LoggedUser(c.userService))
@@ -42,7 +30,15 @@ func (c *Controller) Router() http.Handler {
 	return r
 }
 
-func (c *Controller) create(w http.ResponseWriter, r *http.Request) {
+// Controller handler the repository routes
+type controller struct {
+	service       Service
+	render        render.APIRenderer
+	authorization *authorization.Authorization
+	userService   user.GetterService
+}
+
+func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	var repo Repository
 	if err := json.NewDecoder(r.Body).Decode(&repo); err != nil {
 		c.render.BadRequest(w, err)

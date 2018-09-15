@@ -19,25 +19,18 @@ func New(cfg *config.Config) *bastion.Bastion {
 	app := bastion.New(bastion.Addr(cfg.ADDR))
 
 	userService := cfg.Container.Get("user-service").(user.Store)
-	app.APIRouter.Mount("/users/", user.Routes(userService))
-
 	authenticationStrategy := basic.New(userService)
 	authenticationMiddleware := authentication.NewAuthentication(authenticationStrategy)
-
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
-
 	authController := auth.NewController(authenticationMiddleware, jwtService)
-	app.APIRouter.Mount("/auth/", authController.Router())
-
 	authorizationMiddleware := authorization.NewAuthorization(jwtService)
-
 	repoService := cfg.Container.Get("repo-service").(repository.Store)
-	repoController := repository.NewController(repoService, authorizationMiddleware, userService)
-	app.APIRouter.Mount("/repository/", repoController.Router())
-
 	captureService := cfg.Container.Get("capture-service").(capture.Store)
-	app.APIRouter.Mount("/captures/", capture.Routes(captureService))
 
+	app.APIRouter.Mount("/users/", user.Routes(userService))
+	app.APIRouter.Mount("/auth/", authController.Router())
+	app.APIRouter.Mount("/captures/", capture.Routes(captureService))
 	app.APIRouter.Mount("/branches/", branch.Routes())
+	app.APIRouter.Mount("/repository/", repository.Routes(repoService, authorizationMiddleware, userService))
 	return app
 }

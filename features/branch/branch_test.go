@@ -3,10 +3,9 @@ package branch_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"gopkg.in/src-d/go-kallax.v1"
-
-	"time"
 
 	"github.com/ifreddyrondon/capture/features/branch"
 	"github.com/ifreddyrondon/capture/features/capture"

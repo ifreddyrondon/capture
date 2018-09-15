@@ -7,7 +7,7 @@ import (
 
 	"github.com/ifreddyrondon/capture/features/repository"
 
-	kallax "gopkg.in/src-d/go-kallax.v1"
+	"gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

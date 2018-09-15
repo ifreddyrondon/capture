@@ -8,22 +8,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockStore struct{}
-
-func (r *MockStore) Save(c *repository.Repository) error { return nil }
-
-func setupServiceMockRepo(t *testing.T) *repository.StoreService {
-	store := &MockStore{}
-	return repository.NewService(store)
-}
-
 func setupService(t *testing.T) (*repository.StoreService, func()) {
 	store, teardown := setupStore(t)
 	return repository.NewService(store), teardown
 }
 
+type mockStore struct{ err error }
+
+func (r *mockStore) Save(c *repository.Repository) error { return r.err }
+
 func TestSaveSuccess(t *testing.T) {
-	s := setupServiceMockRepo(t)
+	s := mockStore{nil}
 
 	r := repository.Repository{Name: "test"}
 	err := s.Save(&r)
