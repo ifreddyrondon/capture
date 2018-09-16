@@ -29,7 +29,7 @@ type configOpts struct {
 // Config represent the global app configuration
 type Config struct {
 	Constants
-	Container di.Container
+	Resources di.Container
 }
 
 // NewConfig is used to generate a configuration instance which will be passed around the codebase
@@ -45,7 +45,7 @@ func New(opts ...func(*configOpts)) (*Config, error) {
 	if err != nil {
 		return &cfg, err
 	}
-	cfg.Container = getResources(&cfg)
+	cfg.Resources = getResources(&cfg)
 
 	return &cfg, err
 }
@@ -53,7 +53,7 @@ func New(opts ...func(*configOpts)) (*Config, error) {
 // OnShutdown is executed as graceful shutdown.
 func (cfg *Config) OnShutdown() {
 	log.Printf("[finalizer:resources] deleting resources")
-	cfg.Container.Delete()
+	cfg.Resources.Delete()
 }
 
 func initViper(cfg *configOpts) (Constants, error) {

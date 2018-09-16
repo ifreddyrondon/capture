@@ -1,6 +1,11 @@
 package config
 
 import (
+	"github.com/ifreddyrondon/capture/features/auth"
+	"github.com/ifreddyrondon/capture/features/auth/authentication"
+	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
+	"github.com/ifreddyrondon/capture/features/auth/authorization"
+	"github.com/ifreddyrondon/capture/features/auth/jwt"
 	"github.com/ifreddyrondon/capture/features/branch"
 	"github.com/ifreddyrondon/capture/features/capture"
 	"github.com/ifreddyrondon/capture/features/repository"
@@ -26,7 +31,7 @@ func getResources(cfg *Config) di.Container {
 			Name:  "user-service",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Container.Get("database").(*gorm.DB)
+				database := cfg.Resources.Get("database").(*gorm.DB)
 				store := user.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
@@ -34,21 +39,28 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "repo-service",
+			Name:  "jwt-service",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Container.Get("database").(*gorm.DB)
-				store := repository.NewPGStore(database)
-				store.Drop()
-				store.Migrate()
-				return repository.NewService(store), nil
+				return jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta), nil
+			},
+		},
+		{
+			Name:  "auth-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				userService := cfg.Resources.Get("user-service").(user.Service)
+				jwtService := cfg.Resources.Get("jwt-service").(*jwt.Service)
+				strategy := basic.New(userService)
+
+				return auth.Routes(authentication.Authenticate(strategy), jwtService), nil
 			},
 		},
 		{
 			Name:  "user-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				userService := cfg.Container.Get("user-service").(user.Service)
+				userService := cfg.Resources.Get("user-service").(user.Service)
 				return user.Routes(userService), nil
 			},
 		},
@@ -56,7 +68,7 @@ func getResources(cfg *Config) di.Container {
 			Name:  "capture-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Container.Get("database").(*gorm.DB)
+				database := cfg.Resources.Get("database").(*gorm.DB)
 				store := capture.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
@@ -69,6 +81,22 @@ func getResources(cfg *Config) di.Container {
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				return branch.Routes(), nil
+			},
+		},
+		{
+			Name:  "repo-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				userService := cfg.Resources.Get("user-service").(user.Service)
+				loggedUser := user.LoggedUser(userService)
+				jwtService := cfg.Resources.Get("jwt-service").(*jwt.Service)
+				isAuth := authorization.IsAuthorizedREQ(jwtService)
+				database := cfg.Resources.Get("database").(*gorm.DB)
+				store := repository.NewPGStore(database)
+				store.Drop()
+				store.Migrate()
+				service := repository.NewService(store)
+				return repository.Routes(service, isAuth, loggedUser), nil
 			},
 		},
 	}
