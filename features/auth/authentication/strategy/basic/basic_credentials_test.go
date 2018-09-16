@@ -12,12 +12,12 @@ import (
 func TestAuthenticationPayloadValidUnmarshalJSON(t *testing.T) {
 	t.Parallel()
 
-	expected := basic.Crendentials{
+	expected := basic.Credentials{
 		Email:    "ifreddyrondon@example.com",
 		Password: "b4KeHAYy3u9v=ZQX",
 	}
 
-	var model basic.Crendentials
+	var model basic.Credentials
 	err := model.UnmarshalJSON([]byte(`{"email":"ifreddyrondon@example.com", "password": "b4KeHAYy3u9v=ZQX"}`))
 	require.Nil(t, err)
 	assert.Equal(t, expected.Email, model.Email)
@@ -61,7 +61,7 @@ func TestAuthenticationPayloadInvalidUnmarshalJSON(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			var model basic.Crendentials
+			var model basic.Credentials
 			err := model.UnmarshalJSON(tc.payload)
 			assert.Error(t, err)
 			for _, v := range tc.errs {

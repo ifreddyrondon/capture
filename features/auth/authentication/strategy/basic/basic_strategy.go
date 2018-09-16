@@ -30,7 +30,7 @@ func New(service user.GetterService) *Basic {
 
 // Validate basic credentials.
 func (b *Basic) Validate(r *http.Request) (*user.User, error) {
-	var cre Crendentials
+	var cre Credentials
 	if err := json.NewDecoder(r.Body).Decode(&cre); err != nil {
 		return nil, &decodingErr{err: err}
 	}
