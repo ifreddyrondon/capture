@@ -25,7 +25,6 @@ func router(cfg *config.Config) http.Handler {
 	repoService := cfg.Container.Get("repo-service").(repository.Service)
 
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
-	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 	authenticationStrategy := basic.New(userService)
 	authRoutes := auth.Routes(authentication.Authenticate(authenticationStrategy), jwtService)
 
@@ -37,7 +36,7 @@ func router(cfg *config.Config) http.Handler {
 	r.Mount("/auth/", authRoutes)
 	r.Mount("/captures/", captureRoutes)
 	r.Mount("/branches/", branchRoutes)
-	r.Mount("/repository/", repository.Routes(repoService, authorizationMiddleware.IsAuthorizedREQ, user.LoggedUser(userService)))
+	r.Mount("/repository/", repository.Routes(repoService, authorization.IsAuthorizedREQ(jwtService), user.LoggedUser(userService)))
 	return r
 }
 

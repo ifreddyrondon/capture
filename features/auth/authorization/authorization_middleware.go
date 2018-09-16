@@ -6,39 +6,28 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 )
 
-// Authorization is a middleware to validate
-// if the request can access the resource using a validation strategy
-type Authorization struct {
-	strategy Strategy
-	render   render.APIRenderer
-}
-
-// NewAuthorization returns a new instance of Authorization middleware
-func NewAuthorization(strategy Strategy) *Authorization {
-	return &Authorization{
-		strategy: strategy,
-		render:   render.NewJSON(),
-	}
-}
-
 // IsAuthorizedREQ validates if a request can access the resource
-func (a *Authorization) IsAuthorizedREQ(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		subjectID, err := a.strategy.IsAuthorizedREQ(r)
-		if err != nil {
-			if a.strategy.IsNotAuthorizedErr(err) {
-				httpErr := render.HTTPError{
-					Status:  http.StatusForbidden,
-					Error:   http.StatusText(http.StatusForbidden),
-					Message: err.Error(),
+func IsAuthorizedREQ(strategy Strategy) func(next http.Handler) http.Handler {
+	json := render.NewJSON()
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			subjectID, err := strategy.IsAuthorizedREQ(r)
+			if err != nil {
+				if strategy.IsNotAuthorizedErr(err) {
+					httpErr := render.HTTPError{
+						Status:  http.StatusForbidden,
+						Error:   http.StatusText(http.StatusForbidden),
+						Message: err.Error(),
+					}
+					json.Response(w, http.StatusForbidden, httpErr)
+					return
 				}
-				a.render.Response(w, http.StatusForbidden, httpErr)
+				json.InternalServerError(w, err)
 				return
 			}
-			a.render.InternalServerError(w, err)
-			return
+			ctx := WithSubjectID(r.Context(), subjectID)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
-		ctx := WithSubjectID(r.Context(), subjectID)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		return http.HandlerFunc(fn)
+	}
 }

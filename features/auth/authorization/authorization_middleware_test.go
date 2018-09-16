@@ -17,15 +17,22 @@ import (
 // setup a valid service
 var jwtService = jwt.NewService([]byte("secret"), jwt.DefaultJWTExpirationDelta)
 
-func setupApp(authorizationStrategy authorization.Strategy) *bastion.Bastion {
+type strategy struct {
+	token     string
+	err       error
+	isNotAuth bool
+}
+
+func (s *strategy) IsAuthorizedREQ(r *http.Request) (string, error) { return s.token, s.err }
+func (s *strategy) IsNotAuthorizedErr(err error) bool               { return s.isNotAuth }
+
+func setup(strategy authorization.Strategy) *bastion.Bastion {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "ok")
 	})
-	middle := authorization.NewAuthorization(authorizationStrategy)
-
 	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(middle.IsAuthorizedREQ)
+		r.Use(authorization.IsAuthorizedREQ(strategy))
 		r.Get("/", handler)
 		r.Post("/", handler)
 	})
@@ -35,7 +42,7 @@ func setupApp(authorizationStrategy authorization.Strategy) *bastion.Bastion {
 func TestAuthorizationFromHeader(t *testing.T) {
 	t.Parallel()
 
-	app := setupApp(jwtService)
+	app := setup(jwtService)
 
 	token, err := jwtService.GenerateToken("123")
 	assert.Nil(t, err)
@@ -48,7 +55,7 @@ func TestAuthorizationFromHeader(t *testing.T) {
 func TestAuthorizationPostForm(t *testing.T) {
 	t.Parallel()
 
-	app := setupApp(jwtService)
+	app := setup(jwtService)
 
 	token, err := jwtService.GenerateToken("123")
 	assert.Nil(t, err)
@@ -67,7 +74,7 @@ func TestAuthorizationFailInvalidToken(t *testing.T) {
 		"message": "you don’t have permission to access this resource",
 	}
 
-	app := setupApp(jwtService)
+	app := setup(jwtService)
 	e := bastion.Tester(t, app)
 	e.GET("/").WithHeader("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c").
 		Expect().
@@ -84,7 +91,7 @@ func TestAuthorizationFailInvalidSignedMethod(t *testing.T) {
 		"message": "you don’t have permission to access this resource",
 	}
 
-	app := setupApp(jwtService)
+	app := setup(jwtService)
 	e := bastion.Tester(t, app)
 	e.GET("/").WithHeader("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.TCYt5XsITJX1CxPCT8yAV-TVkIEq_PbChOMqsLfRoPsnsgw5WEuts01mq-pQy7UJiN5mgRxD-WUcX16dUEMGlv50aqzpqh4Qktb3rk-BuQy72IFLOqV0G_zS245-kronKb78cPN25DGlcTwLtjPAYuNzVBAh4vGHSrQyHUdBBPM").
 		Expect().
@@ -92,19 +99,10 @@ func TestAuthorizationFailInvalidSignedMethod(t *testing.T) {
 		JSON().Object().Equal(response)
 }
 
-type mockStrategyFailIsAuthorizedREQ struct{}
-
-func (m *mockStrategyFailIsAuthorizedREQ) IsAuthorizedREQ(r *http.Request) (string, error) {
-	return "", errors.New("test")
-}
-func (m *mockStrategyFailIsAuthorizedREQ) IsNotAuthorizedErr(err error) bool {
-	return false
-}
-
 func TestAuthorizationFailInternalServerError(t *testing.T) {
 	t.Parallel()
 
-	app := setupApp(&mockStrategyFailIsAuthorizedREQ{})
+	app := setup(&strategy{err: errors.New("test")})
 	response := map[string]interface{}{
 		"status":  500.0,
 		"error":   "Internal Server Error",
