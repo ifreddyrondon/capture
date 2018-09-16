@@ -6,70 +6,34 @@ import (
 	"io"
 	"net/http/httptest"
 	"strings"
-	"sync"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"gopkg.in/src-d/go-kallax.v1"
-
-	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/features/user"
-	"github.com/jinzhu/gorm"
-)
-
-var (
-	once sync.Once
-	db   *gorm.DB
+	"github.com/stretchr/testify/assert"
 )
 
 const (
-	testUserEmail    = "test@example.com"
-	testUserPassword = "b4KeHAYy3u9v=ZQX"
+	userEmail    = "test@example.com"
+	userPassword = "secret"
+	hashedPass   = "$2a$14$ajq8Q7fbtFRQvXpdCq7Jcuy.Rx1h/L4J60Otx.gyNLbAYctGMJ9tK"
 )
 
-func getDB(t *testing.T) *gorm.DB {
-	once.Do(func() {
-		var err error
-		db, err = gorm.Open("postgres", "postgres://localhost/captures_app_test?sslmode=disable")
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-	return db
-}
-
-func setup(t *testing.T) (*basic.Basic, func()) {
-	userStore := user.NewPGStore(getDB(t).Table("basic_auth-users"))
-	userStore.Migrate()
-	teardown := func() { userStore.Drop() }
-	userService := user.NewService(userStore)
-
-	// save a user to test
-	u := user.User{Email: testUserEmail}
-	err := u.SetPassword(testUserPassword)
-	require.Nil(t, err)
-	userService.Save(&u)
-
-	return basic.New(userService), teardown
-}
-
 func TestValidateSuccess(t *testing.T) {
-	strategy, teardown := setup(t)
-	defer teardown()
+	t.Parallel()
+	strategy := basic.New(&user.MockService{User: &user.User{Email: userEmail, Password: []byte(hashedPass)}})
 
-	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
+	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, userEmail, userPassword))
 	req := httptest.NewRequest("GET", "/", body)
 
 	u, err := strategy.Validate(req)
 	assert.Nil(t, err)
-	assert.Equal(t, testUserEmail, u.Email)
+	assert.Equal(t, userEmail, u.Email)
 }
 
 func TestValidateInvalidCredentials(t *testing.T) {
-	strategy, teardown := setup(t)
-	defer teardown()
+	t.Parallel()
+	strategy := basic.New(&user.MockService{User: &user.User{Email: userEmail, Password: []byte(hashedPass)}})
 
 	tt := []struct {
 		name string
@@ -78,7 +42,7 @@ func TestValidateInvalidCredentials(t *testing.T) {
 	}{
 		{
 			name: "invalid credentials",
-			body: strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, "123")),
+			body: strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, userEmail, "123")),
 			errs: []string{"invalid email or password"},
 		},
 		{
@@ -101,21 +65,9 @@ func TestValidateInvalidCredentials(t *testing.T) {
 	}
 }
 
-type MockUserGetterServiceFail struct{}
-
-func (m *MockUserGetterServiceFail) GetByEmail(email string) (*user.User, error) {
-	return nil, errors.New("test")
-}
-
-func (m *MockUserGetterServiceFail) GetByID(id kallax.ULID) (*user.User, error) {
-	return nil, errors.New("test")
-}
-
 func TestValidateFailsDecoding(t *testing.T) {
 	t.Parallel()
-
-	userService := &MockUserGetterServiceFail{}
-	strategy := basic.New(userService)
+	strategy := basic.New(&user.MockService{Err: errors.New("test")})
 
 	tt := []struct {
 		name string
@@ -147,15 +99,26 @@ func TestValidateFailsDecoding(t *testing.T) {
 	}
 }
 
-func TestValidateFailsUnknowErr(t *testing.T) {
+func TestValidateFailsUnknownErr(t *testing.T) {
 	t.Parallel()
+	strategy := basic.New(&user.MockService{Err: errors.New("test")})
 
-	userService := &MockUserGetterServiceFail{}
-	strategy := basic.New(userService)
-	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, testUserEmail, testUserPassword))
+	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, userEmail, userPassword))
 	req := httptest.NewRequest("GET", "/", body)
 	_, err := strategy.Validate(req)
 	assert.EqualError(t, err, "test")
 	assert.False(t, strategy.IsErrCredentials(err))
+	assert.False(t, strategy.IsErrDecoding(err))
+}
+
+func TestValidateFailsUserNotFound(t *testing.T) {
+	t.Parallel()
+	strategy := basic.New(&user.MockService{Err: user.ErrNotFound})
+
+	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, userEmail, userPassword))
+	req := httptest.NewRequest("GET", "/", body)
+	_, err := strategy.Validate(req)
+	assert.EqualError(t, err, "invalid email or password")
+	assert.True(t, strategy.IsErrCredentials(err))
 	assert.False(t, strategy.IsErrDecoding(err))
 }

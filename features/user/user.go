@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	kallax "gopkg.in/src-d/go-kallax.v1"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 const (

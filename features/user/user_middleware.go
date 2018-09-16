@@ -13,7 +13,11 @@ func LoggedUser(service GetterService) func(next http.Handler) http.Handler {
 	json := render.NewJSON()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			subjectID := authorization.GetSubjectID(r.Context())
+			subjectID, err := authorization.GetSubjectID(r.Context())
+			if err != nil {
+				json.InternalServerError(w, err)
+				return
+			}
 			userID, err := kallax.NewULIDFromText(subjectID)
 			if err != nil {
 				json.BadRequest(w, err)

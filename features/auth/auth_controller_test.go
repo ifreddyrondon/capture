@@ -2,72 +2,68 @@ package auth_test
 
 import (
 	"net/http"
-	"sync"
 	"testing"
 
 	"github.com/ifreddyrondon/capture/features/auth"
-	"github.com/ifreddyrondon/capture/features/auth/authentication"
-	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/features/auth/jwt"
-	"github.com/jinzhu/gorm"
-	"github.com/stretchr/testify/require"
-
 	"github.com/ifreddyrondon/capture/features/user"
+	"gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/ifreddyrondon/bastion"
 )
 
-var (
-	once sync.Once
-	db   *gorm.DB
-)
-
 const (
-	testUserEmail    = "test@example.com"
-	testUserPassword = "b4KeHAYy3u9v=ZQX"
+	userEmail    = "test@example.com"
+	userPassword = "b4KeHAYy3u9v=ZQX"
 )
 
-func getDB(t *testing.T) *gorm.DB {
-	once.Do(func() {
-		var err error
-		db, err = gorm.Open("postgres", "postgres://localhost/captures_app_test?sslmode=disable")
-		if err != nil {
-			t.Fatal(err)
-		}
+func notLoggedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
 	})
-	return db
 }
 
-func setup(t *testing.T) (*bastion.Bastion, func()) {
-	userStore := user.NewPGStore(getDB(t).Table("auth-users"))
-	userStore.Migrate()
-	teardown := func() { userStore.Drop() }
-	userService := user.NewService(userStore)
+func loggedUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var mockUser = &user.User{Email: "test@example.com", ID: kallax.NewULID()}
+		ctx := user.WithUser(r.Context(), mockUser)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
 
-	// save a user to test
-	u := user.User{Email: testUserEmail}
-	err := u.SetPassword(testUserPassword)
-	require.Nil(t, err)
-	userService.Save(&u)
-	strategy := basic.New(userService)
+func setup(middleware func(next http.Handler) http.Handler) *bastion.Bastion {
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
-	middleware := authentication.Authenticate(strategy)
 
 	app := bastion.New()
 	app.APIRouter.Mount("/auth/", auth.Routes(middleware, jwtService))
 
-	return app, teardown
+	return app
 }
 
-func TestBasicAuthentication(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
+func TestBasicAuthenticationOK(t *testing.T) {
+	app := setup(loggedUser)
 
-	payload := map[string]interface{}{"email": testUserEmail, "password": testUserPassword}
+	payload := map[string]interface{}{"email": userEmail, "password": userPassword}
 	e := bastion.Tester(t, app)
 	e.POST("/auth/token-auth").WithJSON(payload).
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object().
 		ContainsKey("token")
+}
+
+func TestBasicAuthenticationMissUser(t *testing.T) {
+	app := setup(notLoggedUser)
+
+	payload := map[string]interface{}{"email": userEmail, "password": userPassword}
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "looks like something went wrong",
+	}
+	e := bastion.Tester(t, app)
+	e.POST("/auth/token-auth").WithJSON(payload).
+		Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(response)
 }

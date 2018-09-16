@@ -2,13 +2,18 @@ package authorization
 
 import (
 	"context"
-	"log"
+	"errors"
 )
 
 type ctxKey string
 
 const (
 	authSubjectIDKey ctxKey = "auth_subject_id_ctx_key"
+)
+
+var (
+	errMissingSubjectID    = errors.New("subject id not found in context")
+	errWrongSubjectIDValue = errors.New("subject id value set incorrectly in context")
 )
 
 // WithSubjectID will return a new context with the subject id value added to it.
@@ -18,15 +23,14 @@ func WithSubjectID(ctx context.Context, subjectID string) context.Context {
 
 // GetSubjectID will return the subject id assigned to the context, or nil if there
 // is any error or there isn't a subject id.
-func GetSubjectID(ctx context.Context) string {
+func GetSubjectID(ctx context.Context) (string, error) {
 	tmp := ctx.Value(authSubjectIDKey)
 	if tmp == nil {
-		return ""
+		return "", errMissingSubjectID
 	}
 	subjectID, ok := tmp.(string)
 	if !ok {
-		log.Printf("context: subject id value set incorrectly. type=%T, value=%#v", tmp, tmp)
-		return ""
+		return "", errWrongSubjectIDValue
 	}
-	return subjectID
+	return subjectID, nil
 }

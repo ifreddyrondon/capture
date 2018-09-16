@@ -18,11 +18,19 @@ const (
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
 
-func setCtxMiddleware(subjectID string) func(next http.Handler) http.Handler {
+func subjectMiddlewareOK(subjectID string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := authorization.WithSubjectID(r.Context(), subjectID)
 			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func subjectMiddlewareMiss() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			next.ServeHTTP(w, r)
 		})
 	}
 }
@@ -32,10 +40,10 @@ var handler = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte(testUserEmail))
 })
 
-func setupMiddleware(subjectID string, service user.GetterService) *bastion.Bastion {
+func setupMiddleware(subjectMiddle func(next http.Handler) http.Handler, service user.GetterService) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(setCtxMiddleware(subjectID))
+		r.Use(subjectMiddle)
 		r.Use(user.LoggedUser(service))
 		r.Get("/", handler)
 	})
@@ -46,7 +54,7 @@ func setupMiddleware(subjectID string, service user.GetterService) *bastion.Bast
 func TestLoggedUserMiddlewareBadRequestInvalidUUID(t *testing.T) {
 	t.Parallel()
 
-	app := setupMiddleware("1", &user.MockService{})
+	app := setupMiddleware(subjectMiddlewareOK("1"), &user.MockService{})
 	e := bastion.Tester(t, app)
 	tc := struct {
 		response map[string]interface{}
@@ -67,7 +75,29 @@ func TestLoggedUserMiddlewareBadRequestInvalidUUID(t *testing.T) {
 func TestLoggedUserMiddlewareInternalServerError(t *testing.T) {
 	t.Parallel()
 
-	app := setupMiddleware(kallax.NewULID().String(), &user.MockService{Err: errors.New("test")})
+	app := setupMiddleware(subjectMiddlewareOK(kallax.NewULID().String()), &user.MockService{Err: errors.New("test")})
+
+	e := bastion.Tester(t, app)
+	tc := struct {
+		response map[string]interface{}
+	}{
+		response: map[string]interface{}{
+			"status":  500.0,
+			"error":   "Internal Server Error",
+			"message": "looks like something went wrong",
+		},
+	}
+
+	e.GET("/").
+		Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(tc.response)
+}
+
+func TestLoggedUserMiddlewareInternalServerErrorMissingSubject(t *testing.T) {
+	t.Parallel()
+
+	app := setupMiddleware(subjectMiddlewareMiss(), &user.MockService{Err: errors.New("test")})
 
 	e := bastion.Tester(t, app)
 	tc := struct {
@@ -97,11 +127,9 @@ func setupServiceMiddleware(t *testing.T) (string, user.GetterService, func()) {
 }
 
 func TestLoggedUserMiddlewareOK(t *testing.T) {
-	t.Parallel()
-
 	subjectID, service, teardown := setupServiceMiddleware(t)
 	defer teardown()
-	app := setupMiddleware(subjectID, service)
+	app := setupMiddleware(subjectMiddlewareOK(subjectID), service)
 
 	e := bastion.Tester(t, app)
 	e.GET("/").
@@ -111,12 +139,10 @@ func TestLoggedUserMiddlewareOK(t *testing.T) {
 }
 
 func TestLoggedUserMiddlewareUserNotFound(t *testing.T) {
-	t.Parallel()
-
 	_, service, teardown := setupServiceMiddleware(t)
 	defer teardown()
 	// set another subjectID and force not found user
-	app := setupMiddleware(kallax.NewULID().String(), service)
+	app := setupMiddleware(subjectMiddlewareOK(kallax.NewULID().String()), service)
 
 	e := bastion.Tester(t, app)
 	tc := struct {

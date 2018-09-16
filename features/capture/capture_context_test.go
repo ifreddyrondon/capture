@@ -7,7 +7,7 @@ import (
 	"github.com/ifreddyrondon/capture/features/capture"
 
 	"github.com/stretchr/testify/assert"
-	kallax "gopkg.in/src-d/go-kallax.v1"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func TestContextManagerGetCaptureOK(t *testing.T) {
