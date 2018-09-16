@@ -52,10 +52,9 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	strategy := basic.New(userService)
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
 	middleware := authentication.Authenticate(strategy)
-	controller := auth.NewController(middleware, jwtService)
 
 	app := bastion.New()
-	app.APIRouter.Mount("/auth/", controller.Router())
+	app.APIRouter.Mount("/auth/", auth.Routes(middleware, jwtService))
 
 	return app, teardown
 }

@@ -22,19 +22,19 @@ func router(cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	userService := cfg.Container.Get("user-service").(user.Service)
-	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
-	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 	repoService := cfg.Container.Get("repo-service").(repository.Service)
 
+	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
+	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 	authenticationStrategy := basic.New(userService)
-	authController := auth.NewController(authentication.Authenticate(authenticationStrategy), jwtService)
+	authRoutes := auth.Routes(authentication.Authenticate(authenticationStrategy), jwtService)
 
 	userRoutes := cfg.Container.Get("user-routes").(http.Handler)
 	captureRoutes := cfg.Container.Get("capture-routes").(http.Handler)
 	branchRoutes := cfg.Container.Get("branch-routes").(http.Handler)
 
 	r.Mount("/users/", userRoutes)
-	r.Mount("/auth/", authController.Router())
+	r.Mount("/auth/", authRoutes)
 	r.Mount("/captures/", captureRoutes)
 	r.Mount("/branches/", branchRoutes)
 	r.Mount("/repository/", repository.Routes(repoService, authorizationMiddleware.IsAuthorizedREQ, user.LoggedUser(userService)))

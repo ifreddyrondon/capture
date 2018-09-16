@@ -16,34 +16,24 @@ type tokenJSON struct {
 	Token string `json:"token,omitempty"`
 }
 
-// Controller handler the auth routes
-type Controller struct {
-	authenticate func(http.Handler) http.Handler
-	render       render.APIRenderer
-	service      *jwt.Service
-}
+// Routes returns a configured http.Handler with capture resources.
+func Routes(authenticate func(http.Handler) http.Handler, service *jwt.Service) http.Handler {
+	c := &controller{service: service, render: render.NewJSON()}
 
-// NewController returns a new Controller
-func NewController(authenticate func(http.Handler) http.Handler, service *jwt.Service) *Controller {
-	return &Controller{
-		authenticate: authenticate,
-		service:      service,
-		render:       render.NewJSON(),
-	}
-}
-
-// Router creates a REST router for the auth resource
-func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
-
 	r.Route("/token-auth", func(r chi.Router) {
-		r.Use(c.authenticate)
+		r.Use(authenticate)
 		r.Post("/", c.login)
 	})
 	return r
 }
 
-func (c *Controller) login(w http.ResponseWriter, r *http.Request) {
+type controller struct {
+	render  render.APIRenderer
+	service *jwt.Service
+}
+
+func (c *controller) login(w http.ResponseWriter, r *http.Request) {
 	u, err := user.GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
