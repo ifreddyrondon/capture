@@ -40,7 +40,7 @@ func getResources(cfg *Config) di.Container {
 				store := repository.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
-				return repository.Service(store), nil
+				return repository.NewService(store), nil
 			},
 		},
 		{
@@ -51,7 +51,7 @@ func getResources(cfg *Config) di.Container {
 				store := capture.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
-				return capture.Service(store), nil
+				return capture.NewService(store), nil
 			},
 		},
 	}

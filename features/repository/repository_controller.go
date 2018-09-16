@@ -7,12 +7,11 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/features/auth/authorization"
 	"github.com/ifreddyrondon/capture/features/user"
 )
 
 // Routes returns a configured http.Handler with repository resources.
-func Routes(service Service, authMiddleware *authorization.Authorization, userService user.GetterService) http.Handler {
+func Routes(service Service, isAuth, loggedUser func(http.Handler) http.Handler) http.Handler {
 	c := &controller{
 		service: service,
 		render:  render.NewJSON(),
@@ -20,8 +19,8 @@ func Routes(service Service, authMiddleware *authorization.Authorization, userSe
 
 	r := bastion.NewRouter()
 	r.Route("/", func(r chi.Router) {
-		r.Use(authMiddleware.IsAuthorizedREQ)
-		r.Use(user.LoggedUser(userService))
+		r.Use(isAuth)
+		r.Use(loggedUser)
 		r.Post("/", c.create)
 	})
 
