@@ -1,78 +1,51 @@
 package authentication_test
 
 import (
-	"errors"
 	"net/http"
-	"sync"
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
+	"github.com/pkg/errors"
 
 	"github.com/go-chi/chi"
-	"github.com/stretchr/testify/require"
 
 	"github.com/ifreddyrondon/capture/features/auth/authentication"
 	"github.com/ifreddyrondon/capture/features/user"
-	"github.com/jinzhu/gorm"
 )
 
-var (
-	once sync.Once
-	db   *gorm.DB
+var handler = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("OK"))
+})
 
-	handler = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("OK"))
-	})
-)
-
-const (
-	testUserEmail    = "test@example.com"
-	testUserPassword = "b4KeHAYy3u9v=ZQX"
-)
-
-func getDB(t *testing.T) *gorm.DB {
-	once.Do(func() {
-		var err error
-		db, err = gorm.Open("postgres", "postgres://localhost/captures_app_test?sslmode=disable")
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-	return db
-}
-
-func setup(t *testing.T) (*bastion.Bastion, func()) {
-	userStore := user.NewPGStore(getDB(t).Table("basic_auth-users"))
-	userStore.Migrate()
-	teardown := func() { userStore.Drop() }
-	userService := user.NewService(userStore)
-
-	// save a user to test
-	u := user.User{Email: testUserEmail}
-	err := u.SetPassword(testUserPassword)
-	require.Nil(t, err)
-	userService.Save(&u)
-
-	strategy := basic.New(userService)
-	middleware := authentication.NewAuthentication(strategy)
-
+func setupStrategy(mock authentication.Strategy) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(middleware.Authenticate)
+		r.Use(authentication.Authenticate(mock))
 		r.Post("/", handler)
 	})
 
-	return app, teardown
+	return app
 }
 
-func TestAuthenticateSuccess(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
+type strategy struct {
+	usr           *user.User
+	err           error
+	credentialErr bool
+	decodingErr   bool
+}
 
-	payload := map[string]interface{}{"email": testUserEmail, "password": testUserPassword}
+func (s *strategy) Validate(r *http.Request) (*user.User, error) { return s.usr, s.err }
+func (s *strategy) IsErrCredentials(err error) bool              { return s.credentialErr }
+func (s *strategy) IsErrDecoding(err error) bool                 { return s.decodingErr }
+
+func TestAuthenticateSuccess(t *testing.T) {
+	t.Parallel()
+
+	strategy := &strategy{usr: &user.User{}}
+	app := setupStrategy(strategy)
 	e := bastion.Tester(t, app)
+	payload := map[string]interface{}{"email": "bla@example.com", "password": "123"}
 	e.POST("/").WithJSON(payload).
 		Expect().
 		Status(http.StatusOK).
@@ -80,18 +53,20 @@ func TestAuthenticateSuccess(t *testing.T) {
 }
 
 func TestTokenAuthFailure(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
+	t.Parallel()
 
-	e := bastion.Tester(t, app)
 	tt := []struct {
 		name     string
+		strategy authentication.Strategy
 		payload  map[string]interface{}
+		status   int
 		response map[string]interface{}
 	}{
 		{
-			name:    "invalid credentials",
-			payload: map[string]interface{}{"email": testUserEmail, "password": "123"},
+			name:     "Unauthorized",
+			strategy: &strategy{err: errors.New("invalid email or password"), credentialErr: true},
+			payload:  map[string]interface{}{"email": "bla@example.com", "password": "123"},
+			status:   http.StatusUnauthorized,
 			response: map[string]interface{}{
 				"status":  401.0,
 				"error":   "Unauthorized",
@@ -99,99 +74,38 @@ func TestTokenAuthFailure(t *testing.T) {
 			},
 		},
 		{
-			name:    "missing email",
-			payload: map[string]interface{}{"email": "bla@example.com", "password": "123"},
+			name:     "Bad Request",
+			strategy: &strategy{err: errors.New("email must not be blank\npassword must not be blank"), decodingErr: true},
+			payload:  map[string]interface{}{"email": "bla@example.com", "password": "123"},
+			status:   http.StatusBadRequest,
 			response: map[string]interface{}{
-				"status":  401.0,
-				"error":   "Unauthorized",
-				"message": "invalid email or password",
+				"status":  400.0,
+				"error":   "Bad Request",
+				"message": "email must not be blank\npassword must not be blank",
+			},
+		},
+		{
+			name:     "Internal Server Error",
+			strategy: &strategy{err: errors.New("looks like something went wrong")},
+			payload:  map[string]interface{}{"email": "bla@example.com", "password": "123"},
+			status:   http.StatusInternalServerError,
+			response: map[string]interface{}{
+				"status":  500.0,
+				"error":   "Internal Server Error",
+				"message": "looks like something went wrong",
 			},
 		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
+			app := setupStrategy(tc.strategy)
+			e := bastion.Tester(t, app)
 			e.POST("/auth/token-auth").
 				WithJSON(tc.payload).
 				Expect().
-				Status(http.StatusUnauthorized).
+				Status(tc.status).
 				JSON().Object().Equal(tc.response)
 		})
 	}
-}
-
-func TestTokenAuthFailureBadRequestCredentials(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
-
-	e := bastion.Tester(t, app)
-	tc := struct {
-		payload  map[string]interface{}
-		response map[string]interface{}
-	}{
-		payload: map[string]interface{}{},
-		response: map[string]interface{}{
-			"status":  400.0,
-			"error":   "Bad Request",
-			"message": "email must not be blank\npassword must not be blank",
-		},
-	}
-
-	e.POST("/auth/token-auth").
-		WithJSON(tc.payload).
-		Expect().
-		Status(http.StatusBadRequest).
-		JSON().Object().
-		ContainsKey("status").ValueEqual("status", tc.response["status"]).
-		ContainsKey("error").ValueEqual("error", tc.response["error"]).
-		ContainsKey("message")
-}
-
-func setupWithMockStrategy(mock authentication.Strategy) *bastion.Bastion {
-	middleware := authentication.NewAuthentication(mock)
-
-	app := bastion.New()
-	app.APIRouter.Route("/", func(r chi.Router) {
-		r.Use(middleware.Authenticate)
-		r.Post("/", handler)
-	})
-
-	return app
-}
-
-type mockStrategyFailValidate struct{}
-
-func (m *mockStrategyFailValidate) Validate(r *http.Request) (*user.User, error) {
-	return nil, errors.New("test")
-}
-func (m *mockStrategyFailValidate) IsErrCredentials(err error) bool {
-	return false
-}
-func (m *mockStrategyFailValidate) IsErrDecoding(err error) bool {
-	return false
-}
-
-func TestTokenAuthFailureInternalServerError(t *testing.T) {
-	t.Parallel()
-
-	app := setupWithMockStrategy(&mockStrategyFailValidate{})
-
-	e := bastion.Tester(t, app)
-	tc := struct {
-		payload  map[string]interface{}
-		response map[string]interface{}
-	}{
-		payload: map[string]interface{}{"email": testUserEmail, "password": testUserPassword},
-		response: map[string]interface{}{
-			"status":  500.0,
-			"error":   "Internal Server Error",
-			"message": "looks like something went wrong",
-		},
-	}
-
-	e.POST("/auth/token-auth").
-		WithJSON(tc.payload).
-		Expect().
-		Status(http.StatusInternalServerError).
-		JSON().Object().Equal(tc.response)
 }

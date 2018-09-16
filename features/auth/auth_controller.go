@@ -3,7 +3,6 @@ package auth
 import (
 	"net/http"
 
-	"github.com/ifreddyrondon/capture/features/auth/authentication"
 	"github.com/ifreddyrondon/capture/features/auth/jwt"
 
 	"github.com/ifreddyrondon/capture/features/user"
@@ -19,17 +18,17 @@ type tokenJSON struct {
 
 // Controller handler the auth routes
 type Controller struct {
-	middleware *authentication.Authentication
-	render     render.APIRenderer
-	service    *jwt.Service
+	authenticate func(http.Handler) http.Handler
+	render       render.APIRenderer
+	service      *jwt.Service
 }
 
 // NewController returns a new Controller
-func NewController(middleware *authentication.Authentication, service *jwt.Service) *Controller {
+func NewController(authenticate func(http.Handler) http.Handler, service *jwt.Service) *Controller {
 	return &Controller{
-		middleware: middleware,
-		service:    service,
-		render:     render.NewJSON(),
+		authenticate: authenticate,
+		service:      service,
+		render:       render.NewJSON(),
 	}
 }
 
@@ -38,7 +37,7 @@ func (c *Controller) Router() http.Handler {
 	r := bastion.NewRouter()
 
 	r.Route("/token-auth", func(r chi.Router) {
-		r.Use(c.middleware.Authenticate)
+		r.Use(c.authenticate)
 		r.Post("/", c.login)
 	})
 	return r

@@ -27,8 +27,7 @@ func router(cfg *config.Config) http.Handler {
 	repoService := cfg.Container.Get("repo-service").(repository.Service)
 
 	authenticationStrategy := basic.New(userService)
-	authenticationMiddleware := authentication.NewAuthentication(authenticationStrategy)
-	authController := auth.NewController(authenticationMiddleware, jwtService)
+	authController := auth.NewController(authentication.Authenticate(authenticationStrategy), jwtService)
 
 	userRoutes := cfg.Container.Get("user-routes").(http.Handler)
 	captureRoutes := cfg.Container.Get("capture-routes").(http.Handler)
