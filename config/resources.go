@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/ifreddyrondon/capture/features/branch"
 	"github.com/ifreddyrondon/capture/features/capture"
 	"github.com/ifreddyrondon/capture/features/repository"
 	"github.com/ifreddyrondon/capture/features/user"
@@ -44,14 +45,30 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "capture-service",
+			Name:  "user-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				userService := cfg.Container.Get("user-service").(user.Service)
+				return user.Routes(userService), nil
+			},
+		},
+		{
+			Name:  "capture-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				database := cfg.Container.Get("database").(*gorm.DB)
 				store := capture.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
-				return capture.NewService(store), nil
+				service := capture.NewService(store)
+				return capture.Routes(service), nil
+			},
+		},
+		{
+			Name:  "branch-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return branch.Routes(), nil
 			},
 		},
 	}

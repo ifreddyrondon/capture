@@ -14,8 +14,6 @@ import (
 	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/features/auth/authorization"
 	"github.com/ifreddyrondon/capture/features/auth/jwt"
-	"github.com/ifreddyrondon/capture/features/branch"
-	"github.com/ifreddyrondon/capture/features/capture"
 	"github.com/ifreddyrondon/capture/features/repository"
 	"github.com/ifreddyrondon/capture/features/user"
 )
@@ -24,18 +22,22 @@ func router(cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	userService := cfg.Container.Get("user-service").(user.Service)
-	authenticationStrategy := basic.New(userService)
-	authenticationMiddleware := authentication.NewAuthentication(authenticationStrategy)
 	jwtService := jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta)
-	authController := auth.NewController(authenticationMiddleware, jwtService)
 	authorizationMiddleware := authorization.NewAuthorization(jwtService)
 	repoService := cfg.Container.Get("repo-service").(repository.Service)
-	captureService := cfg.Container.Get("capture-service").(capture.Service)
 
-	r.Mount("/users/", user.Routes(userService))
+	authenticationStrategy := basic.New(userService)
+	authenticationMiddleware := authentication.NewAuthentication(authenticationStrategy)
+	authController := auth.NewController(authenticationMiddleware, jwtService)
+
+	userRoutes := cfg.Container.Get("user-routes").(http.Handler)
+	captureRoutes := cfg.Container.Get("capture-routes").(http.Handler)
+	branchRoutes := cfg.Container.Get("branch-routes").(http.Handler)
+
+	r.Mount("/users/", userRoutes)
 	r.Mount("/auth/", authController.Router())
-	r.Mount("/captures/", capture.Routes(captureService))
-	r.Mount("/branches/", branch.Routes())
+	r.Mount("/captures/", captureRoutes)
+	r.Mount("/branches/", branchRoutes)
 	r.Mount("/repository/", repository.Routes(repoService, authorizationMiddleware.IsAuthorizedREQ, user.LoggedUser(userService)))
 	return r
 }
