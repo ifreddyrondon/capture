@@ -1,11 +1,11 @@
 package user
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/features/user/decoder"
 )
 
 // Routes returns a configured http.Handler with user resources.
@@ -23,13 +23,19 @@ type controller struct {
 }
 
 func (c *controller) create(w http.ResponseWriter, r *http.Request) {
-	var user User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+	var postUser decoder.PostUser
+	if err := decoder.Decode(r, &postUser); err != nil {
 		c.render.BadRequest(w, err)
 		return
 	}
 
-	if err := c.service.Save(&user); err != nil {
+	u, err := FromPostUser(postUser)
+	if err != nil {
+		c.render.InternalServerError(w, err)
+		return
+	}
+
+	if err := c.service.Save(u); err != nil {
 		if _, ok := err.(*emailDuplicateError); ok {
 			httpErr := render.HTTPError{
 				Status:  http.StatusConflict,
@@ -44,5 +50,5 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.render.Created(w, user)
+	c.render.Created(w, u)
 }

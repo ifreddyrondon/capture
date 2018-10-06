@@ -36,7 +36,6 @@ func NewService(store Store) *StoreService {
 
 // Save a capture
 func (s *StoreService) Save(user *User) error {
-	user.fillIfEmpty()
 	err := s.store.Save(user)
 
 	if err != nil {

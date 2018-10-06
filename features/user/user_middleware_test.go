@@ -9,11 +9,12 @@ import (
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/features/auth/authorization"
 	"github.com/ifreddyrondon/capture/features/user"
+	"github.com/ifreddyrondon/capture/features/user/decoder"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-const (
+var (
 	testUserEmail    = "test@example.com"
 	testUserPassword = "b4KeHAYy3u9v=ZQX"
 )
@@ -118,10 +119,9 @@ func TestLoggedUserMiddlewareInternalServerErrorMissingSubject(t *testing.T) {
 
 func setupServiceMiddleware(t *testing.T) (string, user.GetterService, func()) {
 	service, teardown := setupService(t)
-	u := user.User{Email: testUserEmail}
-	err := u.SetPassword(testUserPassword)
+	u, err := user.FromPostUser(decoder.PostUser{Email: &testUserEmail, Password: &testUserPassword})
 	require.Nil(t, err)
-	service.Save(&u)
+	service.Save(u)
 
 	return u.ID.String(), service, teardown
 }

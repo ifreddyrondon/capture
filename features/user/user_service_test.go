@@ -32,10 +32,10 @@ func TestErrWhenSaveUserWithSameEmail(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	u := user.User{Email: "test@example.com"}
+	u := user.User{Email: "test@example.com", ID: kallax.NewULID()}
 	service.Save(&u)
 
-	u2 := user.User{Email: "test@example.com"}
+	u2 := user.User{Email: "test@example.com", ID: kallax.NewULID()}
 	err := service.Save(&u2)
 	assert.Error(t, err)
 	assert.Equal(t, "email 'test@example.com' already exists", err.Error())
@@ -76,7 +76,7 @@ func TestGetByID(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	u := user.User{Email: "test@example.com"}
+	u := user.User{Email: "test@example.com", ID: kallax.NewULID()}
 	service.Save(&u)
 
 	tempUser, err := service.GetByID(u.ID)
