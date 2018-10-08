@@ -1,12 +1,13 @@
 package repository
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/features"
+	"github.com/ifreddyrondon/capture/features/repository/decoder"
 	"github.com/ifreddyrondon/capture/features/user"
 )
 
@@ -34,11 +35,14 @@ type controller struct {
 }
 
 func (c *controller) create(w http.ResponseWriter, r *http.Request) {
-	var repo Repository
-	if err := json.NewDecoder(r.Body).Decode(&repo); err != nil {
+	var postRepo decoder.PostRepository
+	if err := decoder.Decode(r, &postRepo); err != nil {
 		c.render.BadRequest(w, err)
 		return
 	}
+
+	var repo features.Repository
+	decoder.Repository(postRepo, &repo)
 
 	userID, err := user.GetUserID(r.Context())
 	if err != nil {

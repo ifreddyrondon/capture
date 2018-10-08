@@ -41,7 +41,7 @@ func loggedUser(next http.Handler) http.Handler {
 
 type mockService struct{ err error }
 
-func (m *mockService) Save(c *repository.Repository) error {
+func (m *mockService) Save(c *features.Repository) error {
 	return m.err
 }
 
@@ -66,7 +66,7 @@ func TestCreateRepositorySuccess(t *testing.T) {
 		Status(http.StatusCreated).
 		JSON().Object().
 		ContainsKey("name").ValueEqual("name", payload["name"]).
-		ContainsKey("shared").ValueEqual("shared", false).
+		ContainsKey("shared").ValueEqual("shared", true).
 		ContainsKey("id").NotEmpty().
 		ContainsKey("createdAt").NotEmpty().
 		ContainsKey("updatedAt").NotEmpty()

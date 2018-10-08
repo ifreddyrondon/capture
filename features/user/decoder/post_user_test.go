@@ -13,21 +13,23 @@ import (
 )
 
 func TestDecodePostUserOK(t *testing.T) {
+	email, pass := "test@example.com", "1234"
+
 	t.Parallel()
 	tt := []struct {
-		name        string
-		emailResult string
-		body        string
+		name     string
+		body     string
+		expected decoder.PostUser
 	}{
 		{
-			name:        "decode user without password",
-			emailResult: "test@example.com",
-			body:        `{"email": "test@example.com"}`,
+			name:     "decode user without password",
+			body:     `{"email": "test@example.com"}`,
+			expected: decoder.PostUser{Email: &email},
 		},
 		{
-			name:        "decode user with password",
-			emailResult: "test@example.com",
-			body:        `{"email":"test@example.com","password":"1234"}`,
+			name:     "decode user with password",
+			body:     `{"email":"test@example.com","password":"1234"}`,
+			expected: decoder.PostUser{Email: &email, Password: &pass},
 		},
 	}
 
@@ -38,7 +40,8 @@ func TestDecodePostUserOK(t *testing.T) {
 			var u decoder.PostUser
 			err := decoder.Decode(r, &u)
 			assert.Nil(t, err)
-			assert.Equal(t, tc.emailResult, *u.Email)
+			assert.Equal(t, tc.expected.Email, u.Email)
+			assert.Equal(t, tc.expected.Password, u.Password)
 		})
 	}
 }
@@ -56,7 +59,7 @@ func TestDecodePostUserError(t *testing.T) {
 			err:  "email must not be blank",
 		},
 		{
-			name: "decode user's email missing",
+			name: "decode user's invalid missing",
 			body: `{"email": "test@"}`,
 			err:  "invalid email",
 		},
@@ -89,14 +92,17 @@ func TestUserPostUserOK(t *testing.T) {
 	tt := []struct {
 		name     string
 		postUser decoder.PostUser
+		expected features.User
 	}{
 		{
 			name:     "get user from postUser without password",
 			postUser: decoder.PostUser{Email: &email},
+			expected: features.User{Email: email},
 		},
 		{
 			name:     "get user from postUser with password",
 			postUser: decoder.PostUser{Email: &email, Password: &pass},
+			expected: features.User{Email: email},
 		},
 	}
 
@@ -105,6 +111,7 @@ func TestUserPostUserOK(t *testing.T) {
 			var u features.User
 			err := decoder.User(tc.postUser, &u)
 			assert.Nil(t, err)
+			assert.Equal(t, tc.expected.Email, u.Email)
 			// test user fields filled with not default values
 			assert.NotEqual(t, kallax.ULID{}, u.ID)
 			assert.NotEqual(t, time.Time{}, u.CreatedAt)

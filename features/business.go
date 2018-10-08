@@ -7,6 +7,18 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
+// Repository represent a collection of captures.
+type Repository struct {
+	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
+	Name          string      `json:"name"`
+	CurrentBranch string      `json:"current_branch"`
+	Shared        bool        `json:"shared"`
+	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
+	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
+	DeletedAt     *time.Time  `json:"-"`
+	UserID        kallax.ULID `json:"owner"`
+}
+
 // User represents a user account.
 type User struct {
 	ID        kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
