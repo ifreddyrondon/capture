@@ -7,8 +7,8 @@ import (
 
 	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/capture"
-	"github.com/ifreddyrondon/capture/features/geocoding"
-	"github.com/ifreddyrondon/capture/features/payload"
+	"github.com/ifreddyrondon/capture/features/capture/geocoding"
+	"github.com/ifreddyrondon/capture/features/capture/payload"
 	"github.com/ifreddyrondon/capture/features/user/decoder"
 
 	"gopkg.in/src-d/go-kallax.v1"

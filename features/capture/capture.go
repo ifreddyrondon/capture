@@ -6,12 +6,12 @@ import (
 
 	"gopkg.in/src-d/go-kallax.v1"
 
-	"github.com/ifreddyrondon/capture/features/payload"
+	"github.com/ifreddyrondon/capture/features/capture/payload"
 	"github.com/ifreddyrondon/capture/features/timestamp"
 	"github.com/lib/pq"
 	"github.com/mailru/easyjson/jwriter"
 
-	"github.com/ifreddyrondon/capture/features/geocoding"
+	"github.com/ifreddyrondon/capture/features/capture/geocoding"
 )
 
 var (
