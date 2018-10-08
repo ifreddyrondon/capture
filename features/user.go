@@ -1,25 +1,11 @@
-package user
+package features
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-
 	"gopkg.in/src-d/go-kallax.v1"
 )
-
-// ErrNotFound expected error when user is missing
-var ErrNotFound = errors.New("user not found")
-
-type emailDuplicateError struct {
-	Email string
-}
-
-func (e *emailDuplicateError) Error() string {
-	return fmt.Sprintf("email '%s' already exists", e.Email)
-}
 
 // User represents a user account.
 type User struct {

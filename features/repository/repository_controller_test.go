@@ -7,6 +7,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/repository"
 	"github.com/ifreddyrondon/capture/features/user"
 	"gopkg.in/src-d/go-kallax.v1"
@@ -32,7 +33,7 @@ func authFails(next http.Handler) http.Handler {
 
 func loggedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var mockUser = &user.User{Email: "test@example.com", ID: kallax.NewULID()}
+		var mockUser = &features.User{Email: "test@example.com", ID: kallax.NewULID()}
 		ctx := user.WithUser(r.Context(), mockUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

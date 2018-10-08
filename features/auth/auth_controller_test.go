@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/auth"
 	"github.com/ifreddyrondon/capture/features/auth/jwt"
 	"github.com/ifreddyrondon/capture/features/user"
@@ -25,7 +26,7 @@ func notLoggedUser(next http.Handler) http.Handler {
 
 func loggedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var mockUser = &user.User{Email: "test@example.com", ID: kallax.NewULID()}
+		var mockUser = &features.User{Email: "test@example.com", ID: kallax.NewULID()}
 		ctx := user.WithUser(r.Context(), mockUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

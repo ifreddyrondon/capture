@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/user"
 )
 
 // Strategy is an Authentication mechanisms to validate users credentials
 type Strategy interface {
 	// Validate user credentials from bytes.
-	Validate(*http.Request) (*user.User, error)
+	Validate(*http.Request) (*features.User, error)
 	// IsErrCredentials check if an error is for invalid credentials.
 	IsErrCredentials(error) bool
 	// IsErrDecoding check if an error is for invalid decoding credentials.

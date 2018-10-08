@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/auth/authorization"
 	"github.com/ifreddyrondon/capture/features/user"
 	"github.com/ifreddyrondon/capture/features/user/decoder"
@@ -119,9 +120,10 @@ func TestLoggedUserMiddlewareInternalServerErrorMissingSubject(t *testing.T) {
 
 func setupServiceMiddleware(t *testing.T) (string, user.GetterService, func()) {
 	service, teardown := setupService(t)
-	u, err := user.FromPostUser(decoder.PostUser{Email: &testUserEmail, Password: &testUserPassword})
+	var u features.User
+	err := decoder.User(decoder.PostUser{Email: &testUserEmail, Password: &testUserPassword}, &u)
 	require.Nil(t, err)
-	service.Save(u)
+	service.Save(&u)
 
 	return u.ID.String(), service, teardown
 }

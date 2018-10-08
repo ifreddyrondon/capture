@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/pkg/errors"
 
 	"github.com/go-chi/chi"
 
 	"github.com/ifreddyrondon/capture/features/auth/authentication"
-	"github.com/ifreddyrondon/capture/features/user"
 )
 
 var handler = http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -29,20 +29,20 @@ func setupStrategy(mock authentication.Strategy) *bastion.Bastion {
 }
 
 type strategy struct {
-	usr           *user.User
+	usr           *features.User
 	err           error
 	credentialErr bool
 	decodingErr   bool
 }
 
-func (s *strategy) Validate(r *http.Request) (*user.User, error) { return s.usr, s.err }
-func (s *strategy) IsErrCredentials(err error) bool              { return s.credentialErr }
-func (s *strategy) IsErrDecoding(err error) bool                 { return s.decodingErr }
+func (s *strategy) Validate(r *http.Request) (*features.User, error) { return s.usr, s.err }
+func (s *strategy) IsErrCredentials(err error) bool                  { return s.credentialErr }
+func (s *strategy) IsErrDecoding(err error) bool                     { return s.decodingErr }
 
 func TestAuthenticateSuccess(t *testing.T) {
 	t.Parallel()
 
-	strategy := &strategy{usr: &user.User{}}
+	strategy := &strategy{usr: &features.User{}}
 	app := setupStrategy(strategy)
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"email": "bla@example.com", "password": "123"}

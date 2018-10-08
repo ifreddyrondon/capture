@@ -5,6 +5,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/user/decoder"
 )
 
@@ -29,13 +30,13 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := FromPostUser(postUser)
-	if err != nil {
+	var u features.User
+	if err := decoder.User(postUser, &u); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
 
-	if err := c.service.Save(u); err != nil {
+	if err := c.service.Save(&u); err != nil {
 		if _, ok := err.(*emailDuplicateError); ok {
 			httpErr := render.HTTPError{
 				Status:  http.StatusConflict,

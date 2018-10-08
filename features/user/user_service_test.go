@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/user"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
@@ -20,7 +21,7 @@ func TestSaveUser(t *testing.T) {
 	store := &user.MockStore{}
 	service := user.NewService(store)
 
-	u := user.User{Email: "test@example.com"}
+	u := features.User{Email: "test@example.com"}
 	err := service.Save(&u)
 	assert.Nil(t, err)
 	assert.NotNil(t, u.ID)
@@ -32,10 +33,10 @@ func TestErrWhenSaveUserWithSameEmail(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	u := user.User{Email: "test@example.com", ID: kallax.NewULID()}
+	u := features.User{Email: "test@example.com", ID: kallax.NewULID()}
 	service.Save(&u)
 
-	u2 := user.User{Email: "test@example.com", ID: kallax.NewULID()}
+	u2 := features.User{Email: "test@example.com", ID: kallax.NewULID()}
 	err := service.Save(&u2)
 	assert.Error(t, err)
 	assert.Equal(t, "email 'test@example.com' already exists", err.Error())
@@ -46,7 +47,7 @@ func TestErrSaveUser(t *testing.T) {
 
 	store := &user.MockStore{Err: errors.New("test")}
 	service := user.NewService(store)
-	u := user.User{Email: "test@example.com"}
+	u := features.User{Email: "test@example.com"}
 	err := service.Save(&u)
 	assert.EqualError(t, err, "test")
 }
@@ -54,7 +55,7 @@ func TestErrSaveUser(t *testing.T) {
 func TestGetByEmail(t *testing.T) {
 	t.Parallel()
 
-	u := user.User{Email: "test@example.com"}
+	u := features.User{Email: "test@example.com"}
 	store := &user.MockStore{User: &u}
 	service := user.NewService(store)
 
@@ -76,7 +77,7 @@ func TestGetByID(t *testing.T) {
 	service, teardown := setupService(t)
 	defer teardown()
 
-	u := user.User{Email: "test@example.com", ID: kallax.NewULID()}
+	u := features.User{Email: "test@example.com", ID: kallax.NewULID()}
 	service.Save(&u)
 
 	tempUser, err := service.GetByID(u.ID)

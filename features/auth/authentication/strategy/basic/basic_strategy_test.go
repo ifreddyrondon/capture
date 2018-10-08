@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
 	"github.com/ifreddyrondon/capture/features/user"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ const (
 
 func TestValidateSuccess(t *testing.T) {
 	t.Parallel()
-	strategy := basic.New(&user.MockService{User: &user.User{Email: userEmail, Password: []byte(hashedPass)}})
+	strategy := basic.New(&user.MockService{User: &features.User{Email: userEmail, Password: []byte(hashedPass)}})
 
 	body := strings.NewReader(fmt.Sprintf(`{"email":"%v","password":"%v"}`, userEmail, userPassword))
 	req := httptest.NewRequest("GET", "/", body)
@@ -33,7 +34,7 @@ func TestValidateSuccess(t *testing.T) {
 
 func TestValidateInvalidCredentials(t *testing.T) {
 	t.Parallel()
-	strategy := basic.New(&user.MockService{User: &user.User{Email: userEmail, Password: []byte(hashedPass)}})
+	strategy := basic.New(&user.MockService{User: &features.User{Email: userEmail, Password: []byte(hashedPass)}})
 
 	tt := []struct {
 		name string

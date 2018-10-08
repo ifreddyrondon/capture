@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/stretchr/testify/assert"
 
 	"gopkg.in/src-d/go-kallax.v1"
@@ -13,7 +14,7 @@ import (
 
 func TestContextManagerGetUserOK(t *testing.T) {
 	ctx := context.Background()
-	u := user.User{ID: kallax.NewULID(), Email: "test@example.com"}
+	u := features.User{ID: kallax.NewULID(), Email: "test@example.com"}
 	ctx = user.WithUser(ctx, &u)
 
 	u2, err := user.GetFromContext(ctx)
@@ -31,7 +32,7 @@ func TestContextManagerGetUserMissingUser(t *testing.T) {
 func TestContextManagerGetUserIDOK(t *testing.T) {
 	ctx := context.Background()
 
-	u := user.User{ID: kallax.NewULID(), Email: "test@example.com"}
+	u := features.User{ID: kallax.NewULID(), Email: "test@example.com"}
 	ctx = user.WithUser(ctx, &u)
 
 	id, err := user.GetUserID(ctx)

@@ -4,9 +4,12 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/user/decoder"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func TestDecodePostUserOK(t *testing.T) {
@@ -18,13 +21,13 @@ func TestDecodePostUserOK(t *testing.T) {
 	}{
 		{
 			name:        "decode user without password",
-			emailResult: "test@localhost.com",
-			body:        `{"email": "test@localhost.com"}`,
+			emailResult: "test@example.com",
+			body:        `{"email": "test@example.com"}`,
 		},
 		{
 			name:        "decode user with password",
-			emailResult: "test@localhost.com",
-			body:        `{"email":"test@localhost.com","password":"1234"}`,
+			emailResult: "test@example.com",
+			body:        `{"email":"test@example.com","password":"1234"}`,
 		},
 	}
 
@@ -59,7 +62,7 @@ func TestDecodePostUserError(t *testing.T) {
 		},
 		{
 			name: "decode user's password too short",
-			body: `{"email":"test@localhost.com","password":"1"}`,
+			body: `{"email":"test@example.com","password":"1"}`,
 			err:  "password must have at least four characters",
 		},
 		{
@@ -76,6 +79,36 @@ func TestDecodePostUserError(t *testing.T) {
 			var u decoder.PostUser
 			err := decoder.Decode(r, &u)
 			assert.EqualError(t, err, tc.err)
+		})
+	}
+}
+
+func TestUserPostUserOK(t *testing.T) {
+	email, pass := "test@example.com", "1234"
+	t.Parallel()
+	tt := []struct {
+		name     string
+		postUser decoder.PostUser
+	}{
+		{
+			name:     "get user from postUser without password",
+			postUser: decoder.PostUser{Email: &email},
+		},
+		{
+			name:     "get user from postUser with password",
+			postUser: decoder.PostUser{Email: &email, Password: &pass},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			var u features.User
+			err := decoder.User(tc.postUser, &u)
+			assert.Nil(t, err)
+			// test user fields filled with not default values
+			assert.NotEqual(t, kallax.ULID{}, u.ID)
+			assert.NotEqual(t, time.Time{}, u.CreatedAt)
+			assert.NotEqual(t, time.Time{}, u.UpdatedAt)
 		})
 	}
 }

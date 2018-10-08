@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/user"
 )
 
@@ -29,7 +30,7 @@ func New(service user.GetterService) *Basic {
 }
 
 // Validate basic credentials.
-func (b *Basic) Validate(r *http.Request) (*user.User, error) {
+func (b *Basic) Validate(r *http.Request) (*features.User, error) {
 	var cre Credentials
 	if err := json.NewDecoder(r.Body).Decode(&cre); err != nil {
 		return nil, &decodingErr{err: err}
