@@ -5,6 +5,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/features"
 )
 
 // Routes returns a configured http.Handler with branch resources.
@@ -21,6 +22,6 @@ type controller struct {
 }
 
 func (h *controller) list(w http.ResponseWriter, r *http.Request) {
-	b := Branch{}
+	b := features.Branch{}
 	h.render.Send(w, b)
 }

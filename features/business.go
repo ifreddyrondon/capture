@@ -3,11 +3,12 @@ package features
 import (
 	"time"
 
+	"github.com/ifreddyrondon/capture/features/capture"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-// Repository represent a collection of captures.
+// Repository represent a place with the history of all captures.
 type Repository struct {
 	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
 	Name          string      `json:"name"`
@@ -17,6 +18,13 @@ type Repository struct {
 	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
 	DeletedAt     *time.Time  `json:"-"`
 	UserID        kallax.ULID `json:"owner"`
+}
+
+// Branch is a partial or full collection of captures within a repository.
+type Branch struct {
+	ID       kallax.ULID       `json:"id"`
+	Name     string            `json:"name"`
+	Captures []capture.Capture `json:"captures"`
 }
 
 // User represents a user account.
