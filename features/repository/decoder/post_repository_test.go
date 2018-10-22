@@ -92,7 +92,7 @@ func TestDecodePostRepositoryError(t *testing.T) {
 	}
 }
 
-func TestRepositoryPostRepositoryOK(t *testing.T) {
+func TestRepositoryFromPostRepositoryOK(t *testing.T) {
 	name, sharedTrue, sharedFalse := "test_repository", true, false
 	t.Parallel()
 	tt := []struct {
@@ -119,8 +119,7 @@ func TestRepositoryPostRepositoryOK(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			var repo features.Repository
-			decoder.Repository(tc.postRepo, &repo)
+			repo := tc.postRepo.GetRepository()
 			assert.Equal(t, tc.expected.Name, repo.Name)
 			assert.Equal(t, tc.expected.Shared, repo.Shared)
 			// test user fields filled with not default values

@@ -1,11 +1,12 @@
 package capture
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 
+	"github.com/ifreddyrondon/capture/features"
+	"github.com/ifreddyrondon/capture/features/capture/decoder"
 	"gopkg.in/src-d/go-kallax.v1"
 
 	"github.com/go-chi/chi"
@@ -55,27 +56,41 @@ func (c *controller) list(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) create(w http.ResponseWriter, r *http.Request) {
-	var captures Captures
-	if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
+	var postCapture decoder.POSTCapture
+	if err := decoder.Decode(r, &postCapture); err != nil {
 		c.render.BadRequest(w, err)
 		return
 	}
 
-	if len(captures) == 1 {
-		if err := c.service.Save(captures[0]); err != nil {
-			c.render.InternalServerError(w, err)
-			return
-		}
-		c.render.Created(w, captures[0])
-		return
-	}
-
-	captures, err := c.service.SaveBulk(captures...)
-	if err != nil {
+	capt := postCapture.GetCapture()
+	if err := c.service.Save(&capt); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
-	c.render.Created(w, captures)
+	c.render.Created(w, capt)
+	return
+
+	//var captures Captures
+	//if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
+	//	c.render.BadRequest(w, err)
+	//	return
+	//}
+	//
+	//if len(captures) == 1 {
+	//	if err := c.service.Save(captures[0]); err != nil {
+	//		c.render.InternalServerError(w, err)
+	//		return
+	//	}
+	//	c.render.Created(w, captures[0])
+	//	return
+	//}
+	//
+	//captures, err := c.service.SaveBulk(captures...)
+	//if err != nil {
+	//	c.render.InternalServerError(w, err)
+	//	return
+	//}
+	//c.render.Created(w, captures)
 }
 
 func (c *controller) captureCtx(next http.Handler) http.Handler {
@@ -86,7 +101,7 @@ func (c *controller) captureCtx(next http.Handler) http.Handler {
 			c.render.BadRequest(w, ErrorBadRequest)
 			return
 		}
-		var capt *Capture
+		var capt *features.Capture
 		capt, err = c.service.Get(captureID)
 		if capt == nil {
 			c.render.NotFound(w, err)
@@ -124,21 +139,22 @@ func (c *controller) delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *controller) update(w http.ResponseWriter, r *http.Request) {
-	capt, err := GetFromContext(r.Context())
+	captFromCtx, err := GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
 
-	var updates Capture
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+	var putCapture decoder.PUTCapture
+	if err := decoder.Decode(r, &putCapture); err != nil {
 		c.render.BadRequest(w, err)
 		return
 	}
 
-	if err := c.service.Update(capt, updates); err != nil {
+	captFromPayload := putCapture.GetCapture()
+	if err := c.service.Update(captFromCtx, captFromPayload); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
-	c.render.Send(w, capt)
+	c.render.Send(w, captFromCtx)
 }

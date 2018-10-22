@@ -1,22 +1,25 @@
 package capture
 
-import kallax "gopkg.in/src-d/go-kallax.v1"
+import (
+	"github.com/ifreddyrondon/capture/features"
+	kallax "gopkg.in/src-d/go-kallax.v1"
+)
 
 // Service is the interface to be implemented by capture services
 // It's the layer between HTTP server and Stores.
 type Service interface {
 	// Save a capture.
-	Save(*Capture) error
+	Save(*features.Capture) error
 	// SaveBulk captures.
-	SaveBulk(...*Capture) (Captures, error)
+	SaveBulk(...*features.Capture) (Captures, error)
 	// List retrieve captures from start index to count.
 	List(start, count int) (Captures, error)
 	// Get a capture by id
-	Get(kallax.ULID) (*Capture, error)
+	Get(kallax.ULID) (*features.Capture, error)
 	// Delete a capture by id
-	Delete(*Capture) error
+	Delete(*features.Capture) error
 	// Update a capture from an updated one, will only update those changed & non blank fields.
-	Update(original *Capture, updates Capture) error
+	Update(original *features.Capture, updates features.Capture) error
 }
 
 // StoreService implementation of Service for capture
@@ -30,13 +33,12 @@ func NewService(store Store) *StoreService {
 }
 
 // Save a capture.
-func (s *StoreService) Save(capt *Capture) error {
-	capt.fillIfEmpty()
+func (s *StoreService) Save(capt *features.Capture) error {
 	return s.store.Save(capt)
 }
 
 // SaveBulk captures.
-func (s *StoreService) SaveBulk(captures ...*Capture) (Captures, error) {
+func (s *StoreService) SaveBulk(captures ...*features.Capture) (Captures, error) {
 	return s.store.SaveBulk(captures...)
 }
 
@@ -46,16 +48,16 @@ func (s *StoreService) List(start, count int) (Captures, error) {
 }
 
 // Get a capture by id
-func (s *StoreService) Get(id kallax.ULID) (*Capture, error) {
+func (s *StoreService) Get(id kallax.ULID) (*features.Capture, error) {
 	return s.store.Get(id)
 }
 
 // Delete a capture by id
-func (s *StoreService) Delete(capt *Capture) error {
+func (s *StoreService) Delete(capt *features.Capture) error {
 	return s.store.Delete(capt)
 }
 
 // Update a capture
-func (s *StoreService) Update(original *Capture, updates Capture) error {
+func (s *StoreService) Update(original *features.Capture, updates features.Capture) error {
 	return s.store.Update(original, updates)
 }

@@ -19,7 +19,7 @@ type PostRepository struct {
 	Shared *bool   `json:"shared"`
 }
 
-func (r PostRepository) ok() error {
+func (r PostRepository) OK() error {
 	e := validate.NewErrors()
 	if r.Name == nil {
 		e.Add("name", errNameRequired)
@@ -33,16 +33,20 @@ func (r PostRepository) ok() error {
 	return nil
 }
 
-func (r PostRepository) repository(repo *features.Repository) {
-	repo.ID = kallax.NewULID()
-	repo.Name = *r.Name
+func (r PostRepository) GetRepository() features.Repository {
+	now := time.Now()
+	repo := features.Repository{
+		ID:            kallax.NewULID(),
+		Name:          *r.Name,
+		CurrentBranch: defaultCrrBranchFieldValue,
+		CreatedAt:     now,
+		UpdatedAt:     now,
+	}
 	if r.Shared == nil {
 		repo.Shared = true
 	} else {
 		repo.Shared = *r.Shared
 	}
-	repo.CurrentBranch = defaultCrrBranchFieldValue
-	now := time.Now()
-	repo.CreatedAt = now
-	repo.UpdatedAt = now
+
+	return repo
 }

@@ -23,7 +23,7 @@ type PostUser struct {
 	Password *string `json:"password"`
 }
 
-func (u PostUser) ok() error {
+func (u PostUser) OK() error {
 	e := validate.NewErrors()
 	if u.Email == nil {
 		e.Add("email", errEmailRequired)
@@ -44,7 +44,7 @@ func (u PostUser) ok() error {
 	return nil
 }
 
-func (u PostUser) user(usr *features.User) error {
+func (u PostUser) User(usr *features.User) error {
 	usr.ID = kallax.NewULID()
 	usr.Email = *u.Email
 	now := time.Now()

@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	"github.com/ifreddyrondon/capture/decoder"
-	"github.com/ifreddyrondon/capture/features"
+	"github.com/lib/pq"
 )
 
-type UserReqDecoder interface {
-	User(*features.User) error
+type TagsReqDecoder interface {
+	GetTags() pq.StringArray
 }
 
 // Decode gets a request payload and validate it.
 func Decode(r *http.Request, v decoder.OK) error {
 	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
-		return errors.New("cannot unmarshal json into valid user")
+		return errors.New("cannot unmarshal json into tags value")
 	}
 	return v.OK()
 }

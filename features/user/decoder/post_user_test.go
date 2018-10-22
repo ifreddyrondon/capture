@@ -12,7 +12,7 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-func TestDecodePostUserOK(t *testing.T) {
+func TestDecodeFromPostUserOK(t *testing.T) {
 	email, pass := "test@example.com", "1234"
 
 	t.Parallel()
@@ -109,7 +109,7 @@ func TestUserPostUserOK(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			var u features.User
-			err := decoder.User(tc.postUser, &u)
+			err := tc.postUser.User(&u)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.Email, u.Email)
 			// test user fields filled with not default values

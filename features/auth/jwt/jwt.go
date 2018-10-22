@@ -3,9 +3,8 @@ package jwt
 import (
 	"time"
 
-	"github.com/ifreddyrondon/capture/features/timestamp"
-
 	"github.com/dgrijalva/jwt-go"
+	"github.com/ifreddyrondon/capture/features"
 )
 
 // DefaultJWTExpirationDelta is the delta added to time.Now() when a claims is created
@@ -14,7 +13,7 @@ const DefaultJWTExpirationDelta time.Duration = time.Hour
 // Claims Section of JWT. Referenced at https://tools.ietf.org/html/rfc7519#section-4.1
 type Claims struct {
 	jwt.StandardClaims
-	clock *timestamp.Clock
+	clock *features.Clock
 }
 
 // IssueIt marks the claims with iat (IssuedAt).

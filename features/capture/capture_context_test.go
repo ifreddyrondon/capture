@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/capture"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 func TestContextManagerGetCaptureOK(t *testing.T) {
 	ctx := context.Background()
 
-	capt := capture.Capture{ID: kallax.NewULID()}
+	capt := features.Capture{ID: kallax.NewULID()}
 	ctx = capture.WithCapture(ctx, &capt)
 
 	capt2, err := capture.GetFromContext(ctx)

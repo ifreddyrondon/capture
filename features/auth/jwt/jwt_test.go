@@ -4,18 +4,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ifreddyrondon/capture/features"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/dgrijalva/jwt-go"
 	captureJWT "github.com/ifreddyrondon/capture/features/auth/jwt"
-	"github.com/ifreddyrondon/capture/features/timestamp"
 )
 
 func TestClaims(t *testing.T) {
 	t.Parallel()
 
 	expected := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
-	mockClock := timestamp.NewMockClock(expected)
+	mockClock := features.NewMockClock(expected)
 	userID := "123"
 
 	tt := []struct {

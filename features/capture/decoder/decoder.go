@@ -9,14 +9,14 @@ import (
 	"github.com/ifreddyrondon/capture/features"
 )
 
-type UserReqDecoder interface {
-	User(*features.User) error
+type CaptureReqDecoder interface {
+	GetCapture() features.Capture
 }
 
 // Decode gets a request payload and validate it.
 func Decode(r *http.Request, v decoder.OK) error {
 	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
-		return errors.New("cannot unmarshal json into valid user")
+		return errors.New("cannot unmarshal json into valid capture")
 	}
 	return v.OK()
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/repository/decoder"
 	"github.com/ifreddyrondon/capture/features/user"
 )
@@ -41,9 +40,7 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var repo features.Repository
-	decoder.Repository(postRepo, &repo)
-
+	repo := postRepo.GetRepository()
 	userID, err := user.GetUserID(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)

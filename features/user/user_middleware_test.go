@@ -121,7 +121,8 @@ func TestLoggedUserMiddlewareInternalServerErrorMissingSubject(t *testing.T) {
 func setupServiceMiddleware(t *testing.T) (string, user.GetterService, func()) {
 	service, teardown := setupService(t)
 	var u features.User
-	err := decoder.User(decoder.PostUser{Email: &testUserEmail, Password: &testUserPassword}, &u)
+	postUser := decoder.PostUser{Email: &testUserEmail, Password: &testUserPassword}
+	err := postUser.User(&u)
 	require.Nil(t, err)
 	service.Save(&u)
 

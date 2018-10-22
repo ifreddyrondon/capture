@@ -31,7 +31,7 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var u features.User
-	if err := decoder.User(postUser, &u); err != nil {
+	if err := postUser.User(&u); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
