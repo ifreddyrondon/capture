@@ -8,6 +8,7 @@ import (
 	"github.com/ifreddyrondon/capture/features/auth/jwt"
 	"github.com/ifreddyrondon/capture/features/branch"
 	"github.com/ifreddyrondon/capture/features/capture"
+	"github.com/ifreddyrondon/capture/features/multipost"
 	"github.com/ifreddyrondon/capture/features/repository"
 	"github.com/ifreddyrondon/capture/features/user"
 	"github.com/jinzhu/gorm"
@@ -97,6 +98,13 @@ func getResources(cfg *Config) di.Container {
 				store.Migrate()
 				service := repository.NewService(store)
 				return repository.Routes(service, isAuth, loggedUser), nil
+			},
+		},
+		{
+			Name:  "multipost-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return multipost.Routes(), nil
 			},
 		},
 	}

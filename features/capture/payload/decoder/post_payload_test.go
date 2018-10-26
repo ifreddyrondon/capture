@@ -19,23 +19,9 @@ func TestDecodePostPayloadOK(t *testing.T) {
 		expected decoder.PostPayload
 	}{
 		{
-			name: "decode payload with cap",
-			body: `{"cap": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`,
-			expected: decoder.PostPayload{Cap: payload.Payload{
-				payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
-			}},
-		},
-		{
-			name: "decode payload with captures",
-			body: `{"captures": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`,
-			expected: decoder.PostPayload{Captures: payload.Payload{
-				payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
-			}},
-		},
-		{
 			name: "decode payload with data",
 			body: `{"data": [{"name": "power", "value": [-78.75, -80.5, -73.75, -70.75, -72]}]}`,
-			expected: decoder.PostPayload{Data: payload.Payload{
+			expected: decoder.PostPayload{Payload: payload.Payload{
 				payload.Metric{Name: "power", Value: []interface{}{-78.75, -80.5, -73.75, -70.75, -72.0}},
 			}},
 		},
@@ -71,7 +57,7 @@ func TestDecodePostPayloadOK(t *testing.T) {
 			var p decoder.PostPayload
 			err := decoder.Decode(r, &p)
 			assert.Nil(t, err)
-			assert.Equal(t, tc.expected.Captures, p.Captures)
+			assert.Equal(t, tc.expected.Payload, p.Payload)
 		})
 	}
 }

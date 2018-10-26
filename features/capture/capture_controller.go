@@ -69,28 +69,6 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	}
 	c.render.Created(w, capt)
 	return
-
-	//var captures Captures
-	//if err := json.NewDecoder(r.Body).Decode(&captures); err != nil {
-	//	c.render.BadRequest(w, err)
-	//	return
-	//}
-	//
-	//if len(captures) == 1 {
-	//	if err := c.service.Save(captures[0]); err != nil {
-	//		c.render.InternalServerError(w, err)
-	//		return
-	//	}
-	//	c.render.Created(w, captures[0])
-	//	return
-	//}
-	//
-	//captures, err := c.service.SaveBulk(captures...)
-	//if err != nil {
-	//	c.render.InternalServerError(w, err)
-	//	return
-	//}
-	//c.render.Created(w, captures)
 }
 
 func (c *controller) captureCtx(next http.Handler) http.Handler {
