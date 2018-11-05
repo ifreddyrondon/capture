@@ -96,8 +96,7 @@ func getResources(cfg *Config) di.Container {
 				store := repository.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
-				service := repository.NewService(store)
-				return repository.Routes(service, isAuth, loggedUser), nil
+				return repository.Routes(store, isAuth, loggedUser), nil
 			},
 		},
 		{

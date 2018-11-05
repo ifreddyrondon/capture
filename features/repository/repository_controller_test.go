@@ -39,21 +39,25 @@ func loggedUser(next http.Handler) http.Handler {
 	})
 }
 
-type mockService struct{ err error }
-
-func (m *mockService) Save(c *features.Repository) error {
-	return m.err
+type mockStore struct {
+	repos []features.Repository
+	err   error
 }
 
-func setupController(service repository.Service, isAuth func(http.Handler) http.Handler) *bastion.Bastion {
+func (m *mockStore) Save(c *features.Repository) error { return m.err }
+func (m *mockStore) List(l repository.ListingRepo) ([]features.Repository, error) {
+	return m.repos, m.err
+}
+
+func setupController(store repository.Store, isAuth func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Mount("/repository/", repository.Routes(service, isAuth, loggedUser))
+	app.APIRouter.Mount("/repository/", repository.Routes(store, isAuth, loggedUser))
 
 	return app
 }
 
 func TestCreateRepositorySuccess(t *testing.T) {
-	service, teardown := setupService(t)
+	service, teardown := setupStore(t)
 	app := setupController(service, authOK)
 	defer teardown()
 
@@ -73,7 +77,7 @@ func TestCreateRepositorySuccess(t *testing.T) {
 }
 
 func TestCreateRepositoryFail(t *testing.T) {
-	service, teardown := setupService(t)
+	service, teardown := setupStore(t)
 	app := setupController(service, authOK)
 	defer teardown()
 
@@ -116,8 +120,8 @@ func TestCreateRepositoryFail(t *testing.T) {
 
 func TestCreateRepositorySaveFail(t *testing.T) {
 	t.Parallel()
-	service := &mockService{errors.New("test")}
-	app := setupController(service, authOK)
+	store := &mockStore{err: errors.New("test")}
+	app := setupController(store, authOK)
 
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"name": "test"}
@@ -131,7 +135,7 @@ func TestCreateRepositorySaveFail(t *testing.T) {
 
 func TestCreateRepositoryNotAuthorized(t *testing.T) {
 	t.Parallel()
-	app := setupController(&mockService{}, authFails)
+	app := setupController(&mockStore{}, authFails)
 
 	response := map[string]interface{}{
 		"status":  403.0,
