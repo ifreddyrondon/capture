@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"strconv"
-
 	"github.com/ifreddyrondon/bastion/middleware/listing"
 	"github.com/ifreddyrondon/capture/features"
 	"github.com/jinzhu/gorm"
@@ -18,10 +16,10 @@ type Store interface {
 }
 
 type ListingRepo struct {
-	SortKey string
-	Offset  int64
-	Limit   int
-	Shared  *bool
+	SortKey    string
+	Visibility *features.Visibility
+	Offset     int64
+	Limit      int
 }
 
 func NewListingRepo(l listing.Listing) ListingRepo {
@@ -30,11 +28,11 @@ func NewListingRepo(l listing.Listing) ListingRepo {
 		Offset:  l.Paging.Offset,
 		Limit:   l.Paging.Limit,
 	}
-	var shared bool
+
 	for i := range l.Filtering.Filters {
-		if l.Filtering.Filters[i].ID == "shared" {
-			shared, _ = strconv.ParseBool(l.Filtering.Filters[i].Values[0].ID)
-			lrepo.Shared = &shared
+		if l.Filtering.Filters[i].ID == "visibility" {
+			visibility := features.Visibility(l.Filtering.Filters[i].Values[0].ID)
+			lrepo.Visibility = &visibility
 			break
 		}
 	}
@@ -70,8 +68,8 @@ func (pgs *PGStore) Save(r *features.Repository) error {
 func (pgs *PGStore) List(l ListingRepo) ([]features.Repository, error) {
 	var results []features.Repository
 	q := pgs.db
-	if l.Shared != nil {
-		q = pgs.db.Where("shared = ?", *l.Shared)
+	if l.Visibility != nil {
+		q = pgs.db.Where(&features.Repository{Visibility: *l.Visibility})
 	}
 	q = q.Order(l.SortKey).Offset(l.Offset).Limit(l.Limit)
 	if err := q.Find(&results).Error; err != nil {

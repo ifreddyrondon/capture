@@ -25,12 +25,15 @@ func Routes(store Store, isAuth, loggedUser func(http.Handler) http.Handler) htt
 	updatedASC := sorting.NewSort("updated_at_asc", "updated_at ASC", "Updated date ascendant")
 	createdDESC := sorting.NewSort("created_at_desc", "created_at DESC", "Created date descending")
 	createdASC := sorting.NewSort("created_at_asc", "created_at ASC", "Created date ascendant")
-	sharedFilter := filtering.NewBoolean("shared", "test", "shared", "private")
+
+	publicVisibility := filtering.NewValue("public", "public repos")
+	privateVisibility := filtering.NewValue("private", "private repos")
+	visibilityFilter := filtering.NewText("visibility", "filters the repos by their visibility", publicVisibility, privateVisibility)
 
 	listing := middleware.Listing(
 		middleware.MaxAllowedLimit(50),
 		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
-		middleware.Filter(sharedFilter),
+		middleware.Filter(visibilityFilter),
 	)
 
 	r := bastion.NewRouter()

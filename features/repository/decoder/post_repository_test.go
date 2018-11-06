@@ -14,8 +14,7 @@ import (
 
 func TestDecodePostRepositoryOK(t *testing.T) {
 	t.Parallel()
-
-	name, sharedTrue, sharedFalse := "test_repository", true, false
+	name, public, private := "test_repository", "public", "private"
 
 	tt := []struct {
 		name     string
@@ -25,17 +24,17 @@ func TestDecodePostRepositoryOK(t *testing.T) {
 		{
 			name:     "decode repo without shared",
 			body:     `{"name":"test_repository"}`,
-			expected: decoder.PostRepository{Name: &name, Shared: nil},
+			expected: decoder.PostRepository{Name: &name, Visibility: nil},
 		},
 		{
 			name:     "decode repo with shared true",
-			body:     `{"name":"test_repository","shared":true}`,
-			expected: decoder.PostRepository{Name: &name, Shared: &sharedTrue},
+			body:     `{"name":"test_repository","visibility":"public"}`,
+			expected: decoder.PostRepository{Name: &name, Visibility: &public},
 		},
 		{
 			name:     "decode repo with shared true",
-			body:     `{"name":"test_repository","shared":false}`,
-			expected: decoder.PostRepository{Name: &name, Shared: &sharedFalse},
+			body:     `{"name":"test_repository","visibility":"private"}`,
+			expected: decoder.PostRepository{Name: &name, Visibility: &private},
 		},
 	}
 
@@ -47,7 +46,7 @@ func TestDecodePostRepositoryOK(t *testing.T) {
 			err := decoder.Decode(r, &repo)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.Name, repo.Name)
-			assert.Equal(t, tc.expected.Shared, repo.Shared)
+			assert.Equal(t, tc.expected.Visibility, repo.Visibility)
 		})
 	}
 }
@@ -75,6 +74,11 @@ func TestDecodePostRepositoryError(t *testing.T) {
 			err:  "name must not be blank",
 		},
 		{
+			name: "decode repository with not allowed visibility",
+			body: `{"name":"foo","visibility":"protected"}`,
+			err:  "not allowed visibility type. it Could be one of public, or private. Default: public",
+		},
+		{
 			name: "invalid repository payload",
 			body: `.`,
 			err:  "cannot unmarshal json into valid repository",
@@ -93,8 +97,9 @@ func TestDecodePostRepositoryError(t *testing.T) {
 }
 
 func TestRepositoryFromPostRepositoryOK(t *testing.T) {
-	name, sharedTrue, sharedFalse := "test_repository", true, false
 	t.Parallel()
+	name, public, private := "test_repository", "public", "private"
+
 	tt := []struct {
 		name     string
 		postRepo decoder.PostRepository
@@ -102,18 +107,18 @@ func TestRepositoryFromPostRepositoryOK(t *testing.T) {
 	}{
 		{
 			name:     "get repository from postRepository without shared",
-			postRepo: decoder.PostRepository{Name: &name, Shared: nil},
-			expected: features.Repository{Name: name, Shared: true},
+			postRepo: decoder.PostRepository{Name: &name, Visibility: nil},
+			expected: features.Repository{Name: name, Visibility: features.Public},
 		},
 		{
 			name:     "get repository from postRepository with shared true",
-			postRepo: decoder.PostRepository{Name: &name, Shared: &sharedTrue},
-			expected: features.Repository{Name: name, Shared: true},
+			postRepo: decoder.PostRepository{Name: &name, Visibility: &public},
+			expected: features.Repository{Name: name, Visibility: features.Public},
 		},
 		{
 			name:     "get repository from postRepository with shared false",
-			postRepo: decoder.PostRepository{Name: &name, Shared: &sharedFalse},
-			expected: features.Repository{Name: name, Shared: false},
+			postRepo: decoder.PostRepository{Name: &name, Visibility: &private},
+			expected: features.Repository{Name: name, Visibility: features.Private},
 		},
 	}
 
@@ -121,7 +126,7 @@ func TestRepositoryFromPostRepositoryOK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := tc.postRepo.GetRepository()
 			assert.Equal(t, tc.expected.Name, repo.Name)
-			assert.Equal(t, tc.expected.Shared, repo.Shared)
+			assert.Equal(t, tc.expected.Visibility, repo.Visibility)
 			// test user fields filled with not default values
 			assert.NotEqual(t, kallax.ULID{}, repo.ID)
 			assert.NotEqual(t, time.Time{}, repo.CreatedAt)

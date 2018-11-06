@@ -110,8 +110,8 @@
     "middleware/listing/sorting",
     "render"
   ]
-  revision = "1dc57742dbdf01729cfc09743f8f74c2893e4de2"
-  version = "v2.1.1"
+  revision = "5cf4815d084603edb3a5b13dd143fb7cb9fb6b97"
+  version = "v2.1.2"
 
 [[projects]]
   name = "github.com/imkira/go-interpol"
@@ -468,6 +468,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f62464fde2b4c982e9ae5367f7ddad38fedbbadbc42664d0ce59c9b0934f25e7"
+  inputs-digest = "a85f7f1896596f4c900ec2f5b3123c15d2c7b76727607f3210e35ab114ea3376"
   solver-name = "gps-cdcl"
   solver-version = 1

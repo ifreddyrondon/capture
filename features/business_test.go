@@ -16,6 +16,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestAllowedVisibility(t *testing.T) {
+	tt := []struct {
+		name     string
+		given    string
+		expected bool
+	}{
+		{
+			"empty visibility",
+			"",
+			false,
+		},
+		{
+			"not allowed visibility",
+			"protected",
+			false,
+		},
+		{
+			"public visibility",
+			"public",
+			true,
+		},
+		{
+			"private visibility",
+			"private",
+			true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := features.AllowedVisibility(tc.given)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 func TestMarshalJSONRepository(t *testing.T) {
 	t.Parallel()
 
@@ -28,9 +64,9 @@ func TestMarshalJSONRepository(t *testing.T) {
 			id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
 			return id
 		}(),
-		Shared:    true,
-		CreatedAt: d,
-		UpdatedAt: d,
+		Visibility: features.Public,
+		CreatedAt:  d,
+		UpdatedAt:  d,
 	}
 
 	result, err := json.Marshal(c)

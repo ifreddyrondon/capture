@@ -12,11 +12,12 @@ import (
 const (
 	defaultCrrBranchFieldValue = "master"
 	errNameRequired            = "name must not be blank"
+	errVisibilityNotAllowed    = "not allowed visibility type. it Could be one of public, or private. Default: public"
 )
 
 type PostRepository struct {
-	Name   *string `json:"name"`
-	Shared *bool   `json:"shared"`
+	Name       *string `json:"name"`
+	Visibility *string `json:"visibility"`
 }
 
 func (r PostRepository) OK() error {
@@ -25,6 +26,12 @@ func (r PostRepository) OK() error {
 		e.Add("name", errNameRequired)
 	} else if len(strings.TrimSpace(*r.Name)) == 0 {
 		e.Add("name", errNameRequired)
+	}
+
+	if r.Visibility != nil {
+		if !features.AllowedVisibility(*r.Visibility) {
+			e.Add("name", errVisibilityNotAllowed)
+		}
 	}
 	if e.HasAny() {
 		return e
@@ -42,10 +49,10 @@ func (r PostRepository) GetRepository() features.Repository {
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}
-	if r.Shared == nil {
-		repo.Shared = true
+	if r.Visibility == nil {
+		repo.Visibility = features.Public
 	} else {
-		repo.Shared = *r.Shared
+		repo.Visibility = features.Visibility(*r.Visibility)
 	}
 
 	return repo

@@ -70,7 +70,7 @@ func TestCreateRepositorySuccess(t *testing.T) {
 		Status(http.StatusCreated).
 		JSON().Object().
 		ContainsKey("name").ValueEqual("name", payload["name"]).
-		ContainsKey("shared").ValueEqual("shared", true).
+		ContainsKey("visibility").ValueEqual("visibility", "public").
 		ContainsKey("id").NotEmpty().
 		ContainsKey("createdAt").NotEmpty().
 		ContainsKey("updatedAt").NotEmpty()
