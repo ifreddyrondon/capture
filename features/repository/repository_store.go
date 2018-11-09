@@ -10,7 +10,7 @@ import (
 // It make CRUD operations over a store.
 type Store interface {
 	// Save a repository.
-	Save(*features.Repository) error
+	Save(*features.User, *features.Repository) error
 	// List retrieve repositories from start index to count.
 	List(ListingRepo) ([]features.Repository, error)
 }
@@ -18,6 +18,7 @@ type Store interface {
 type ListingRepo struct {
 	SortKey    string
 	Visibility *features.Visibility
+	Owner      *features.User
 	Offset     int64
 	Limit      int
 }
@@ -61,18 +62,27 @@ func (pgs *PGStore) Drop() {
 }
 
 // Save a repository into the database.
-func (pgs *PGStore) Save(r *features.Repository) error {
+func (pgs *PGStore) Save(owner *features.User, r *features.Repository) error {
+	r.UserID = owner.ID
 	return pgs.db.Create(r).Error
 }
 
 func (pgs *PGStore) List(l ListingRepo) ([]features.Repository, error) {
 	var results []features.Repository
-	q := pgs.db
-	if l.Visibility != nil {
-		q = pgs.db.Where(&features.Repository{Visibility: *l.Visibility})
+	f := &features.Repository{}
+	if l.Owner != nil {
+		f.UserID = l.Owner.ID
 	}
-	q = q.Order(l.SortKey).Offset(l.Offset).Limit(l.Limit)
-	if err := q.Find(&results).Error; err != nil {
+	if l.Visibility != nil {
+		f.Visibility = *l.Visibility
+	}
+	err := pgs.db.
+		Where(f).
+		Order(l.SortKey).
+		Offset(l.Offset).
+		Limit(l.Limit).
+		Find(&results).Error
+	if err != nil {
 		return nil, err
 	}
 	return results, nil

@@ -5,11 +5,15 @@ import (
 	"net/http"
 	"testing"
 
+	"bytes"
+
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/ifreddyrondon/capture/config"
 	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/repository"
 	"github.com/ifreddyrondon/capture/features/user"
+	"github.com/jinzhu/gorm"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
@@ -33,8 +37,7 @@ func authFails(next http.Handler) http.Handler {
 
 func loggedUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var mockUser = &features.User{Email: "test@example.com", ID: kallax.NewULID()}
-		ctx := user.WithUser(r.Context(), mockUser)
+		ctx := user.WithUser(r.Context(), &features.User{Email: "test@example.com", ID: kallax.NewULID()})
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -44,21 +47,31 @@ type mockStore struct {
 	err   error
 }
 
-func (m *mockStore) Save(c *features.Repository) error { return m.err }
+func (m *mockStore) Save(u *features.User, c *features.Repository) error { return m.err }
 func (m *mockStore) List(l repository.ListingRepo) ([]features.Repository, error) {
 	return m.repos, m.err
 }
 
-func setupController(store repository.Store, isAuth func(http.Handler) http.Handler) *bastion.Bastion {
+func setup(t *testing.T, isAuth func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
+	toml := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
+	cfg, err := config.New(config.Source(bytes.NewBuffer(toml)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db := cfg.Resources.Get("database").(*gorm.DB)
+	store := repository.NewPGStore(db.Table("repositories"))
+	store.Drop()
+	store.Migrate()
+
 	app := bastion.New()
 	app.APIRouter.Mount("/repository/", repository.Routes(store, isAuth, loggedUser))
 
-	return app
+	return app, func() { store.Drop() }
 }
 
 func TestCreateRepositorySuccess(t *testing.T) {
-	service, teardown := setupStore(t)
-	app := setupController(service, authOK)
+	app, teardown := setup(t, authOK)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -77,8 +90,7 @@ func TestCreateRepositorySuccess(t *testing.T) {
 }
 
 func TestCreateRepositoryFail(t *testing.T) {
-	service, teardown := setupStore(t)
-	app := setupController(service, authOK)
+	app, teardown := setup(t, authOK)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -116,6 +128,13 @@ func TestCreateRepositoryFail(t *testing.T) {
 				JSON().Object().Equal(tc.response)
 		})
 	}
+}
+
+func setupController(store repository.Store, isAuth func(http.Handler) http.Handler) *bastion.Bastion {
+	app := bastion.New()
+	app.APIRouter.Mount("/repository/", repository.Routes(store, isAuth, loggedUser))
+
+	return app
 }
 
 func TestCreateRepositorySaveFail(t *testing.T) {

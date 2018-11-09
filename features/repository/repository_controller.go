@@ -64,15 +64,13 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := postRepo.GetRepository()
-	userID, err := user.GetUserID(r.Context())
+	u, err := user.GetFromContext(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
 
-	repo.UserID = userID
-
-	if err := c.store.Save(&repo); err != nil {
+	if err := c.store.Save(u, &repo); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
@@ -87,7 +85,15 @@ func (c *controller) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repos, err := c.store.List(NewListingRepo(*listing))
+	u, err := user.GetFromContext(r.Context())
+	if err != nil {
+		c.render.InternalServerError(w, err)
+		return
+	}
+
+	listingRepo := NewListingRepo(*listing)
+	listingRepo.Owner = u
+	repos, err := c.store.List(listingRepo)
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return

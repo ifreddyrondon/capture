@@ -33,18 +33,6 @@ const (
 	Private Visibility = "private"
 )
 
-// Repository represent a place with the history of all captures.
-type Repository struct {
-	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
-	Name          string      `json:"name"`
-	CurrentBranch string      `json:"current_branch"`
-	Visibility    Visibility  `json:"visibility"`
-	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
-	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
-	DeletedAt     *time.Time  `json:"-"`
-	UserID        kallax.ULID `json:"owner"`
-}
-
 // Branch is a partial or full collection of captures within a repository.
 type Branch struct {
 	ID       kallax.ULID `json:"id"`
@@ -64,14 +52,27 @@ type Capture struct {
 	DeletedAt *time.Time       `json:"-"`
 }
 
+// Repository represent a place with the history of all captures.
+type Repository struct {
+	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
+	Name          string      `json:"name"`
+	CurrentBranch string      `json:"current_branch"`
+	Visibility    Visibility  `json:"visibility"`
+	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
+	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
+	DeletedAt     *time.Time  `json:"-"`
+	UserID        kallax.ULID `json:"owner"`
+}
+
 // User represents a user account.
 type User struct {
-	ID        kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
-	Email     string      `json:"email" sql:"not null" gorm:"unique_index"`
-	Password  []byte      `json:"-"`
-	CreatedAt time.Time   `json:"createdAt" sql:"not null"`
-	UpdatedAt time.Time   `json:"updatedAt" sql:"not null"`
-	DeletedAt *time.Time  `json:"-"`
+	ID           kallax.ULID  `json:"id" sql:"type:uuid" gorm:"primary_key"`
+	Email        string       `json:"email" sql:"not null" gorm:"unique_index"`
+	Password     []byte       `json:"-"`
+	CreatedAt    time.Time    `json:"createdAt" sql:"not null"`
+	UpdatedAt    time.Time    `json:"updatedAt" sql:"not null"`
+	DeletedAt    *time.Time   `json:"-"`
+	Repositories []Repository `json:"-" gorm:"ForeignKey:UserID"`
 }
 
 // CheckPassword compares a hashed password with its possible plaintext equivalent.
