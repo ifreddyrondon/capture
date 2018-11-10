@@ -1,7 +1,6 @@
 package user_test
 
 import (
-	"bytes"
 	"errors"
 	"testing"
 
@@ -14,8 +13,7 @@ import (
 )
 
 func setupService(t *testing.T) (*user.StoreService, func()) {
-	toml := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
-	cfg, err := config.New(config.Source(bytes.NewBuffer(toml)))
+	cfg, err := config.FromString(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
 	if err != nil {
 		t.Fatal(err)
 	}

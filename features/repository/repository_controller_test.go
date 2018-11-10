@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"bytes"
-
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/config"
@@ -53,8 +51,7 @@ func (m *mockStore) List(l repository.ListingRepo) ([]features.Repository, error
 }
 
 func setup(t *testing.T, isAuth func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
-	toml := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
-	cfg, err := config.New(config.Source(bytes.NewBuffer(toml)))
+	cfg, err := config.FromString(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
 	if err != nil {
 		t.Fatal(err)
 	}

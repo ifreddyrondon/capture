@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"io"
 	"log"
 
@@ -78,4 +79,11 @@ func initViper(cfg *configOpts) (Constants, error) {
 	var constants Constants
 	err = viper.Unmarshal(&constants)
 	return constants, err
+}
+
+// FromString read configs from string and returns configuration.
+// It should be in toml format.
+func FromString(configStr string) (*Config, error) {
+	toml := []byte(configStr)
+	return New(Source(bytes.NewBuffer(toml)))
 }

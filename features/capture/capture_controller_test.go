@@ -1,7 +1,6 @@
 package capture_test
 
 import (
-	"bytes"
 	"fmt"
 	"math"
 	"math/rand"
@@ -17,8 +16,7 @@ import (
 )
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	toml := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
-	cfg, err := config.New(config.Source(bytes.NewBuffer(toml)))
+	cfg, err := config.FromString(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
 	if err != nil {
 		t.Fatal(err)
 	}
