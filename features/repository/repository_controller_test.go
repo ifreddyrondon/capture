@@ -61,7 +61,6 @@ func setup(t *testing.T, isAuth func(http.Handler) http.Handler) (*bastion.Basti
 
 	db := cfg.Resources.Get("database").(*gorm.DB)
 	store := repository.NewPGStore(db.Table("repositories"))
-	store.Drop()
 	store.Migrate()
 
 	app := bastion.New()

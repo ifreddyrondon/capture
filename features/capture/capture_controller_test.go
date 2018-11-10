@@ -1,6 +1,7 @@
 package capture_test
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"math/rand"
@@ -9,16 +10,27 @@ import (
 
 	"github.com/araddon/dateparse"
 	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/capture/config"
 	"github.com/ifreddyrondon/capture/features/capture"
+	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 )
 
 func setup(t *testing.T) (*bastion.Bastion, func()) {
-	service, teardown := setupService(t)
-	app := bastion.New()
-	app.APIRouter.Mount("/captures/", capture.Routes(service))
+	toml := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
+	cfg, err := config.New(config.Source(bytes.NewBuffer(toml)))
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	return app, teardown
+	db := cfg.Resources.Get("database").(*gorm.DB)
+	store := capture.NewPGStore(db.Table("captures"))
+	store.Migrate()
+
+	app := bastion.New()
+	app.APIRouter.Mount("/captures/", capture.Routes(store))
+
+	return app, func() { store.Drop() }
 }
 
 func TestCreateValidCapture(t *testing.T) {

@@ -22,8 +22,8 @@ var (
 )
 
 // Routes returns a configured http.Handler with capture resources.
-func Routes(service Service) http.Handler {
-	c := &controller{service: service, render: render.NewJSON()}
+func Routes(store Store) http.Handler {
+	c := &controller{store: store, render: render.NewJSON()}
 
 	r := bastion.NewRouter()
 	r.Get("/", c.list)
@@ -39,14 +39,14 @@ func Routes(service Service) http.Handler {
 
 // Controller handler the capture's routes
 type controller struct {
-	service Service
-	render  render.APIRenderer
+	store  Store
+	render render.APIRenderer
 }
 
 func (c *controller) list(w http.ResponseWriter, r *http.Request) {
 	count := 10
 	start := 0
-	captures, err := c.service.List(start, count)
+	captures, err := c.store.List(start, count)
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
@@ -63,7 +63,7 @@ func (c *controller) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	capt := postCapture.GetCapture()
-	if err := c.service.Save(&capt); err != nil {
+	if err := c.store.Save(&capt); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
@@ -80,7 +80,7 @@ func (c *controller) captureCtx(next http.Handler) http.Handler {
 			return
 		}
 		var capt *features.Capture
-		capt, err = c.service.Get(captureID)
+		capt, err = c.store.Get(captureID)
 		if capt == nil {
 			c.render.NotFound(w, err)
 			return
@@ -109,7 +109,7 @@ func (c *controller) delete(w http.ResponseWriter, r *http.Request) {
 		c.render.InternalServerError(w, err)
 		return
 	}
-	if err := c.service.Delete(capt); err != nil {
+	if err := c.store.Delete(capt); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
@@ -130,7 +130,7 @@ func (c *controller) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	captFromPayload := putCapture.GetCapture()
-	if err := c.service.Update(captFromCtx, captFromPayload); err != nil {
+	if err := c.store.Update(captFromCtx, captFromPayload); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
