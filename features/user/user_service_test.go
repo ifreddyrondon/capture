@@ -1,18 +1,30 @@
 package user_test
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/config"
 	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/user"
+	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func setupService(t *testing.T) (*user.StoreService, func()) {
-	store, teardown := setupStore(t)
-	return user.NewService(store), teardown
+	toml := []byte(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
+	cfg, err := config.New(config.Source(bytes.NewBuffer(toml)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	db := cfg.Resources.Get("database").(*gorm.DB)
+	store := user.NewPGStore(db.Table("users"))
+	store.Migrate()
+
+	return user.NewService(store), func() { store.Drop() }
 }
 
 func TestSaveUser(t *testing.T) {

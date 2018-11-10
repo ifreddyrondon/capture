@@ -6,15 +6,18 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
+type StoreFilter struct {
+	Email *string
+	ID    *kallax.ULID
+}
+
 // Store is the interface to be implemented by any kind of store
 // It make CRUD operations over a store.
 type Store interface {
 	// Save user into the database.
-	Save(user *features.User) error
-	// Get a user by email from database
-	GetByEmail(string) (*features.User, error)
-	// Get a user by id from database
-	GetByID(kallax.ULID) (*features.User, error)
+	Save(*features.User) error
+	// Get a user from database
+	Get(StoreFilter) (*features.User, error)
 }
 
 // PGStore implementation of user.Store for Postgres database.
@@ -43,18 +46,17 @@ func (p *PGStore) Save(user *features.User) error {
 }
 
 // GetByEmail a user by email, if not found returns an error
-func (p *PGStore) GetByEmail(email string) (*features.User, error) {
-	var result features.User
-	if p.db.Where(&features.User{Email: email}).First(&result).RecordNotFound() {
-		return nil, ErrNotFound
+func (p *PGStore) Get(storeFilter StoreFilter) (*features.User, error) {
+	f := &features.User{}
+	if storeFilter.ID != nil {
+		f.ID = *storeFilter.ID
 	}
-	return &result, nil
-}
+	if storeFilter.Email != nil {
+		f.Email = *storeFilter.Email
+	}
 
-// GetByID a user by ID, if not found returns an error
-func (p *PGStore) GetByID(id kallax.ULID) (*features.User, error) {
 	var result features.User
-	if p.db.Where(&features.User{ID: id}).First(&result).RecordNotFound() {
+	if p.db.Where(f).First(&result).RecordNotFound() {
 		return nil, ErrNotFound
 	}
 	return &result, nil
@@ -65,6 +67,5 @@ type MockStore struct {
 	Err  error
 }
 
-func (m *MockStore) Save(user *features.User) error                  { return m.Err }
-func (m *MockStore) GetByEmail(email string) (*features.User, error) { return m.User, m.Err }
-func (m *MockStore) GetByID(id kallax.ULID) (*features.User, error)  { return m.User, m.Err }
+func (m *MockStore) Save(user *features.User) error                      { return m.Err }
+func (m *MockStore) Get(storeFilter StoreFilter) (*features.User, error) { return m.User, m.Err }

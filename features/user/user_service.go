@@ -67,13 +67,13 @@ func (s *StoreService) Save(user *features.User) error {
 //
 // ByEmail is NOT case sensitive.
 func (s *StoreService) GetByEmail(email string) (*features.User, error) {
-	return s.store.GetByEmail(email)
+	return s.store.Get(StoreFilter{Email: &email})
 }
 
 // GetByID will look for a user with the same ID, or return
 // user.ErrNotFound if no user is found.
 func (s *StoreService) GetByID(id kallax.ULID) (*features.User, error) {
-	return s.store.GetByID(id)
+	return s.store.Get(StoreFilter{ID: &id})
 }
 
 type MockService struct {
