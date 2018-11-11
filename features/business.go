@@ -28,7 +28,7 @@ func AllowedVisibility(test string) bool {
 	return false
 }
 
-const (
+var (
 	Public  Visibility = "public"
 	Private Visibility = "private"
 )

@@ -84,18 +84,34 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "repo-routes",
+			Name:  "repository-store",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				database := cfg.Resources.Get("database").(*gorm.DB)
+				store := repository.NewPGStore(database)
+				store.Drop()
+				store.Migrate()
+				return store, nil
+			},
+		},
+		{
+			Name:  "user-repo-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				userService := cfg.Resources.Get("user-service").(user.Service)
 				loggedUser := user.LoggedUser(userService)
 				jwtService := cfg.Resources.Get("jwt-service").(*jwt.Service)
 				isAuth := authorization.IsAuthorizedREQ(jwtService)
-				database := cfg.Resources.Get("database").(*gorm.DB)
-				store := repository.NewPGStore(database)
-				store.Drop()
-				store.Migrate()
-				return repository.Routes(store, isAuth, loggedUser), nil
+				store := cfg.Resources.Get("repository-store").(repository.Store)
+				return repository.UserRoutes(store, isAuth, loggedUser), nil
+			},
+		},
+		{
+			Name:  "repositories-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-store").(repository.Store)
+				return repository.Routes(store), nil
 			},
 		},
 		{

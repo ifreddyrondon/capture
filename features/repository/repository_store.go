@@ -13,6 +13,8 @@ type Store interface {
 	Save(*features.User, *features.Repository) error
 	// List retrieve repositories from start index to count.
 	List(ListingRepo) ([]features.Repository, error)
+	// Drop register if it is exist
+	Drop()
 }
 
 type ListingRepo struct {
@@ -28,6 +30,10 @@ func NewListingRepo(l listing.Listing) ListingRepo {
 		SortKey: l.Sorting.Sort.Value,
 		Offset:  l.Paging.Offset,
 		Limit:   l.Paging.Limit,
+	}
+
+	if l.Filtering == nil {
+		return lrepo
 	}
 
 	for i := range l.Filtering.Filters {
