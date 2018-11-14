@@ -8,13 +8,12 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/features"
 	"github.com/ifreddyrondon/capture/features/repository/encoder"
 )
 
 // Routes returns a configured http.Handler with repositories resources.
-func Routes(store Store) http.Handler {
-	c := &controller{store: store, render: render.NewJSON()}
+func Routes(service Service) http.Handler {
+	c := &controller{service: service, render: render.NewJSON()}
 
 	updatedDESC := sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
 	updatedASC := sorting.NewSort("updated_at_asc", "updated_at ASC", "Updated date ascendant")
@@ -36,8 +35,8 @@ func Routes(store Store) http.Handler {
 }
 
 type controller struct {
-	store  Store
-	render render.APIRenderer
+	service Service
+	render  render.APIRenderer
 }
 
 func (c *controller) list(w http.ResponseWriter, r *http.Request) {
@@ -47,9 +46,7 @@ func (c *controller) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listingRepo := NewListingRepo(*listing)
-	listingRepo.Visibility = &features.Public
-	repos, err := c.store.List(listingRepo)
+	repos, err := c.service.GetPublicRepos(listing)
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return

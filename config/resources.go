@@ -113,21 +113,29 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
+			Name:  "repository-service",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-store").(repository.Store)
+				return repository.Service{Store: store}, nil
+			},
+		},
+		{
 			Name:  "user-repo-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				loggedUser := cfg.Resources.Get("logged-user-middleware").(func(next http.Handler) http.Handler)
 				isAuth := cfg.Resources.Get("is-auth-middleware").(func(next http.Handler) http.Handler)
-				store := cfg.Resources.Get("repository-store").(repository.Store)
-				return repository.UserRoutes(store, isAuth, loggedUser), nil
+				service := cfg.Resources.Get("repository-service").(repository.Service)
+				return repository.UserRoutes(service, isAuth, loggedUser), nil
 			},
 		},
 		{
 			Name:  "repositories-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-store").(repository.Store)
-				return repository.Routes(store), nil
+				service := cfg.Resources.Get("repository-service").(repository.Service)
+				return repository.Routes(service), nil
 			},
 		},
 		{

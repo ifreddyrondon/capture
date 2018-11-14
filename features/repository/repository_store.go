@@ -15,7 +15,7 @@ type Store interface {
 	// List retrieve repositories from start index to count.
 	List(ListingRepo) ([]features.Repository, error)
 	// Get a repo by id
-	Get(*features.User, kallax.ULID) (*features.Repository, error)
+	Get(kallax.ULID) (*features.Repository, error)
 	// Drop register if it is exist
 	Drop()
 }
@@ -28,7 +28,7 @@ type ListingRepo struct {
 	Limit      int
 }
 
-func NewListingRepo(l listing.Listing) ListingRepo {
+func newListingRepo(l listing.Listing) ListingRepo {
 	lrepo := ListingRepo{
 		SortKey: l.Sorting.Sort.Value,
 		Offset:  l.Paging.Offset,
@@ -97,9 +97,9 @@ func (pgs *PGStore) List(l ListingRepo) ([]features.Repository, error) {
 	return results, nil
 }
 
-func (pgs *PGStore) Get(owner *features.User, id kallax.ULID) (*features.Repository, error) {
+func (pgs *PGStore) Get(id kallax.ULID) (*features.Repository, error) {
 	var result features.Repository
-	if pgs.db.Where(&features.Repository{ID: id, UserID: owner.ID}).First(&result).RecordNotFound() {
+	if pgs.db.Where(&features.Repository{ID: id}).First(&result).RecordNotFound() {
 		return nil, ErrorNotFound
 	}
 	return &result, nil

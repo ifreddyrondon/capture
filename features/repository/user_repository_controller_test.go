@@ -52,9 +52,7 @@ func (m *mockStore) Save(u *features.User, c *features.Repository) error { retur
 func (m *mockStore) List(l repository.ListingRepo) ([]features.Repository, error) {
 	return m.repos, m.err
 }
-func (m *mockStore) Get(u *features.User, id kallax.ULID) (*features.Repository, error) {
-	return m.repo, m.err
-}
+func (m *mockStore) Get(id kallax.ULID) (*features.Repository, error) { return m.repo, m.err }
 
 func setupUserController(t *testing.T, isAuth func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
 	cfg, err := config.FromString(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
@@ -63,8 +61,9 @@ func setupUserController(t *testing.T, isAuth func(http.Handler) http.Handler) (
 	}
 
 	store := cfg.Resources.Get("repository-store").(repository.Store)
+	service := repository.Service{Store: store}
 	app := bastion.New()
-	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(store, isAuth, loggedUser))
+	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(service, isAuth, loggedUser))
 
 	return app, func() { store.Drop() }
 }
@@ -130,8 +129,9 @@ func TestCreateRepositoryFail(t *testing.T) {
 }
 
 func setupController(store repository.Store, isAuth func(http.Handler) http.Handler) *bastion.Bastion {
+	service := repository.Service{Store: store}
 	app := bastion.New()
-	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(store, isAuth, loggedUser))
+	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(service, isAuth, loggedUser))
 
 	return app
 }

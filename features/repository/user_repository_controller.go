@@ -21,11 +21,13 @@ var (
 	ErrorInvalidRepoID = errors.New("invalid repository id")
 	// ErrorNotFound expected error when repository is missing
 	ErrorNotFound = errors.New("not found repository")
+	// ErrorNotFound expected error when repository is missing
+	ErrorNotAuthorized = errors.New("not authorized to see this repository")
 )
 
 // UserRoutes returns a configured http.Handler with user repositories resources.
-func UserRoutes(store Store, isAuth, loggedUser func(http.Handler) http.Handler) http.Handler {
-	c := &userController{store: store, render: render.NewJSON()}
+func UserRoutes(service Service, isAuth, loggedUser func(http.Handler) http.Handler) http.Handler {
+	c := &userController{service: service, render: render.NewJSON()}
 
 	updatedDESC := sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
 	updatedASC := sorting.NewSort("updated_at_asc", "updated_at ASC", "Updated date ascendant")
@@ -61,8 +63,8 @@ func UserRoutes(store Store, isAuth, loggedUser func(http.Handler) http.Handler)
 }
 
 type userController struct {
-	store  Store
-	render render.APIRenderer
+	service Service
+	render  render.APIRenderer
 }
 
 func (c *userController) create(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +81,7 @@ func (c *userController) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.store.Save(u, &repo); err != nil {
+	if err := c.service.Save(u, &repo); err != nil {
 		c.render.InternalServerError(w, err)
 		return
 	}
@@ -100,9 +102,7 @@ func (c *userController) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listingRepo := NewListingRepo(*listing)
-	listingRepo.Owner = u
-	repos, err := c.store.List(listingRepo)
+	repos, err := c.service.GetUserRepos(u, listing)
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
@@ -126,12 +126,18 @@ func (c *userController) repoCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		repo, err := c.store.Get(u, repoID)
-		if repo == nil {
-			c.render.NotFound(w, err)
-			return
-		}
+		repo, err := c.service.GetUserRepo(u, repoID)
 		if err != nil {
+			if err == ErrorNotFound {
+				c.render.NotFound(w, err)
+				return
+			}
+			if err == ErrorNotAuthorized {
+				s := http.StatusForbidden
+				message := render.NewHTTPError(err.Error(), http.StatusText(s), s)
+				c.render.Response(w, s, message)
+				return
+			}
 			c.render.InternalServerError(w, err)
 			return
 		}
