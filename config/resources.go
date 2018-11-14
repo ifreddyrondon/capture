@@ -1,6 +1,8 @@
 package config
 
 import (
+	"net/http"
+
 	"github.com/ifreddyrondon/capture/features/auth"
 	"github.com/ifreddyrondon/capture/features/auth/authentication"
 	"github.com/ifreddyrondon/capture/features/auth/authentication/strategy/basic"
@@ -44,6 +46,22 @@ func getResources(cfg *Config) di.Container {
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				return jwt.NewService([]byte("test"), jwt.DefaultJWTExpirationDelta), nil
+			},
+		},
+		{
+			Name:  "is-auth-middleware",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				jwtService := cfg.Resources.Get("jwt-service").(*jwt.Service)
+				return authorization.IsAuthorizedREQ(jwtService), nil
+			},
+		},
+		{
+			Name:  "logged-user-middleware",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				userService := cfg.Resources.Get("user-service").(user.Service)
+				return user.LoggedUser(userService), nil
 			},
 		},
 		{
@@ -98,10 +116,8 @@ func getResources(cfg *Config) di.Container {
 			Name:  "user-repo-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				userService := cfg.Resources.Get("user-service").(user.Service)
-				loggedUser := user.LoggedUser(userService)
-				jwtService := cfg.Resources.Get("jwt-service").(*jwt.Service)
-				isAuth := authorization.IsAuthorizedREQ(jwtService)
+				loggedUser := cfg.Resources.Get("logged-user-middleware").(func(next http.Handler) http.Handler)
+				isAuth := cfg.Resources.Get("is-auth-middleware").(func(next http.Handler) http.Handler)
 				store := cfg.Resources.Get("repository-store").(repository.Store)
 				return repository.UserRoutes(store, isAuth, loggedUser), nil
 			},

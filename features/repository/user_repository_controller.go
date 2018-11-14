@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -12,6 +13,14 @@ import (
 	"github.com/ifreddyrondon/capture/features/repository/decoder"
 	"github.com/ifreddyrondon/capture/features/repository/encoder"
 	"github.com/ifreddyrondon/capture/features/user"
+	"gopkg.in/src-d/go-kallax.v1"
+)
+
+var (
+	// ErrorInvalidRepoID expected error when repository id param is invalid
+	ErrorInvalidRepoID = errors.New("invalid repository id")
+	// ErrorNotFound expected error when repository is missing
+	ErrorNotFound = errors.New("not found repository")
 )
 
 // UserRoutes returns a configured http.Handler with user repositories resources.
@@ -41,6 +50,10 @@ func UserRoutes(store Store, isAuth, loggedUser func(http.Handler) http.Handler)
 		r.Route("/", func(r chi.Router) {
 			r.Use(listing)
 			r.Get("/", c.list)
+		})
+		r.Route("/{id}", func(r chi.Router) {
+			r.Use(c.repoCtx)
+			r.Get("/", c.get)
 		})
 	})
 
@@ -97,4 +110,41 @@ func (c *userController) list(w http.ResponseWriter, r *http.Request) {
 
 	res := encoder.ListRepositoryResponse{Listing: listing, Results: repos}
 	c.render.Send(w, res)
+}
+
+func (c *userController) repoCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		repoID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
+		if err != nil {
+			c.render.BadRequest(w, ErrorInvalidRepoID)
+			return
+		}
+
+		u, err := user.GetFromContext(r.Context())
+		if err != nil {
+			c.render.InternalServerError(w, err)
+			return
+		}
+
+		repo, err := c.store.Get(u, repoID)
+		if repo == nil {
+			c.render.NotFound(w, err)
+			return
+		}
+		if err != nil {
+			c.render.InternalServerError(w, err)
+			return
+		}
+		ctx := withRepo(r.Context(), repo)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (c *userController) get(w http.ResponseWriter, r *http.Request) {
+	repo, err := GetFromContext(r.Context())
+	if err != nil {
+		c.render.InternalServerError(w, err)
+		return
+	}
+	c.render.Send(w, repo)
 }

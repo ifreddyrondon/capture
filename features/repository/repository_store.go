@@ -4,6 +4,7 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing"
 	"github.com/ifreddyrondon/capture/features"
 	"github.com/jinzhu/gorm"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 // Store is the interface to be implemented by any kind of store
@@ -13,6 +14,8 @@ type Store interface {
 	Save(*features.User, *features.Repository) error
 	// List retrieve repositories from start index to count.
 	List(ListingRepo) ([]features.Repository, error)
+	// Get a repo by id
+	Get(*features.User, kallax.ULID) (*features.Repository, error)
 	// Drop register if it is exist
 	Drop()
 }
@@ -92,4 +95,12 @@ func (pgs *PGStore) List(l ListingRepo) ([]features.Repository, error) {
 		return nil, err
 	}
 	return results, nil
+}
+
+func (pgs *PGStore) Get(owner *features.User, id kallax.ULID) (*features.Repository, error) {
+	var result features.Repository
+	if pgs.db.Where(&features.Repository{ID: id, UserID: owner.ID}).First(&result).RecordNotFound() {
+		return nil, ErrorNotFound
+	}
+	return &result, nil
 }

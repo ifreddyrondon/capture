@@ -42,6 +42,7 @@ func loggedUser(next http.Handler) http.Handler {
 }
 
 type mockStore struct {
+	repo  *features.Repository
 	repos []features.Repository
 	err   error
 }
@@ -50,6 +51,9 @@ func (m *mockStore) Drop()                                               {}
 func (m *mockStore) Save(u *features.User, c *features.Repository) error { return m.err }
 func (m *mockStore) List(l repository.ListingRepo) ([]features.Repository, error) {
 	return m.repos, m.err
+}
+func (m *mockStore) Get(u *features.User, id kallax.ULID) (*features.Repository, error) {
+	return m.repo, m.err
 }
 
 func setupUserController(t *testing.T, isAuth func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
