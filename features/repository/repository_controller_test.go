@@ -17,7 +17,7 @@ func setupRepoController(t *testing.T) (*bastion.Bastion, func()) {
 	store := cfg.Resources.Get("repository-store").(repository.Store)
 	service := repository.Service{Store: store}
 	app := bastion.New()
-	app.APIRouter.Mount("/repositories/", repository.Routes(service))
+	app.APIRouter.Mount("/repositories/", repository.Routes(service, authOK, loggedUser))
 
 	return app, func() { store.Drop() }
 }

@@ -134,8 +134,10 @@ func getResources(cfg *Config) di.Container {
 			Name:  "repositories-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
+				loggedUser := cfg.Resources.Get("logged-user-middleware").(func(next http.Handler) http.Handler)
+				isAuth := cfg.Resources.Get("is-auth-middleware").(func(next http.Handler) http.Handler)
 				service := cfg.Resources.Get("repository-service").(repository.Service)
-				return repository.Routes(service), nil
+				return repository.Routes(service, isAuth, loggedUser), nil
 			},
 		},
 		{

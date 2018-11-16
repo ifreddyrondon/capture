@@ -13,7 +13,6 @@ import (
 	"github.com/ifreddyrondon/capture/features/repository/decoder"
 	"github.com/ifreddyrondon/capture/features/repository/encoder"
 	"github.com/ifreddyrondon/capture/features/user"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 var (
@@ -52,10 +51,6 @@ func UserRoutes(service Service, isAuth, loggedUser func(http.Handler) http.Hand
 		r.Route("/", func(r chi.Router) {
 			r.Use(listing)
 			r.Get("/", c.list)
-		})
-		r.Route("/{id}", func(r chi.Router) {
-			r.Use(c.repoCtx)
-			r.Get("/", c.get)
 		})
 	})
 
@@ -102,7 +97,7 @@ func (c *userController) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repos, err := c.service.GetUserRepos(u, listing)
+	repos, err := c.service.GetUserRepositories(u, listing)
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
@@ -110,47 +105,4 @@ func (c *userController) list(w http.ResponseWriter, r *http.Request) {
 
 	res := encoder.ListRepositoryResponse{Listing: listing, Results: repos}
 	c.render.Send(w, res)
-}
-
-func (c *userController) repoCtx(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		repoID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
-		if err != nil {
-			c.render.BadRequest(w, ErrorInvalidRepoID)
-			return
-		}
-
-		u, err := user.GetFromContext(r.Context())
-		if err != nil {
-			c.render.InternalServerError(w, err)
-			return
-		}
-
-		repo, err := c.service.GetUserRepo(u, repoID)
-		if err != nil {
-			if err == ErrorNotFound {
-				c.render.NotFound(w, err)
-				return
-			}
-			if err == ErrorNotAuthorized {
-				s := http.StatusForbidden
-				message := render.NewHTTPError(err.Error(), http.StatusText(s), s)
-				c.render.Response(w, s, message)
-				return
-			}
-			c.render.InternalServerError(w, err)
-			return
-		}
-		ctx := withRepo(r.Context(), repo)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func (c *userController) get(w http.ResponseWriter, r *http.Request) {
-	repo, err := GetFromContext(r.Context())
-	if err != nil {
-		c.render.InternalServerError(w, err)
-		return
-	}
-	c.render.Send(w, repo)
 }
