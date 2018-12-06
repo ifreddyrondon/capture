@@ -12,8 +12,10 @@ import (
 const defaultAddr = "127.0.0.1:8080"
 
 type Constants struct {
-	ADDR string
-	PG   string
+	ADDR               string
+	PG                 string
+	JWTSigningKey      string
+	JWTExpirationDelta int
 }
 
 // Source set the configuration source in case you aren't allowed to read a file.

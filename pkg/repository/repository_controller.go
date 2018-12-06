@@ -8,13 +8,13 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/bastion/render"
+	auth "github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/repository/encoder"
-	"github.com/ifreddyrondon/capture/pkg/user"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
 // Routes returns a configured http.Handler with repositories resources.
-func Routes(service Service, isAuth, loggedUser func(http.Handler) http.Handler) http.Handler {
+func Routes(service Service, authorizeReq func(http.Handler) http.Handler) http.Handler {
 	c := &controller{service: service, render: render.NewJSON()}
 
 	updatedDESC := sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
@@ -33,8 +33,7 @@ func Routes(service Service, isAuth, loggedUser func(http.Handler) http.Handler)
 		r.Get("/", c.list)
 	})
 	r.Route("/{id}", func(r chi.Router) {
-		r.Use(isAuth)
-		r.Use(loggedUser)
+		r.Use(authorizeReq)
 		r.Use(c.repoCtx)
 		r.Get("/", c.get)
 	})
@@ -72,7 +71,7 @@ func (c *controller) repoCtx(next http.Handler) http.Handler {
 			return
 		}
 
-		u, err := user.GetFromContext(r.Context())
+		u, err := auth.GetUser(r.Context())
 		if err != nil {
 			c.render.InternalServerError(w, err)
 			return

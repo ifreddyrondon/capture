@@ -9,20 +9,14 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/config"
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/repository"
-	"github.com/ifreddyrondon/capture/pkg/user"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
 var tempUser = pkg.User{Email: "test@example.com", ID: kallax.NewULID()}
 
-func authOK(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
-}
-
-func authFails(next http.Handler) http.Handler {
+func notAuthRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := render.HTTPError{
 			Status:  http.StatusForbidden,
@@ -34,9 +28,9 @@ func authFails(next http.Handler) http.Handler {
 	})
 }
 
-func loggedUser(next http.Handler) http.Handler {
+func authRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := user.WithUser(r.Context(), &tempUser)
+		ctx := middleware.WithUser(r.Context(), &tempUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -54,7 +48,7 @@ func (m *mockStore) List(l repository.ListingRepo) ([]pkg.Repository, error) {
 }
 func (m *mockStore) Get(id kallax.ULID) (*pkg.Repository, error) { return m.repo, m.err }
 
-func setupUserController(t *testing.T, isAuth func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
+func setupUserController(t *testing.T, authorizeReq func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
 	cfg, err := config.FromString(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
 	if err != nil {
 		t.Fatal(err)
@@ -63,13 +57,13 @@ func setupUserController(t *testing.T, isAuth func(http.Handler) http.Handler) (
 	store := cfg.Resources.Get("repository-store").(repository.Store)
 	service := repository.Service{Store: store}
 	app := bastion.New()
-	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(service, isAuth, loggedUser))
+	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(service, authorizeReq))
 
 	return app, func() { store.Drop() }
 }
 
 func TestCreateRepositorySuccess(t *testing.T) {
-	app, teardown := setupUserController(t, authOK)
+	app, teardown := setupUserController(t, authRequest)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -88,7 +82,7 @@ func TestCreateRepositorySuccess(t *testing.T) {
 }
 
 func TestCreateRepositoryFail(t *testing.T) {
-	app, teardown := setupUserController(t, authOK)
+	app, teardown := setupUserController(t, authRequest)
 	defer teardown()
 
 	e := bastion.Tester(t, app)
@@ -128,10 +122,10 @@ func TestCreateRepositoryFail(t *testing.T) {
 	}
 }
 
-func setupController(store repository.Store, isAuth func(http.Handler) http.Handler) *bastion.Bastion {
+func setupController(store repository.Store, authorizeReq func(http.Handler) http.Handler) *bastion.Bastion {
 	service := repository.Service{Store: store}
 	app := bastion.New()
-	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(service, isAuth, loggedUser))
+	app.APIRouter.Mount("/user/repos/", repository.UserRoutes(service, authorizeReq))
 
 	return app
 }
@@ -139,7 +133,7 @@ func setupController(store repository.Store, isAuth func(http.Handler) http.Hand
 func TestCreateRepositorySaveFail(t *testing.T) {
 	t.Parallel()
 	store := &mockStore{err: errors.New("test")}
-	app := setupController(store, authOK)
+	app := setupController(store, authRequest)
 
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"name": "test"}
@@ -153,7 +147,7 @@ func TestCreateRepositorySaveFail(t *testing.T) {
 
 func TestCreateRepositoryNotAuthorized(t *testing.T) {
 	t.Parallel()
-	app := setupController(&mockStore{}, authFails)
+	app := setupController(&mockStore{}, notAuthRequest)
 
 	response := map[string]interface{}{
 		"status":  403.0,
@@ -174,7 +168,7 @@ func TestCreateRepositoryNotAuthorized(t *testing.T) {
 func TestListOwnerReposWhenEmpty(t *testing.T) {
 	t.Parallel()
 	store := &mockStore{repos: []pkg.Repository{}}
-	app := setupController(store, authOK)
+	app := setupController(store, authRequest)
 
 	e := bastion.Tester(t, app)
 	res := e.GET("/user/repos/").Expect().
@@ -187,7 +181,7 @@ func TestListOwnerReposWhenEmpty(t *testing.T) {
 }
 
 func TestListOwnerReposWithValues(t *testing.T) {
-	app, teardown := setupUserController(t, authOK)
+	app, teardown := setupUserController(t, authRequest)
 	defer teardown()
 
 	public := map[string]interface{}{"name": "test public"}
@@ -214,7 +208,7 @@ func TestListOwnerReposWithValues(t *testing.T) {
 }
 
 func TestListOwnerReposWithValuesFilter(t *testing.T) {
-	app, teardown := setupUserController(t, authOK)
+	app, teardown := setupUserController(t, authRequest)
 	defer teardown()
 
 	public := map[string]interface{}{"name": "test public"}

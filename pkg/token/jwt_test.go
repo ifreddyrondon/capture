@@ -1,4 +1,4 @@
-package jwt_test
+package token_test
 
 import (
 	"testing"
@@ -8,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/dgrijalva/jwt-go"
-	captureJWT "github.com/ifreddyrondon/capture/pkg/auth/jwt"
+	"github.com/ifreddyrondon/capture/pkg/token"
 )
 
-func TestClaims(t *testing.T) {
+func TestJWTClaims(t *testing.T) {
 	t.Parallel()
 
 	expected := time.Date(1989, time.Month(12), 26, 6, 1, 0, 0, time.UTC)
@@ -21,18 +21,18 @@ func TestClaims(t *testing.T) {
 	tt := []struct {
 		name            string
 		expirationDelta int64
-		expect          captureJWT.Claims
+		expect          token.JWTClaims
 	}{
 		{
 			"claims with default delta",
 			0,
-			captureJWT.Claims{
+			token.JWTClaims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:  userID,
 					IssuedAt: expected.Unix(),
 					ExpiresAt: func() int64 {
 						n := expected
-						return n.Add(captureJWT.DefaultJWTExpirationDelta).Unix()
+						return n.Add(token.DefaultJWTExpirationDelta).Unix()
 					}(),
 				},
 			},
@@ -40,7 +40,7 @@ func TestClaims(t *testing.T) {
 		{
 			"claims with 30 min delta",
 			1800, // 30min
-			captureJWT.Claims{
+			token.JWTClaims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:  userID,
 					IssuedAt: expected.Unix(),
@@ -55,9 +55,9 @@ func TestClaims(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			var c captureJWT.Claims
+			var c token.JWTClaims
 			// mock clock
-			captureJWT.SetClockInstance(&c, mockClock)
+			token.SetClockInstance(&c, mockClock)
 			c.Subject = userID
 			c.IssueIt()
 			c.SetExpirationDate(0)
@@ -73,12 +73,12 @@ func TestInvalidClaims(t *testing.T) {
 	userID := "123"
 	tt := []struct {
 		name   string
-		claims captureJWT.Claims
+		claims token.JWTClaims
 		err    string
 	}{
 		{
 			"expired",
-			captureJWT.Claims{
+			token.JWTClaims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:   userID,
 					IssuedAt:  time.Now().Unix(),
@@ -89,7 +89,7 @@ func TestInvalidClaims(t *testing.T) {
 		},
 		{
 			"issued after valid",
-			captureJWT.Claims{
+			token.JWTClaims{
 				StandardClaims: jwt.StandardClaims{
 					Subject:   userID,
 					IssuedAt:  time.Now().Add(time.Minute * 10).Unix(),
@@ -112,7 +112,7 @@ func TestInvalidClaims(t *testing.T) {
 func TestNewClaims(t *testing.T) {
 	t.Parallel()
 
-	c := captureJWT.NewClaims("123", 0)
+	c := token.NewJWTClaims("123", 0)
 	err := c.Valid()
 	assert.Nil(t, err)
 }

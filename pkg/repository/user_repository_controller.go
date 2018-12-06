@@ -10,9 +10,9 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/bastion/render"
+	auth "github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/repository/decoder"
 	"github.com/ifreddyrondon/capture/pkg/repository/encoder"
-	"github.com/ifreddyrondon/capture/pkg/user"
 )
 
 var (
@@ -25,7 +25,7 @@ var (
 )
 
 // UserRoutes returns a configured http.Handler with user repositories resources.
-func UserRoutes(service Service, isAuth, loggedUser func(http.Handler) http.Handler) http.Handler {
+func UserRoutes(service Service, authorizeReq func(http.Handler) http.Handler) http.Handler {
 	c := &userController{service: service, render: render.NewJSON()}
 
 	updatedDESC := sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
@@ -45,8 +45,7 @@ func UserRoutes(service Service, isAuth, loggedUser func(http.Handler) http.Hand
 
 	r := bastion.NewRouter()
 	r.Route("/", func(r chi.Router) {
-		r.Use(isAuth)
-		r.Use(loggedUser)
+		r.Use(authorizeReq)
 		r.Post("/", c.create)
 		r.Route("/", func(r chi.Router) {
 			r.Use(listing)
@@ -70,7 +69,7 @@ func (c *userController) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo := postRepo.GetRepository()
-	u, err := user.GetFromContext(r.Context())
+	u, err := auth.GetUser(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return
@@ -91,7 +90,7 @@ func (c *userController) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := user.GetFromContext(r.Context())
+	u, err := auth.GetUser(r.Context())
 	if err != nil {
 		c.render.InternalServerError(w, err)
 		return

@@ -1,2 +1,4 @@
 ADDR="127.0.0.1:8080"
 PG="postgres://localhost/captures_app?sslmode=disable"
+JWTSigningKey="test"
+JWTExpirationDelta=3600
