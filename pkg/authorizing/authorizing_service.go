@@ -22,7 +22,7 @@ type Store interface {
 
 // TokenService provides utils to handle authorizing token.
 type TokenService interface {
-	// GenerateToken an authorization token.
+	// IsRequestAuthorized validates if a request if authorized
 	IsRequestAuthorized(*http.Request) (string, error)
 }
 
@@ -44,7 +44,7 @@ func NewService(ts TokenService, s Store) Service {
 func (s *service) AuthorizeRequest(r *http.Request) (*pkg.User, error) {
 	subjectID, err := s.ts.IsRequestAuthorized(r)
 	if err != nil {
-		return nil, errors.Wrap(err, "AuthorizeRequest")
+		return nil, errors.Wrap(err, "could not authorized request")
 	}
 
 	userID, err := kallax.NewULIDFromText(subjectID)

@@ -60,7 +60,7 @@ func NewService(ts TokenService, s Store) Service {
 func (s *service) GetUserToken(userID string) (string, error) {
 	t, err := s.ts.GenerateToken(userID)
 	if err != nil {
-		return "", errors.Wrap(err, "GetUserToken")
+		return "", errors.Wrap(err, "could not generate token")
 	}
 	return t, nil
 }
