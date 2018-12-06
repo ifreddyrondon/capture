@@ -7,8 +7,7 @@ import (
 
 // Store provides access to the user storage.
 type Store interface {
-	// Save user into the database.
-	Save(user *pkg.User) error
+	SaveUser(user *pkg.User) error
 }
 
 // Service provides authenticating operations.
@@ -27,7 +26,7 @@ func NewService(s Store) Service {
 }
 
 func (s *service) EnrollUser(u *pkg.User) error {
-	err := s.s.Save(u)
+	err := s.s.SaveUser(u)
 	if err != nil {
 		return errors.Wrap(err, "EnrollUser")
 	}

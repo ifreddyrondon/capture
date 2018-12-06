@@ -5,6 +5,7 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
 )
@@ -13,6 +14,19 @@ type userNotFound string
 
 func (u userNotFound) Error() string  { return string(u) }
 func (u userNotFound) NotFound() bool { return true }
+
+type uniqueConstraintErr string
+
+func (u uniqueConstraintErr) Error() string          { return string(u) }
+func (u uniqueConstraintErr) UniqueConstraint() bool { return true }
+
+func isUniqueConstraintError(err error, constraintName string) bool {
+	if pqErr, ok := err.(*pq.Error); ok {
+		fmt.Println(pqErr.Constraint)
+		return pqErr.Code == "23505" && pqErr.Constraint == constraintName
+	}
+	return false
+}
 
 // PGStorage postgres storage layer
 type PGStorage struct{ db *gorm.DB }
@@ -28,6 +42,18 @@ func (p *PGStorage) Migrate() {
 // Drop (panic) delete schema.
 func (p *PGStorage) Drop() {
 	p.db.DropTableIfExists(pkg.User{})
+}
+
+// Save capture into the database.
+func (p *PGStorage) SaveUser(user *pkg.User) error {
+	err := p.db.Create(user).Error
+	if err != nil {
+		if isUniqueConstraintError(err, "uix_users_email") {
+			return errors.WithStack(uniqueConstraintErr(err.Error()))
+		}
+		return errors.WithStack(err)
+	}
+	return nil
 }
 
 // GetByEmail a user by email, if not found returns an error
