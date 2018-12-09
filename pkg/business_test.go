@@ -8,7 +8,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/capture/geocoding"
 	"github.com/ifreddyrondon/capture/pkg/capture/payload"
-	"github.com/ifreddyrondon/capture/pkg/user/decoder"
 
 	"gopkg.in/src-d/go-kallax.v1"
 
@@ -170,18 +169,6 @@ func TestCaptureMarshalJSON(t *testing.T) {
 			assert.Equal(t, tc.expected, string(result))
 		})
 	}
-}
-
-func TestUserPassword(t *testing.T) {
-	t.Parallel()
-
-	email, password := "test@localhost.com", "b4KeHAYy3u9v=ZQX"
-	postUser := decoder.PostUser{Email: &email, Password: &password}
-	var u pkg.User
-	err := postUser.User(&u)
-	assert.Nil(t, err)
-	assert.True(t, u.CheckPassword("b4KeHAYy3u9v=ZQX"))
-	assert.False(t, u.CheckPassword("1"))
 }
 
 func getCapture(p payload.Payload, date string, lat, lng float64) pkg.Capture {

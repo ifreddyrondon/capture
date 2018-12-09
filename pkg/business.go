@@ -6,7 +6,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/capture/geocoding"
 	"github.com/ifreddyrondon/capture/pkg/capture/payload"
 	"github.com/lib/pq"
-	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
@@ -73,12 +72,4 @@ type User struct {
 	UpdatedAt    time.Time    `json:"updatedAt" sql:"not null"`
 	DeletedAt    *time.Time   `json:"-"`
 	Repositories []Repository `json:"-" gorm:"ForeignKey:UserID"`
-}
-
-// CheckPassword compares a hashed password with its possible plaintext equivalent.
-func (u *User) CheckPassword(pass string) bool {
-	if err := bcrypt.CompareHashAndPassword(u.Password, []byte(pass)); err != nil {
-		return false
-	}
-	return true
 }

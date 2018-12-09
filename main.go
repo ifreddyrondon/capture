@@ -16,7 +16,7 @@ func router(resources di.Container) http.Handler {
 	r := chi.NewRouter()
 
 	authenticating := resources.Get("authenticating-routes").(http.Handler)
-	userRoutes := resources.Get("user-routes").(http.Handler)
+	signupRoutes := resources.Get("signup-routes").(http.Handler)
 	userRepoRoutes := resources.Get("user-repo-routes").(http.Handler)
 	repositoryRoutes := resources.Get("repositories-routes").(http.Handler)
 	captureRoutes := resources.Get("capture-routes").(http.Handler)
@@ -24,7 +24,7 @@ func router(resources di.Container) http.Handler {
 	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
 
 	r.Mount("/auth/", authenticating)
-	r.Mount("/users/", userRoutes)
+	r.Mount("/sign/", signupRoutes)
 	r.Route("/user/", func(r chi.Router) {
 		r.Mount("/repos/", userRepoRoutes)
 	})

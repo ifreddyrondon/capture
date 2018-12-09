@@ -1,11 +1,11 @@
-package signin_test
+package signup_test
 
 import (
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/signin"
+	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,17 +16,17 @@ func TestValidatePayloadOK(t *testing.T) {
 	tt := []struct {
 		name     string
 		body     string
-		expected signin.Payload
+		expected signup.Payload
 	}{
 		{
 			name:     "decode user without password",
 			body:     `{"email": "test@example.com"}`,
-			expected: signin.Payload{Email: &email},
+			expected: signup.Payload{Email: &email},
 		},
 		{
 			name:     "decode user with password",
 			body:     `{"email":"test@example.com","password":"1234"}`,
-			expected: signin.Payload{Email: &email, Password: &pass},
+			expected: signup.Payload{Email: &email, Password: &pass},
 		},
 	}
 
@@ -34,8 +34,8 @@ func TestValidatePayloadOK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var p signin.Payload
-			err := signin.Validator.Decode(r, &p)
+			var p signup.Payload
+			err := signup.Validator.Decode(r, &p)
 			assert.Nil(t, err)
 			assert.Equal(t, p.Email, p.Email)
 			assert.Equal(t, p.Password, p.Password)
@@ -76,8 +76,8 @@ func TestValidatePayloadError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var p signin.Payload
-			err := signin.Validator.Decode(r, &p)
+			var p signup.Payload
+			err := signup.Validator.Decode(r, &p)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

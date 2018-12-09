@@ -36,7 +36,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 	id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
 	s := &mockAuthenticatingService{usr: &pkg.User{ID: id}, token: "token*test"}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.AuthenticatingRoutes(s))
+	app.APIRouter.Mount("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{"token": "token*test"}
 	e := bastion.Tester(t, app)
@@ -52,7 +52,7 @@ func TestAuthenticateFailBadRequest(t *testing.T) {
 
 	s := &mockAuthenticatingService{usr: &pkg.User{}}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.AuthenticatingRoutes(s))
+	app.APIRouter.Mount("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  400.0,
@@ -72,7 +72,7 @@ func TestAuthenticateFailUnauthorized(t *testing.T) {
 
 	s := &mockAuthenticatingService{err: invalidCredentialErr("invalid email or password")}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.AuthenticatingRoutes(s))
+	app.APIRouter.Mount("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  401.0,
@@ -92,7 +92,7 @@ func TestAuthenticateFailInternalServerErrorWhenAuthenticateUser(t *testing.T) {
 
 	s := &mockAuthenticatingService{err: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.AuthenticatingRoutes(s))
+	app.APIRouter.Mount("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -112,7 +112,7 @@ func TestAuthenticateFailInternalServerErrorWhenGetUserToken(t *testing.T) {
 
 	s := &mockAuthenticatingService{usr: &pkg.User{}, tokenErr: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.AuthenticatingRoutes(s))
+	app.APIRouter.Mount("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  500.0,

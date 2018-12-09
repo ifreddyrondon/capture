@@ -28,20 +28,20 @@ type tokenJSON struct {
 }
 
 // AuthenticatingRoutes returns a configured http.Handler with capture resources.
-func AuthenticatingRoutes(service authenticating.Service) http.Handler {
-	c := &controller{service: service, render: render.NewJSON()}
+func Authenticating(service authenticating.Service) http.Handler {
+	c := &authenticatingController{service: service, render: render.NewJSON()}
 
 	r := bastion.NewRouter()
 	r.Post("/token-auth", c.login)
 	return r
 }
 
-type controller struct {
+type authenticatingController struct {
 	render  render.APIRenderer
 	service authenticating.Service
 }
 
-func (c *controller) login(w http.ResponseWriter, r *http.Request) {
+func (c *authenticatingController) login(w http.ResponseWriter, r *http.Request) {
 	var credential authenticating.BasicCredential
 	err := authenticating.Validator.Decode(r, &credential)
 	if err != nil {

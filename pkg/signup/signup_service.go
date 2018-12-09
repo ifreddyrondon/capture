@@ -1,4 +1,4 @@
-package signin
+package signup
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/src-d/go-kallax.v1"
+	"src/github.com/sethvargo/go-password/password"
 )
 
 type conflictErr string
@@ -31,7 +32,7 @@ type Store interface {
 	SaveUser(user *pkg.User) error
 }
 
-// Service provides authenticating operations.
+// Service provides sign-up operations.
 type Service interface {
 	// EnrollUser register a new user
 	EnrollUser(Payload) (*pkg.User, error)
@@ -41,7 +42,7 @@ type service struct {
 	s Store
 }
 
-// NewService creates an signin service with the necessary dependencies
+// NewService creates an sign-up service with the necessary dependencies
 func NewService(s Store) Service {
 	return &service{s: s}
 }
@@ -70,13 +71,19 @@ func getUser(p Payload) (*pkg.User, error) {
 		UpdatedAt: now,
 	}
 
-	if p.Password != nil {
-		hash, err := hashPassword(*p.Password)
+	if p.Password == nil {
+		pass, err := password.Generate(64, 10, 10, false, false)
 		if err != nil {
 			return nil, err
 		}
-		u.Password = hash
+		p.Password = &pass
 	}
+
+	hash, err := hashPassword(*p.Password)
+	if err != nil {
+		return nil, err
+	}
+	u.Password = hash
 
 	return u, nil
 }
