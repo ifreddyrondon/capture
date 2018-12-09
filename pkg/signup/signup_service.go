@@ -6,9 +6,9 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/pkg/errors"
+	"github.com/sethvargo/go-password/password"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/src-d/go-kallax.v1"
-	"src/github.com/sethvargo/go-password/password"
 )
 
 type conflictErr string

@@ -297,6 +297,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/sethvargo/go-password"
+  packages = ["password"]
+  revision = "bc15c697eeda69a082991d2f1ed37660658fea32"
+  version = "v0.1.2"
+
+[[projects]]
   name = "github.com/spf13/afero"
   packages = [
     ".",
@@ -468,6 +474,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a85f7f1896596f4c900ec2f5b3123c15d2c7b76727607f3210e35ab114ea3376"
+  inputs-digest = "ad3827ac490d068ff247d306021910b0cec46280338d23a606acd1d2a3ad4322"
   solver-name = "gps-cdcl"
   solver-version = 1
