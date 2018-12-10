@@ -10,7 +10,6 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 	auth "github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/repository/encoder"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 // Routes returns a configured http.Handler with repositories resources.
@@ -65,12 +64,7 @@ func (c *controller) list(w http.ResponseWriter, r *http.Request) {
 
 func (c *controller) repoCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		repoID, err := kallax.NewULIDFromText(chi.URLParam(r, "id"))
-		if err != nil {
-			c.render.BadRequest(w, ErrorInvalidRepoID)
-			return
-		}
-
+		repoID := chi.URLParam(r, "id")
 		u, err := auth.GetUser(r.Context())
 		if err != nil {
 			c.render.InternalServerError(w, err)
@@ -79,6 +73,7 @@ func (c *controller) repoCtx(next http.Handler) http.Handler {
 
 		repo, err := c.service.GetRepo(repoID, u)
 		if err != nil {
+			// FIXME: handler bad repo id should be BAD REQUEST
 			if err == ErrorNotFound {
 				c.render.NotFound(w, err)
 				return

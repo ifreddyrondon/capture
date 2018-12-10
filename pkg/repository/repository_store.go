@@ -15,7 +15,7 @@ type Store interface {
 	// List retrieve repositories from start index to count.
 	List(ListingRepo) ([]pkg.Repository, error)
 	// Get a repo by id
-	Get(kallax.ULID) (*pkg.Repository, error)
+	Get(string) (*pkg.Repository, error)
 	// Drop register if it is exist
 	Drop()
 }
@@ -72,7 +72,9 @@ func (pgs *PGStore) Drop() {
 
 // Save a repository into the database.
 func (pgs *PGStore) Save(owner *pkg.User, r *pkg.Repository) error {
-	r.UserID = owner.ID
+	// FIXME: handler err
+	id, _ := kallax.NewULIDFromText(owner.ID)
+	r.UserID = id
 	return pgs.db.Create(r).Error
 }
 
@@ -80,7 +82,9 @@ func (pgs *PGStore) List(l ListingRepo) ([]pkg.Repository, error) {
 	var results []pkg.Repository
 	f := &pkg.Repository{}
 	if l.Owner != nil {
-		f.UserID = l.Owner.ID
+		// FIXME: handler err
+		id, _ := kallax.NewULIDFromText(l.Owner.ID)
+		f.UserID = id
 	}
 	if l.Visibility != nil {
 		f.Visibility = *l.Visibility
@@ -97,8 +101,10 @@ func (pgs *PGStore) List(l ListingRepo) ([]pkg.Repository, error) {
 	return results, nil
 }
 
-func (pgs *PGStore) Get(id kallax.ULID) (*pkg.Repository, error) {
+func (pgs *PGStore) Get(idStr string) (*pkg.Repository, error) {
 	var result pkg.Repository
+	// FIXME: handler id err
+	id, _ := kallax.NewULIDFromText(idStr)
 	if pgs.db.Where(&pkg.Repository{ID: id}).First(&result).RecordNotFound() {
 		return nil, ErrorNotFound
 	}

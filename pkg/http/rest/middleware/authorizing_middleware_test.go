@@ -13,7 +13,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -110,7 +109,7 @@ func TestAuthorizingInternalErr(t *testing.T) {
 
 func TestContextGetUserOK(t *testing.T) {
 	ctx := context.Background()
-	u := pkg.User{ID: kallax.NewULID(), Email: "test@example.com"}
+	u := pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396", Email: "test@example.com"}
 	ctx = middleware.WithUser(ctx, &u)
 
 	u2, err := middleware.GetUser(ctx)

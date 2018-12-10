@@ -8,7 +8,6 @@ import (
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/signup"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockSignUpService struct {
@@ -20,7 +19,7 @@ func (s *mockSignUpService) EnrollUser(payl signup.Payload) (*signup.User, error
 
 func TestSignUpSuccess(t *testing.T) {
 	t.Parallel()
-	id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
+	id := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
 
 	tt := []struct {
 		name    string

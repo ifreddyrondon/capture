@@ -1,6 +1,7 @@
 package authorizing_test
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type authorizationErr interface{ IsNotAuthorized() bool }
@@ -27,15 +27,13 @@ type mockStore struct {
 	err error
 }
 
-func (m *mockStore) GetUserByID(kallax.ULID) (*pkg.User, error) { return m.usr, m.err }
+func (m *mockStore) GetUserByID(string) (*pkg.User, error) { return m.usr, m.err }
 
 func TestServiceAuthorizeRequest(t *testing.T) {
 	t.Parallel()
 
 	uidText := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
-	uid, err := kallax.NewULIDFromText(uidText)
-	assert.Nil(t, err)
-	u := &pkg.User{ID: uid}
+	u := &pkg.User{ID: uidText}
 
 	s := authorizing.NewService(&mockTokenService{subjectID: uidText}, &mockStore{usr: u})
 	req, _ := http.NewRequest("GET", "/", nil)
@@ -57,15 +55,20 @@ func TestServiceAuthorizeRequestGetTokenFails(t *testing.T) {
 	assert.Error(t, err)
 }
 
+type invalidErr string
+
+func (i invalidErr) Error() string   { return fmt.Sprintf(string(i)) }
+func (i invalidErr) IsInvalid() bool { return true }
+
 func TestServiceAuthorizeRequestInvalidSubjectID(t *testing.T) {
 	t.Parallel()
 
-	s := authorizing.NewService(&mockTokenService{subjectID: "a"}, &mockStore{})
+	s := authorizing.NewService(&mockTokenService{subjectID: "a"}, &mockStore{err: invalidErr("test")})
 	req, _ := http.NewRequest("GET", "/", nil)
 
 	req.Header.Set("Authorization", "Bearer test")
 	_, err := s.AuthorizeRequest(req)
-	assert.EqualError(t, err, "uuid: UUID string too short: a")
+	assert.EqualError(t, err, "test")
 	authErr, ok := errors.Cause(err).(authorizationErr)
 	assert.True(t, ok)
 	assert.True(t, authErr.IsNotAuthorized())

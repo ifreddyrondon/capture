@@ -39,6 +39,8 @@ func (s *service) CreateRepo(owner *pkg.User, p Payload) (*Repository, error) {
 }
 
 func getDomainRepository(owner *pkg.User, r Payload) *pkg.Repository {
+	// FIXME: handler id err
+	ownerID, _ := kallax.NewULIDFromText(owner.ID)
 	now := time.Now()
 	repo := &pkg.Repository{
 		ID:            kallax.NewULID(),
@@ -46,7 +48,7 @@ func getDomainRepository(owner *pkg.User, r Payload) *pkg.Repository {
 		CurrentBranch: defaultCrrBranchFieldValue,
 		CreatedAt:     now,
 		UpdatedAt:     now,
-		UserID:        owner.ID,
+		UserID:        ownerID,
 	}
 	if r.Visibility == nil {
 		repo.Visibility = pkg.Public

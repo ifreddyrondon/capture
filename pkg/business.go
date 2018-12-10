@@ -65,7 +65,7 @@ type Repository struct {
 
 // User represents a user account.
 type User struct {
-	ID           kallax.ULID
+	ID           string
 	Email        string
 	Password     []byte
 	CreatedAt    time.Time

@@ -11,10 +11,9 @@ import (
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/repository"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
-var tempUser = pkg.User{Email: "test@example.com", ID: kallax.NewULID()}
+var tempUser = pkg.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 
 func notAuthRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +45,7 @@ func (m *mockStore) Save(u *pkg.User, c *pkg.Repository) error { return m.err }
 func (m *mockStore) List(l repository.ListingRepo) ([]pkg.Repository, error) {
 	return m.repos, m.err
 }
-func (m *mockStore) Get(id kallax.ULID) (*pkg.Repository, error) { return m.repo, m.err }
+func (m *mockStore) Get(id string) (*pkg.Repository, error) { return m.repo, m.err }
 
 func setupUserController(t *testing.T, authorizeReq func(http.Handler) http.Handler) (*bastion.Bastion, func()) {
 	cfg, err := config.FromString(`PG="postgres://localhost/captures_app_test?sslmode=disable"`)
@@ -232,7 +231,7 @@ func TestListOwnerReposWithValuesFilter(t *testing.T) {
 				"name":           "test public",
 				"visibility":     "public",
 				"current_branch": "master",
-				"owner":          tempUser.ID.String(),
+				"owner":          tempUser.ID,
 			},
 		},
 		{
@@ -243,7 +242,7 @@ func TestListOwnerReposWithValuesFilter(t *testing.T) {
 				"name":           "test private",
 				"visibility":     "private",
 				"current_branch": "master",
-				"owner":          tempUser.ID.String(),
+				"owner":          tempUser.ID,
 			},
 		},
 	}

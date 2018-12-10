@@ -26,13 +26,16 @@ func (s *Service) GetPublicRepositories(l *listing.Listing) ([]pkg.Repository, e
 	return s.Store.List(listingRepo)
 }
 
-func (s *Service) GetRepo(id kallax.ULID, loggedUser *pkg.User) (*pkg.Repository, error) {
+func (s *Service) GetRepo(id string, loggedUser *pkg.User) (*pkg.Repository, error) {
 	repo, err := s.Store.Get(id)
 	if err != nil {
 		return nil, err
 	}
-	if repo.Visibility != pkg.Public && repo.UserID != loggedUser.ID {
+	// FIXME: handler id err
+	loggedUsrID, _ := kallax.NewULIDFromText(loggedUser.ID)
+	if repo.Visibility != pkg.Public && repo.UserID != loggedUsrID {
 		return nil, ErrorNotAuthorized
 	}
+
 	return repo, nil
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockAuthenticatingService struct {
@@ -33,8 +32,10 @@ func (i invalidCredentialErr) InvalidCredentials() bool { return true }
 func TestAuthenticateSuccess(t *testing.T) {
 	t.Parallel()
 
-	id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
-	s := &mockAuthenticatingService{usr: &pkg.User{ID: id}, token: "token*test"}
+	s := &mockAuthenticatingService{
+		usr:   &pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"},
+		token: "token*test",
+	}
 	app := bastion.New()
 	app.APIRouter.Mount("/", rest.Authenticating(s))
 

@@ -6,7 +6,6 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/pkg/errors"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type invalidCredentialErr string
@@ -14,10 +13,21 @@ type invalidCredentialErr string
 func (i invalidCredentialErr) Error() string         { return fmt.Sprintf(string(i)) }
 func (i invalidCredentialErr) IsNotAuthorized() bool { return true }
 
+type invalidErr interface {
+	IsInvalid() bool
+}
+
+func isInvalidErr(err error) bool {
+	if e, ok := errors.Cause(err).(invalidErr); ok {
+		return e.IsInvalid()
+	}
+	return false
+}
+
 // Store provides access to the user storage.
 type Store interface {
 	// GetUserByEmail get user by email.
-	GetUserByID(kallax.ULID) (*pkg.User, error)
+	GetUserByID(string) (*pkg.User, error)
 }
 
 // TokenService provides utils to handle authorizing token.
@@ -47,9 +57,9 @@ func (s *service) AuthorizeRequest(r *http.Request) (*pkg.User, error) {
 		return nil, errors.Wrap(err, "could not authorized request")
 	}
 
-	userID, err := kallax.NewULIDFromText(subjectID)
-	if err != nil {
+	u, err := s.s.GetUserByID(subjectID)
+	if isInvalidErr(err) {
 		return nil, errors.WithStack(invalidCredentialErr(err.Error()))
 	}
-	return s.s.GetUserByID(userID)
+	return u, nil
 }

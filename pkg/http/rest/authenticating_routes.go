@@ -65,7 +65,7 @@ func (c *authenticatingController) login(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	t, err := c.service.GetUserToken(u.ID.String())
+	t, err := c.service.GetUserToken(u.ID)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		c.render.InternalServerError(w, err)
