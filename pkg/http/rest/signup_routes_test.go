@@ -6,18 +6,17 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/signup"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockSignUpService struct {
-	usr *pkg.User
+	usr *signup.User
 	err error
 }
 
-func (s *mockSignUpService) EnrollUser(payl signup.Payload) (*pkg.User, error) { return s.usr, s.err }
+func (s *mockSignUpService) EnrollUser(payl signup.Payload) (*signup.User, error) { return s.usr, s.err }
 
 func TestSignUpSuccess(t *testing.T) {
 	t.Parallel()
@@ -26,17 +25,17 @@ func TestSignUpSuccess(t *testing.T) {
 	tt := []struct {
 		name    string
 		payload map[string]interface{}
-		usrMock *pkg.User
+		usrMock *signup.User
 	}{
 		{
 			name:    "create user with only email",
 			payload: map[string]interface{}{"email": "bla@example.com", "password": "1234"},
-			usrMock: &pkg.User{ID: id, Email: "bla@example.com"},
+			usrMock: &signup.User{ID: id, Email: "bla@example.com"},
 		},
 		{
 			name:    "create user",
 			payload: map[string]interface{}{"email": "bla@example.com"},
-			usrMock: &pkg.User{ID: id, Email: "bla@example.com"},
+			usrMock: &signup.User{ID: id, Email: "bla@example.com"},
 		},
 	}
 

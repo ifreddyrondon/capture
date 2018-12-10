@@ -45,7 +45,6 @@ func TestServiceEnrollUserOK(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, "ifreddyrondon@gmail.com", u.Email)
 			assert.NotNil(t, u.ID)
-			assert.NotNil(t, u.Password)
 			assert.NotNil(t, u.CreatedAt)
 			assert.NotNil(t, u.UpdatedAt)
 		})

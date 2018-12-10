@@ -36,17 +36,42 @@ func NewPGStorage(db *gorm.DB) *PGStorage { return &PGStorage{db: db} }
 
 // Migrate (panic) runs schema migration.
 func (p *PGStorage) Migrate() {
-	p.db.AutoMigrate(pkg.User{})
+	p.db.AutoMigrate(User{})
 }
 
 // Drop (panic) delete schema.
 func (p *PGStorage) Drop() {
-	p.db.DropTableIfExists(pkg.User{})
+	p.db.DropTableIfExists(User{})
+}
+
+func getUser(domain *pkg.User) *User {
+	return &User{
+		ID:           domain.ID,
+		Email:        domain.Email,
+		Password:     domain.Password,
+		CreatedAt:    domain.CreatedAt,
+		UpdatedAt:    domain.UpdatedAt,
+		DeletedAt:    domain.DeletedAt,
+		Repositories: domain.Repositories,
+	}
+}
+
+func getDomainUser(u User) *pkg.User {
+	return &pkg.User{
+		ID:           u.ID,
+		Email:        u.Email,
+		Password:     u.Password,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    u.UpdatedAt,
+		DeletedAt:    u.DeletedAt,
+		Repositories: u.Repositories,
+	}
 }
 
 // Save capture into the database.
 func (p *PGStorage) SaveUser(user *pkg.User) error {
-	err := p.db.Create(user).Error
+	u := getUser(user)
+	err := p.db.Create(u).Error
 	if err != nil {
 		if isUniqueConstraintError(err, "uix_users_email") {
 			return errors.WithStack(uniqueConstraintErr(err.Error()))
@@ -58,20 +83,20 @@ func (p *PGStorage) SaveUser(user *pkg.User) error {
 
 // GetByEmail a user by email, if not found returns an error
 func (p *PGStorage) GetUserByEmail(email string) (*pkg.User, error) {
-	f := &pkg.User{Email: email}
-	var result pkg.User
+	f := &User{Email: email}
+	var result User
 	if p.db.Where(f).First(&result).RecordNotFound() {
 		return nil, errors.WithStack(userNotFound(fmt.Sprintf("user with email %s not found", email)))
 	}
-	return &result, nil
+	return getDomainUser(result), nil
 }
 
 // GetByEmail a user by email, if not found returns an error
 func (p *PGStorage) GetUserByID(id kallax.ULID) (*pkg.User, error) {
-	f := &pkg.User{ID: id}
-	var result pkg.User
+	f := &User{ID: id}
+	var result User
 	if p.db.Where(f).First(&result).RecordNotFound() {
 		return nil, errors.WithStack(userNotFound(fmt.Sprintf("user with id %v not found", id)))
 	}
-	return &result, nil
+	return getDomainUser(result), nil
 }

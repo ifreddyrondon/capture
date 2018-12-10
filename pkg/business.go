@@ -65,11 +65,11 @@ type Repository struct {
 
 // User represents a user account.
 type User struct {
-	ID           kallax.ULID  `json:"id" sql:"type:uuid" gorm:"primary_key"`
-	Email        string       `json:"email" sql:"not null" gorm:"unique_index"`
-	Password     []byte       `json:"-"`
-	CreatedAt    time.Time    `json:"createdAt" sql:"not null"`
-	UpdatedAt    time.Time    `json:"updatedAt" sql:"not null"`
-	DeletedAt    *time.Time   `json:"-"`
-	Repositories []Repository `json:"-" gorm:"ForeignKey:UserID"`
+	ID           kallax.ULID
+	Email        string
+	Password     []byte
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
+	Repositories []Repository
 }

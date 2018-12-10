@@ -35,7 +35,7 @@ type Store interface {
 // Service provides sign-up operations.
 type Service interface {
 	// EnrollUser register a new user
-	EnrollUser(Payload) (*pkg.User, error)
+	EnrollUser(Payload) (*User, error)
 }
 
 type service struct {
@@ -47,8 +47,8 @@ func NewService(s Store) Service {
 	return &service{s: s}
 }
 
-func (s *service) EnrollUser(p Payload) (*pkg.User, error) {
-	u, err := getUser(p)
+func (s *service) EnrollUser(p Payload) (*User, error) {
+	u, err := getDomainUser(p)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get user from payload")
 	}
@@ -59,10 +59,10 @@ func (s *service) EnrollUser(p Payload) (*pkg.User, error) {
 		}
 		return nil, errors.Wrap(err, "could not save user")
 	}
-	return u, nil
+	return getUser(*u), nil
 }
 
-func getUser(p Payload) (*pkg.User, error) {
+func getDomainUser(p Payload) (*pkg.User, error) {
 	now := time.Now()
 	u := &pkg.User{
 		ID:        kallax.NewULID(),
@@ -86,6 +86,15 @@ func getUser(p Payload) (*pkg.User, error) {
 	u.Password = hash
 
 	return u, nil
+}
+
+func getUser(u pkg.User) *User {
+	return &User{
+		ID:        u.ID,
+		Email:     u.Email,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+	}
 }
 
 func hashPassword(pass string) ([]byte, error) {

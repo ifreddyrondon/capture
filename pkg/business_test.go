@@ -104,26 +104,6 @@ func TestMarshalJSONBranch(t *testing.T) {
 	assert.Equal(t, expected, string(result))
 }
 
-func TestMarshalJSONUser(t *testing.T) {
-	t.Parallel()
-	d, _ := time.Parse(time.RFC3339, "1989-12-26T06:01:00.00Z")
-
-	expected := []byte(`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","email":"test@example.com","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z"}`)
-	u := pkg.User{
-		Email: "test@example.com",
-		ID: func() kallax.ULID {
-			id, _ := kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
-			return id
-		}(),
-		CreatedAt: d,
-		UpdatedAt: d,
-	}
-
-	result, err := json.Marshal(u)
-	require.Nil(t, err)
-	assert.Equal(t, expected, result)
-}
-
 func TestCaptureMarshalJSON(t *testing.T) {
 	t.Parallel()
 
