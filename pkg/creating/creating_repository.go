@@ -63,6 +63,7 @@ func (p Payload) OK() error {
 }
 
 type Repository struct {
+	ID         string    `json:"id"`
 	Name       string    `json:"name"`
 	Visibility string    `json:"visibility"`
 	CreatedAt  time.Time `json:"createdAt" `

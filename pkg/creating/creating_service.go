@@ -12,7 +12,7 @@ const defaultCrrBranchFieldValue = "master"
 
 // Store provides access to the repository storage.
 type Store interface {
-	SaveRepo(user *pkg.Repository) error
+	SaveRepo(*pkg.Repository) error
 }
 
 // Service provides repository operations.
@@ -61,6 +61,7 @@ func getDomainRepository(owner *pkg.User, r Payload) *pkg.Repository {
 
 func getRepo(r pkg.Repository) *Repository {
 	return &Repository{
+		ID:         r.ID.String(),
 		Name:       r.Name,
 		Visibility: string(r.Visibility),
 		CreatedAt:  r.CreatedAt,
