@@ -4,14 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/middleware"
-	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
-	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/bastion/render"
+
+	"github.com/ifreddyrondon/bastion/middleware"
 	auth "github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"github.com/ifreddyrondon/capture/pkg/repository/decoder"
 	"github.com/ifreddyrondon/capture/pkg/repository/encoder"
 )
 
@@ -25,83 +21,28 @@ var (
 )
 
 // UserRoutes returns a configured http.Handler with user repositories resources.
-func UserRoutes(service Service, authorizeReq func(http.Handler) http.Handler) http.Handler {
-	c := &userController{service: service, render: render.NewJSON()}
+func ListingOwnRepos(service Service) http.HandlerFunc {
+	renderJSON := render.NewJSON()
+	return func(w http.ResponseWriter, r *http.Request) {
+		listing, err := middleware.GetListing(r.Context())
+		if err != nil {
+			renderJSON.InternalServerError(w, err)
+			return
+		}
 
-	updatedDESC := sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
-	updatedASC := sorting.NewSort("updated_at_asc", "updated_at ASC", "Updated date ascendant")
-	createdDESC := sorting.NewSort("created_at_desc", "created_at DESC", "Created date descending")
-	createdASC := sorting.NewSort("created_at_asc", "created_at ASC", "Created date ascendant")
+		u, err := auth.GetUser(r.Context())
+		if err != nil {
+			renderJSON.InternalServerError(w, err)
+			return
+		}
 
-	publicVisibility := filtering.NewValue("public", "public repos")
-	privateVisibility := filtering.NewValue("private", "private repos")
-	visibilityFilter := filtering.NewText("visibility", "filters the repos by their visibility", publicVisibility, privateVisibility)
+		repos, err := service.GetUserRepositories(u, listing)
+		if err != nil {
+			renderJSON.InternalServerError(w, err)
+			return
+		}
 
-	listing := middleware.Listing(
-		middleware.MaxAllowedLimit(50),
-		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
-		middleware.Filter(visibilityFilter),
-	)
-
-	r := bastion.NewRouter()
-	r.Route("/", func(r chi.Router) {
-		r.Use(authorizeReq)
-		r.Post("/", c.create)
-		r.Route("/", func(r chi.Router) {
-			r.Use(listing)
-			r.Get("/", c.list)
-		})
-	})
-
-	return r
-}
-
-type userController struct {
-	service Service
-	render  render.APIRenderer
-}
-
-func (c *userController) create(w http.ResponseWriter, r *http.Request) {
-	var postRepo decoder.PostRepository
-	if err := decoder.Decode(r, &postRepo); err != nil {
-		c.render.BadRequest(w, err)
-		return
+		res := encoder.ListRepositoryResponse{Listing: listing, Results: repos}
+		renderJSON.Send(w, res)
 	}
-
-	repo := postRepo.GetRepository()
-	u, err := auth.GetUser(r.Context())
-	if err != nil {
-		c.render.InternalServerError(w, err)
-		return
-	}
-
-	if err := c.service.Save(u, &repo); err != nil {
-		c.render.InternalServerError(w, err)
-		return
-	}
-
-	c.render.Created(w, repo)
-}
-
-func (c *userController) list(w http.ResponseWriter, r *http.Request) {
-	listing, err := middleware.GetListing(r.Context())
-	if err != nil {
-		c.render.InternalServerError(w, err)
-		return
-	}
-
-	u, err := auth.GetUser(r.Context())
-	if err != nil {
-		c.render.InternalServerError(w, err)
-		return
-	}
-
-	repos, err := c.service.GetUserRepositories(u, listing)
-	if err != nil {
-		c.render.InternalServerError(w, err)
-		return
-	}
-
-	res := encoder.ListRepositoryResponse{Listing: listing, Results: repos}
-	c.render.Send(w, res)
 }

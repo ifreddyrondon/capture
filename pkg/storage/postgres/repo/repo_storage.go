@@ -44,11 +44,12 @@ func getRepo(domainRepo *pkg.Repository) *Repository {
 		CreatedAt:     domainRepo.CreatedAt,
 		UpdatedAt:     domainRepo.UpdatedAt,
 		DeletedAt:     domainRepo.DeletedAt,
+		UserID:        domainRepo.UserID,
 	}
 }
 
 // Save capture into the database.
-func (p *PGStorage) SaveUser(domainRepo *pkg.Repository) error {
+func (p *PGStorage) SaveRepo(domainRepo *pkg.Repository) error {
 	r := getRepo(domainRepo)
 	return p.db.Create(r).Error
 }

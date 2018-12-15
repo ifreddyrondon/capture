@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/pkg/errors"
@@ -28,49 +27,40 @@ type tokenJSON struct {
 }
 
 // AuthenticatingRoutes returns a configured http.Handler with capture resources.
-func Authenticating(service authenticating.Service) http.Handler {
-	c := &authenticatingController{service: service, render: render.NewJSON()}
+func Authenticating(service authenticating.Service) http.HandlerFunc {
+	renderJSON := render.NewJSON()
 
-	r := bastion.NewRouter()
-	r.Post("/token-auth", c.login)
-	return r
-}
-
-type authenticatingController struct {
-	render  render.APIRenderer
-	service authenticating.Service
-}
-
-func (c *authenticatingController) login(w http.ResponseWriter, r *http.Request) {
-	var credential authenticating.BasicCredential
-	err := authenticating.Validator.Decode(r, &credential)
-	if err != nil {
-		c.render.BadRequest(w, err)
-		return
-	}
-
-	u, err := c.service.AuthenticateUser(credential)
-	if err != nil {
-		if isInvalidCredential(err) {
-			httpErr := render.HTTPError{
-				Status:  http.StatusUnauthorized,
-				Error:   http.StatusText(http.StatusUnauthorized),
-				Message: "invalid email or password",
-			}
-			c.render.Response(w, http.StatusUnauthorized, httpErr)
+	return func(w http.ResponseWriter, r *http.Request) {
+		var credential authenticating.BasicCredential
+		err := authenticating.Validator.Decode(r, &credential)
+		if err != nil {
+			renderJSON.BadRequest(w, err)
 			return
 		}
-		fmt.Fprintln(os.Stderr, err)
-		c.render.InternalServerError(w, err)
-		return
-	}
 
-	t, err := c.service.GetUserToken(u.ID)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		c.render.InternalServerError(w, err)
-		return
-	}
+		u, err := service.AuthenticateUser(credential)
+		if err != nil {
+			if isInvalidCredential(err) {
+				httpErr := render.HTTPError{
+					Status:  http.StatusUnauthorized,
+					Error:   http.StatusText(http.StatusUnauthorized),
+					Message: "invalid email or password",
+				}
+				renderJSON.Response(w, http.StatusUnauthorized, httpErr)
+				return
+			}
+			fmt.Fprintln(os.Stderr, err)
+			renderJSON.InternalServerError(w, err)
+			return
+		}
 
-	c.render.Send(w, tokenJSON{Token: t})
+		t, err := service.GetUserToken(u.ID)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			renderJSON.InternalServerError(w, err)
+			return
+		}
+
+		renderJSON.Send(w, tokenJSON{Token: t})
+	}
 }

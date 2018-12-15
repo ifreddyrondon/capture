@@ -4,6 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
+
+	"github.com/ifreddyrondon/capture/pkg/creating"
+
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
 	"github.com/ifreddyrondon/capture/pkg/branch"
@@ -70,19 +74,18 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "user-repo-routes",
+			Name:  "listing-repo-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				middle := cfg.Resources.Get("authorizeReq-middleware").(func(next http.Handler) http.Handler)
 				service := cfg.Resources.Get("repository-service").(repository.Service)
-				return repository.UserRoutes(service, middle), nil
+				return repository.ListingOwnRepos(service), nil
 			},
 		},
 		{
 			Name:  "repositories-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				middle := cfg.Resources.Get("authorizeReq-middleware").(func(next http.Handler) http.Handler)
+				middle := cfg.Resources.Get("authorize-middleware").(func(next http.Handler) http.Handler)
 				service := cfg.Resources.Get("repository-service").(repository.Service)
 				return repository.Routes(service, middle), nil
 			},
@@ -126,7 +129,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "authorizeReq-middleware",
+			Name:  "authorize-middleware",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				tokenService := cfg.Resources.Get("jwt-service").(authorizing.TokenService)
@@ -136,12 +139,32 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "signup-routes",
+			Name:  "sign_up-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("user-storage").(signup.Store)
 				s := signup.NewService(store)
 				return rest.SignUp(s), nil
+			},
+		},
+		{
+			Name:  "repository-storage",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				database := cfg.Resources.Get("database").(*gorm.DB)
+				s := repo.NewPGStorage(database)
+				s.Drop()
+				s.Migrate()
+				return s, nil
+			},
+		},
+		{
+			Name:  "creating-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-storage").(creating.Store)
+				s := creating.NewService(store)
+				return rest.Creating(s), nil
 			},
 		},
 	}

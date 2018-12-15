@@ -37,12 +37,12 @@ func TestAuthenticateSuccess(t *testing.T) {
 		token: "token*test",
 	}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Authenticating(s))
+	app.APIRouter.Post("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{"token": "token*test"}
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"email": "bla@example.com", "password": "123"}
-	e.POST("/token-auth").WithJSON(payload).
+	e.POST("/").WithJSON(payload).
 		Expect().
 		Status(http.StatusOK).
 		JSON().Object().Equal(response)
@@ -53,7 +53,7 @@ func TestAuthenticateFailBadRequest(t *testing.T) {
 
 	s := &mockAuthenticatingService{usr: &pkg.User{}}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Authenticating(s))
+	app.APIRouter.Post("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  400.0,
@@ -62,7 +62,7 @@ func TestAuthenticateFailBadRequest(t *testing.T) {
 	}
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"email": "bla@example", "password": "123"}
-	e.POST("/token-auth").WithJSON(payload).
+	e.POST("/").WithJSON(payload).
 		Expect().
 		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
@@ -73,7 +73,7 @@ func TestAuthenticateFailUnauthorized(t *testing.T) {
 
 	s := &mockAuthenticatingService{err: invalidCredentialErr("invalid email or password")}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Authenticating(s))
+	app.APIRouter.Post("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  401.0,
@@ -82,7 +82,7 @@ func TestAuthenticateFailUnauthorized(t *testing.T) {
 	}
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"email": "bla@example.com", "password": "123"}
-	e.POST("/token-auth").WithJSON(payload).
+	e.POST("/").WithJSON(payload).
 		Expect().
 		Status(http.StatusUnauthorized).
 		JSON().Object().Equal(response)
@@ -93,7 +93,7 @@ func TestAuthenticateFailInternalServerErrorWhenAuthenticateUser(t *testing.T) {
 
 	s := &mockAuthenticatingService{err: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Authenticating(s))
+	app.APIRouter.Post("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -102,7 +102,7 @@ func TestAuthenticateFailInternalServerErrorWhenAuthenticateUser(t *testing.T) {
 	}
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"email": "bla@example.com", "password": "123"}
-	e.POST("/token-auth").WithJSON(payload).
+	e.POST("/").WithJSON(payload).
 		Expect().
 		Status(http.StatusInternalServerError).
 		JSON().Object().Equal(response)
@@ -113,7 +113,7 @@ func TestAuthenticateFailInternalServerErrorWhenGetUserToken(t *testing.T) {
 
 	s := &mockAuthenticatingService{usr: &pkg.User{}, tokenErr: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Authenticating(s))
+	app.APIRouter.Post("/", rest.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -122,7 +122,7 @@ func TestAuthenticateFailInternalServerErrorWhenGetUserToken(t *testing.T) {
 	}
 	e := bastion.Tester(t, app)
 	payload := map[string]interface{}{"email": "bla@example.com", "password": "123"}
-	e.POST("/token-auth").WithJSON(payload).
+	e.POST("/").WithJSON(payload).
 		Expect().
 		Status(http.StatusInternalServerError).
 		JSON().Object().Equal(response)

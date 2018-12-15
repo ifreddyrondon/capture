@@ -1,12 +1,12 @@
 package rest_test
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
@@ -15,19 +15,13 @@ import (
 
 var tempUser = pkg.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 
-func notAuthRequest(next http.Handler) http.Handler {
+func notUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := render.HTTPError{
-			Status:  http.StatusForbidden,
-			Error:   http.StatusText(http.StatusForbidden),
-			Message: "you don’t have permission to access this resource",
-		}
-		render.NewJSON().Response(w, http.StatusForbidden, err)
-		return
+		next.ServeHTTP(w, r)
 	})
 }
 
-func authRequest(next http.Handler) http.Handler {
+func authenticatedMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := middleware.WithUser(r.Context(), &tempUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -43,6 +37,13 @@ func (m *mockCreatingService) CreateRepo(*pkg.User, creating.Payload) (*creating
 	return m.repo, m.err
 }
 
+func setupCreateHandler(s creating.Service, m func(http.Handler) http.Handler) *bastion.Bastion {
+	app := bastion.New()
+	app.APIRouter.Use(m)
+	app.APIRouter.Post("/", rest.Creating(s))
+	return app
+}
+
 func TestCreateRepoSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -55,8 +56,7 @@ func TestCreateRepoSuccess(t *testing.T) {
 	}
 
 	s := &mockCreatingService{repo: repo}
-	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Creating(s, authRequest))
+	app := setupCreateHandler(s, authenticatedMiddleware)
 	e := bastion.Tester(t, app)
 
 	payload := map[string]interface{}{"name": "test"}
@@ -101,8 +101,7 @@ func TestCreateRepoFailBadRequest(t *testing.T) {
 	}
 
 	s := &mockCreatingService{}
-	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Creating(s, authRequest))
+	app := setupCreateHandler(s, authenticatedMiddleware)
 	e := bastion.Tester(t, app)
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -113,4 +112,44 @@ func TestCreateRepoFailBadRequest(t *testing.T) {
 				JSON().Object().Equal(tc.response)
 		})
 	}
+}
+
+func TestCreateRepoFailInternalErrorGettingUser(t *testing.T) {
+	t.Parallel()
+	s := &mockCreatingService{}
+	app := setupCreateHandler(s, notUserMiddleware)
+	e := bastion.Tester(t, app)
+
+	payload := map[string]interface{}{"name": "test"}
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "looks like something went wrong",
+	}
+
+	e.POST("/").
+		WithJSON(payload).
+		Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(response)
+}
+
+func TestCreateRepoFailInternalErrorCreatingRepo(t *testing.T) {
+	t.Parallel()
+	s := &mockCreatingService{err: errors.New("test")}
+	app := setupCreateHandler(s, authenticatedMiddleware)
+	e := bastion.Tester(t, app)
+
+	payload := map[string]interface{}{"name": "test"}
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "looks like something went wrong",
+	}
+
+	e.POST("/").
+		WithJSON(payload).
+		Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(response)
 }

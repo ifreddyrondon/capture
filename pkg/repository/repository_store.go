@@ -10,8 +10,6 @@ import (
 // Store is the interface to be implemented by any kind of store
 // It make CRUD operations over a store.
 type Store interface {
-	// Save a repository.
-	Save(*pkg.User, *pkg.Repository) error
 	// List retrieve repositories from start index to count.
 	List(ListingRepo) ([]pkg.Repository, error)
 	// Get a repo by id
@@ -68,14 +66,6 @@ func (pgs *PGStore) Migrate() {
 // Drop (panic) delete the repository schema.
 func (pgs *PGStore) Drop() {
 	pgs.db.DropTableIfExists(pkg.Repository{})
-}
-
-// Save a repository into the database.
-func (pgs *PGStore) Save(owner *pkg.User, r *pkg.Repository) error {
-	// FIXME: handler err
-	id, _ := kallax.NewULIDFromText(owner.ID)
-	r.UserID = id
-	return pgs.db.Create(r).Error
 }
 
 func (pgs *PGStore) List(l ListingRepo) ([]pkg.Repository, error) {

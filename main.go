@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ifreddyrondon/bastion/middleware"
+	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
+	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
+
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/config"
@@ -15,18 +19,47 @@ import (
 func router(resources di.Container) http.Handler {
 	r := chi.NewRouter()
 
-	authenticating := resources.Get("authenticating-routes").(http.Handler)
-	signupRoutes := resources.Get("signup-routes").(http.Handler)
-	userRepoRoutes := resources.Get("user-repo-routes").(http.Handler)
+	authorize := resources.Get("authorize-middleware").(func(next http.Handler) http.Handler)
+
+	signup := resources.Get("sign_up-routes").(http.HandlerFunc)
+	authenticating := resources.Get("authenticating-routes").(http.HandlerFunc)
+	creating := resources.Get("creating-routes").(http.HandlerFunc)
+
+	updatedDESC := sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
+	updatedASC := sorting.NewSort("updated_at_asc", "updated_at ASC", "Updated date ascendant")
+	createdDESC := sorting.NewSort("created_at_desc", "created_at DESC", "Created date descending")
+	createdASC := sorting.NewSort("created_at_asc", "created_at ASC", "Created date ascendant")
+
+	publicVisibility := filtering.NewValue("public", "public repos")
+	privateVisibility := filtering.NewValue("private", "private repos")
+	visibilityFilter := filtering.NewText("visibility", "filters the repos by their visibility", publicVisibility, privateVisibility)
+
+	listingMiddleware := middleware.Listing(
+		middleware.MaxAllowedLimit(50),
+		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
+		middleware.Filter(visibilityFilter),
+	)
+	listingRepos := resources.Get("listing-repo-routes").(http.HandlerFunc)
+
 	repositoryRoutes := resources.Get("repositories-routes").(http.Handler)
 	captureRoutes := resources.Get("capture-routes").(http.Handler)
 	branchRoutes := resources.Get("branch-routes").(http.Handler)
 	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
 
-	r.Mount("/auth/", authenticating)
-	r.Mount("/sign/", signupRoutes)
+	r.Post("/sign/", signup)
+	r.Route("/auth/", func(r chi.Router) {
+		r.Post("/token-auth", authenticating)
+	})
 	r.Route("/user/", func(r chi.Router) {
-		r.Mount("/repos/", userRepoRoutes)
+		r.Route("/repos/", func(r chi.Router) {
+			r.Use(authorize)
+			r.Post("/", creating)
+			r.Route("/", func(r chi.Router) {
+				r.Use(listingMiddleware)
+				r.Get("/", listingRepos)
+			})
+
+		})
 	})
 	r.Mount("/repositories/", repositoryRoutes)
 	r.Mount("/captures/", captureRoutes)

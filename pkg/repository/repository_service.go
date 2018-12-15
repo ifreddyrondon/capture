@@ -10,10 +10,6 @@ type Service struct {
 	Store
 }
 
-func (s *Service) Save(u *pkg.User, r *pkg.Repository) error {
-	return s.Store.Save(u, r)
-}
-
 func (s *Service) GetUserRepositories(u *pkg.User, l *listing.Listing) ([]pkg.Repository, error) {
 	listingRepo := newListingRepo(*l)
 	listingRepo.Owner = u
