@@ -3,6 +3,10 @@ package repo
 import (
 	"time"
 
+	"github.com/pkg/errors"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/src-d/go-kallax.v1"
@@ -51,5 +55,30 @@ func getRepo(domainRepo *pkg.Repository) *Repository {
 // Save capture into the database.
 func (p *PGStorage) SaveRepo(domainRepo *pkg.Repository) error {
 	r := getRepo(domainRepo)
-	return p.db.Create(r).Error
+	if err := p.db.Create(r).Error; err != nil {
+		return errors.Wrap(err, "err saving repo with pgstorage")
+	}
+	return nil
+}
+
+func (p *PGStorage) List(l *domain.Listing) ([]pkg.Repository, error) {
+	var results []pkg.Repository
+	f := &pkg.Repository{}
+	if l.Owner != "" {
+		id, _ := kallax.NewULIDFromText(l.Owner)
+		f.UserID = id
+	}
+	if l.Visibility != nil {
+		f.Visibility = *l.Visibility
+	}
+	err := p.db.
+		Where(f).
+		Order(l.SortKey).
+		Offset(l.Offset).
+		Limit(l.Limit).
+		Find(&results).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "err listing repo with pgstorage")
+	}
+	return results, nil
 }

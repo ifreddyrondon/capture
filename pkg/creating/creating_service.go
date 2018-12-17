@@ -25,7 +25,7 @@ type service struct {
 	s Store
 }
 
-// NewService creates a repository service with the necessary dependencies
+// NewService creates a creating service with the necessary dependencies
 func NewService(s Store) Service {
 	return &service{s: s}
 }

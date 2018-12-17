@@ -1,25 +1,12 @@
 package repository
 
 import (
-	"github.com/ifreddyrondon/bastion/middleware/listing"
 	"github.com/ifreddyrondon/capture/pkg"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type Service struct {
 	Store
-}
-
-func (s *Service) GetUserRepositories(u *pkg.User, l *listing.Listing) ([]pkg.Repository, error) {
-	listingRepo := newListingRepo(*l)
-	listingRepo.Owner = u
-	return s.Store.List(listingRepo)
-}
-
-func (s *Service) GetPublicRepositories(l *listing.Listing) ([]pkg.Repository, error) {
-	listingRepo := newListingRepo(*l)
-	listingRepo.Visibility = &pkg.Public
-	return s.Store.List(listingRepo)
 }
 
 func (s *Service) GetRepo(id string, loggedUser *pkg.User) (*pkg.Repository, error) {
