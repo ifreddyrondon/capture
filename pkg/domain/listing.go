@@ -14,12 +14,16 @@ type Listing struct {
 	Visibility *pkg.Visibility
 }
 
-// NewListing returns a new Listing instance with SortKey, offset and limit from listing.Listing.
+// NewListing returns a new Listing instance with offset and limit from listing.Listing.
+// It'll get SortKey and Visibility from Sorting and Filtering if there are available.
 func NewListing(l listing.Listing) *Listing {
 	domainListing := &Listing{
-		SortKey: l.Sorting.Sort.Value,
-		Offset:  l.Paging.Offset,
-		Limit:   l.Paging.Limit,
+		Offset: l.Paging.Offset,
+		Limit:  l.Paging.Limit,
+	}
+
+	if l.Sorting != nil {
+		domainListing.SortKey = l.Sorting.Sort.Value
 	}
 
 	if l.Filtering == nil {
