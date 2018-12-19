@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,6 +23,16 @@ type Repository struct {
 	DeletedAt     *time.Time
 	UserID        kallax.ULID
 }
+
+type repoNotFound string
+
+func (u repoNotFound) Error() string  { return string(u) }
+func (u repoNotFound) NotFound() bool { return true }
+
+type invalidIDErr string
+
+func (i invalidIDErr) Error() string   { return fmt.Sprintf(string(i)) }
+func (i invalidIDErr) IsInvalid() bool { return true }
 
 // PGStorage postgres storage layer
 type PGStorage struct{ db *gorm.DB }
@@ -65,7 +76,10 @@ func (p *PGStorage) List(l *domain.Listing) ([]pkg.Repository, error) {
 	var results []pkg.Repository
 	f := &pkg.Repository{}
 	if l.Owner != "" {
-		id, _ := kallax.NewULIDFromText(l.Owner)
+		id, err := kallax.NewULIDFromText(l.Owner)
+		if err != nil {
+			return nil, invalidIDErr(fmt.Sprintf("%v is not a valid owner id", l.Owner))
+		}
 		f.UserID = id
 	}
 	if l.Visibility != nil {
@@ -81,4 +95,16 @@ func (p *PGStorage) List(l *domain.Listing) ([]pkg.Repository, error) {
 		return nil, errors.Wrap(err, "err listing repo with pgstorage")
 	}
 	return results, nil
+}
+
+func (p *PGStorage) Get(idStr string) (*pkg.Repository, error) {
+	var result pkg.Repository
+	id, err := kallax.NewULIDFromText(idStr)
+	if err != nil {
+		return nil, invalidIDErr(fmt.Sprintf("%v is not a valid ULID", idStr))
+	}
+	if p.db.Where(&pkg.Repository{ID: id}).First(&result).RecordNotFound() {
+		return nil, errors.WithStack(repoNotFound(fmt.Sprintf("repo with id %s not found", idStr)))
+	}
+	return &result, nil
 }
