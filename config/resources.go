@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ifreddyrondon/capture/pkg/listing"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
 
 	"github.com/ifreddyrondon/capture/pkg/creating"
@@ -71,14 +72,6 @@ func getResources(cfg *Config) di.Container {
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("repository-store").(repository.Store)
 				return repository.Service{Store: store}, nil
-			},
-		},
-		{
-			Name:  "listing-repo-routes",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				service := cfg.Resources.Get("repository-service").(repository.Service)
-				return repository.ListingOwnRepos(service), nil
 			},
 		},
 		{
@@ -165,6 +158,30 @@ func getResources(cfg *Config) di.Container {
 				store := cfg.Resources.Get("repository-storage").(creating.Store)
 				s := creating.NewService(store)
 				return rest.Creating(s), nil
+			},
+		},
+		{
+			Name:  "listing-services",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-storage").(listing.Store)
+				return listing.NewService(store), nil
+			},
+		},
+		{
+			Name:  "listing-user-repo-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				s := cfg.Resources.Get("listing-services").(listing.Service)
+				return rest.ListingUserRepos(s), nil
+			},
+		},
+		{
+			Name:  "listing-public-repos-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				s := cfg.Resources.Get("listing-services").(listing.Service)
+				return rest.ListingPublicRepos(s), nil
 			},
 		},
 	}

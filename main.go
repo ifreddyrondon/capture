@@ -21,7 +21,7 @@ func router(resources di.Container) http.Handler {
 
 	authorize := resources.Get("authorize-middleware").(func(next http.Handler) http.Handler)
 
-	signup := resources.Get("sign_up-routes").(http.HandlerFunc)
+	signUp := resources.Get("sign_up-routes").(http.HandlerFunc)
 	authenticating := resources.Get("authenticating-routes").(http.HandlerFunc)
 	creating := resources.Get("creating-routes").(http.HandlerFunc)
 
@@ -39,29 +39,39 @@ func router(resources di.Container) http.Handler {
 		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
 		middleware.Filter(visibilityFilter),
 	)
-	listingRepos := resources.Get("listing-repo-routes").(http.HandlerFunc)
+	listingUserRepos := resources.Get("listing-user-repo-routes").(http.HandlerFunc)
+	listingPublicRepos := resources.Get("listing-public-repos-routes").(http.HandlerFunc)
 
 	repositoryRoutes := resources.Get("repositories-routes").(http.Handler)
 	captureRoutes := resources.Get("capture-routes").(http.Handler)
 	branchRoutes := resources.Get("branch-routes").(http.Handler)
 	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
 
-	r.Post("/sign/", signup)
+	r.Post("/sign/", signUp)
 	r.Route("/auth/", func(r chi.Router) {
 		r.Post("/token-auth", authenticating)
 	})
 	r.Route("/user/", func(r chi.Router) {
+		r.Use(authorize)
 		r.Route("/repos/", func(r chi.Router) {
-			r.Use(authorize)
 			r.Post("/", creating)
 			r.Route("/", func(r chi.Router) {
 				r.Use(listingMiddleware)
-				r.Get("/", listingRepos)
+				r.Get("/", listingUserRepos)
 			})
 
 		})
 	})
-	r.Mount("/repositories/", repositoryRoutes)
+	r.Route("/repositories/", func(r chi.Router) {
+		r.Use(authorize)
+		r.Post("/", creating)
+		r.Route("/", func(r chi.Router) {
+			r.Use(listingMiddleware)
+			r.Get("/", listingPublicRepos)
+		})
+		r.Mount("/{id}", repositoryRoutes)
+	})
+
 	r.Mount("/captures/", captureRoutes)
 	r.Mount("/branches/", branchRoutes)
 	r.Mount("/multipost/", multipostRoutes)
