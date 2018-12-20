@@ -1,6 +1,7 @@
 package rest_test
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -23,7 +24,7 @@ func notUserMiddleware(next http.Handler) http.Handler {
 
 func authenticatedMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := middleware.WithUser(r.Context(), &tempUser)
+		ctx := context.WithValue(r.Context(), middleware.UserCtxKey, &tempUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

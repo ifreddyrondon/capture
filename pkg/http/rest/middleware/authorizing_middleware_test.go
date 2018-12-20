@@ -15,11 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "ok")
-}
-
-func setup(service authorizing.Service) *bastion.Bastion {
+func setupAuthorizing(service authorizing.Service) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/", func(r chi.Router) {
 		r.Use(middleware.AuthorizeReq(service))
@@ -29,32 +25,29 @@ func setup(service authorizing.Service) *bastion.Bastion {
 	return app
 }
 
-type mockService struct {
+type mockAuthorizingService struct {
 	usr *pkg.User
 	err error
 }
 
-func (m *mockService) AuthorizeRequest(*http.Request) (*pkg.User, error) { return m.usr, m.err }
+func (m *mockAuthorizingService) AuthorizeRequest(*http.Request) (*pkg.User, error) {
+	return m.usr, m.err
+}
 
 func TestAuthorizingSuccess(t *testing.T) {
 	t.Parallel()
 
-	app := setup(&mockService{})
+	app := setupAuthorizing(&mockAuthorizingService{})
 	e := bastion.Tester(t, app)
 	e.GET("/").WithHeader("Authorization", fmt.Sprintf("Bearer %v", "test")).
 		Expect().
 		Status(http.StatusOK)
 }
 
-type invalidCredentialErr string
-
-func (i invalidCredentialErr) Error() string         { return fmt.Sprintf(string(i)) }
-func (i invalidCredentialErr) IsNotAuthorized() bool { return true }
-
 func TestAuthorizingNotAuthorized(t *testing.T) {
 	t.Parallel()
 
-	app := setup(&mockService{err: invalidCredentialErr("you don’t have permission to access this resource")})
+	app := setupAuthorizing(&mockAuthorizingService{err: notAllowedErr("you don’t have permission to access this resource")})
 	response := map[string]interface{}{
 		"status":  403.0,
 		"error":   "Forbidden",
@@ -68,15 +61,10 @@ func TestAuthorizingNotAuthorized(t *testing.T) {
 		JSON().Object().Equal(response)
 }
 
-type userNotFound string
-
-func (u userNotFound) Error() string  { return fmt.Sprintf(string(u)) }
-func (u userNotFound) NotFound() bool { return true }
-
 func TestAuthorizingNotFound(t *testing.T) {
 	t.Parallel()
 
-	app := setup(&mockService{err: userNotFound("test")})
+	app := setupAuthorizing(&mockAuthorizingService{err: notFound("test")})
 	response := map[string]interface{}{
 		"status":  404.0,
 		"error":   "Not Found",
@@ -93,7 +81,7 @@ func TestAuthorizingNotFound(t *testing.T) {
 func TestAuthorizingInternalErr(t *testing.T) {
 	t.Parallel()
 
-	app := setup(&mockService{err: errors.New("test")})
+	app := setupAuthorizing(&mockAuthorizingService{err: errors.New("test")})
 	response := map[string]interface{}{
 		"status":  500.0,
 		"error":   "Internal Server Error",
@@ -110,7 +98,7 @@ func TestAuthorizingInternalErr(t *testing.T) {
 func TestContextGetUserOK(t *testing.T) {
 	ctx := context.Background()
 	u := pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396", Email: "test@example.com"}
-	ctx = middleware.WithUser(ctx, &u)
+	ctx = context.WithValue(ctx, middleware.UserCtxKey, &u)
 
 	u2, err := middleware.GetUser(ctx)
 	assert.Nil(t, err)

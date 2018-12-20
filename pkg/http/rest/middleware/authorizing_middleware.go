@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/pkg"
@@ -10,48 +12,23 @@ import (
 	"github.com/pkg/errors"
 )
 
-type authorizationErr interface {
-	// IsNotAllowed returns true when the req is not allowed.
-	IsNotAuthorized() bool
-}
-
-func isNotAuthorized(err error) bool {
-	if e, ok := errors.Cause(err).(authorizationErr); ok {
-		return e.IsNotAuthorized()
-	}
-	return false
-}
-
-type notFoundErr interface {
-	// NotFound returns true when a resource is not found.
-	NotFound() bool
-}
-
-func isNotFound(err error) bool {
-	if e, ok := errors.Cause(err).(notFoundErr); ok {
-		return e.NotFound()
-	}
-	return false
-}
-
-type ctxKey string
-
-const userKey ctxKey = "user"
-
 var (
 	errMissingUser    = errors.New("user not found in context")
 	errWrongUserValue = errors.New("user value set incorrectly in context")
 )
+var (
+	// RepoCtxKey is the context.Context key to store the Repo for a request.
+	UserCtxKey = &contextKey{"User"}
+)
 
-// WithUser will return a new context with the user value added to it.
-func WithUser(ctx context.Context, user *pkg.User) context.Context {
-	return context.WithValue(ctx, userKey, user)
+func withUser(ctx context.Context, user *pkg.User) context.Context {
+	return context.WithValue(ctx, UserCtxKey, user)
 }
 
-// GetFromContext returns the user assigned to the context, or error if there
+// GetUser returns the user assigned to the context, or error if there
 // is any error or there isn't a user.
 func GetUser(ctx context.Context) (*pkg.User, error) {
-	tmp := ctx.Value(userKey)
+	tmp := ctx.Value(UserCtxKey)
 	if tmp == nil {
 		return nil, errMissingUser
 	}
@@ -81,11 +58,12 @@ func AuthorizeReq(service authorizing.Service) func(next http.Handler) http.Hand
 					json.NotFound(w, err)
 					return
 				}
+				fmt.Fprintln(os.Stderr, err)
 				json.InternalServerError(w, err)
 				return
 			}
 
-			ctx := WithUser(r.Context(), u)
+			ctx := withUser(r.Context(), u)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 		return http.HandlerFunc(fn)

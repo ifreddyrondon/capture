@@ -1,9 +1,9 @@
 package config
 
 import (
-	"net/http"
 	"time"
 
+	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
 
@@ -16,7 +16,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/multipost"
-	"github.com/ifreddyrondon/capture/pkg/repository"
 	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/user"
 	"github.com/ifreddyrondon/capture/pkg/token"
@@ -27,16 +26,6 @@ import (
 func getResources(cfg *Config) di.Container {
 	builder, _ := di.NewBuilder()
 	definitions := []di.Def{
-		{
-			Name:  "database",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				return gorm.Open("postgres", cfg.Constants.PG)
-			},
-			Close: func(obj interface{}) error {
-				return obj.(*gorm.DB).Close()
-			},
-		},
 		{
 			Name:  "capture-routes",
 			Scope: di.App,
@@ -56,34 +45,6 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "repository-store",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("database").(*gorm.DB)
-				store := repository.NewPGStore(database)
-				store.Drop()
-				store.Migrate()
-				return store, nil
-			},
-		},
-		{
-			Name:  "repository-service",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-store").(repository.Store)
-				return repository.Service{Store: store}, nil
-			},
-		},
-		{
-			Name:  "repositories-routes",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				middle := cfg.Resources.Get("authorize-middleware").(func(next http.Handler) http.Handler)
-				service := cfg.Resources.Get("repository-service").(repository.Service)
-				return repository.Routes(service, middle), nil
-			},
-		},
-		{
 			Name:  "multipost-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
@@ -92,6 +53,16 @@ func getResources(cfg *Config) di.Container {
 		},
 
 		// resources for DDD migration
+		{
+			Name:  "database",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return gorm.Open("postgres", cfg.Constants.PG)
+			},
+			Close: func(obj interface{}) error {
+				return obj.(*gorm.DB).Close()
+			},
+		},
 		{
 			Name:  "user-storage",
 			Scope: di.App,
@@ -182,6 +153,22 @@ func getResources(cfg *Config) di.Container {
 			Build: func(ctn di.Container) (interface{}, error) {
 				s := cfg.Resources.Get("listing-services").(listing.Service)
 				return rest.ListingPublicRepos(s), nil
+			},
+		},
+		{
+			Name:  "ctx-repo-middleware",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-storage").(getting.Store)
+				s := getting.NewService(store)
+				return middleware.RepoCtx(s), nil
+			},
+		},
+		{
+			Name:  "getting-repo-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return rest.GettingRepo(), nil
 			},
 		},
 	}
