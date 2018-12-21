@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
 )
@@ -22,7 +23,7 @@ type Store interface {
 // Service provides listing repository operations.
 type Service interface {
 	// GetRepo retrieve a user repo or public repository .
-	GetRepo(string, *pkg.User) (*pkg.Repository, error)
+	GetRepo(string, *domain.User) (*pkg.Repository, error)
 }
 
 type service struct {
@@ -34,7 +35,7 @@ func NewService(s Store) Service {
 	return &service{s: s}
 }
 
-func (s *service) GetRepo(id string, user *pkg.User) (*pkg.Repository, error) {
+func (s *service) GetRepo(id string, user *domain.User) (*pkg.Repository, error) {
 	repo, err := s.s.Get(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get repo")

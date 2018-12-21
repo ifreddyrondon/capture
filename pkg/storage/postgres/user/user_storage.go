@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -68,7 +69,7 @@ func getUserId(idStr string) (kallax.ULID, error) {
 	return id, nil
 }
 
-func getUser(domain *pkg.User) (*User, error) {
+func getUser(domain *domain.User) (*User, error) {
 	id, err := getUserId(domain.ID)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid ulid format when getting user")
@@ -84,8 +85,8 @@ func getUser(domain *pkg.User) (*User, error) {
 	}, nil
 }
 
-func getDomainUser(u User) *pkg.User {
-	return &pkg.User{
+func getDomainUser(u User) *domain.User {
+	return &domain.User{
 		ID:           u.ID.String(),
 		Email:        u.Email,
 		Password:     u.Password,
@@ -97,7 +98,7 @@ func getDomainUser(u User) *pkg.User {
 }
 
 // Save capture into the database.
-func (p *PGStorage) SaveUser(user *pkg.User) error {
+func (p *PGStorage) SaveUser(user *domain.User) error {
 	u, err := getUser(user)
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (p *PGStorage) SaveUser(user *pkg.User) error {
 }
 
 // GetByEmail a user by email, if not found returns an error
-func (p *PGStorage) GetUserByEmail(email string) (*pkg.User, error) {
+func (p *PGStorage) GetUserByEmail(email string) (*domain.User, error) {
 	f := &User{Email: email}
 	var result User
 	if p.db.Where(f).First(&result).RecordNotFound() {
@@ -123,7 +124,7 @@ func (p *PGStorage) GetUserByEmail(email string) (*pkg.User, error) {
 }
 
 // GetByEmail a user by email, if not found returns an error
-func (p *PGStorage) GetUserByID(idStr string) (*pkg.User, error) {
+func (p *PGStorage) GetUserByID(idStr string) (*domain.User, error) {
 	id, err := getUserId(idStr)
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid ulid format when GetUserByID")

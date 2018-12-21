@@ -8,13 +8,14 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
-var tempUser = pkg.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+var tempUser = domain.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 
 func authenticatedMiddle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +46,7 @@ type mockGettingService struct {
 	err  error
 }
 
-func (m *mockGettingService) GetRepo(string, *pkg.User) (*pkg.Repository, error) {
+func (m *mockGettingService) GetRepo(string, *domain.User) (*pkg.Repository, error) {
 	return m.repo, m.err
 }
 

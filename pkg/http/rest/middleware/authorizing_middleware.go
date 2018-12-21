@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 )
 
@@ -21,18 +21,18 @@ var (
 	UserCtxKey = &contextKey{"User"}
 )
 
-func withUser(ctx context.Context, user *pkg.User) context.Context {
+func withUser(ctx context.Context, user *domain.User) context.Context {
 	return context.WithValue(ctx, UserCtxKey, user)
 }
 
 // GetUser returns the user assigned to the context, or error if there
 // is any error or there isn't a user.
-func GetUser(ctx context.Context) (*pkg.User, error) {
+func GetUser(ctx context.Context) (*domain.User, error) {
 	tmp := ctx.Value(UserCtxKey)
 	if tmp == nil {
 		return nil, errMissingUser
 	}
-	user, ok := tmp.(*pkg.User)
+	user, ok := tmp.(*domain.User)
 	if !ok {
 		return nil, errWrongUserValue
 	}

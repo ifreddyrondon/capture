@@ -16,7 +16,7 @@ type Store interface {
 // Service provides listing repository operations.
 type Service interface {
 	// GetUserRepos get the repositories from a given user.
-	GetUserRepos(*pkg.User, *listing.Listing) (*ListRepositoryResponse, error)
+	GetUserRepos(*domain.User, *listing.Listing) (*ListRepositoryResponse, error)
 	// GetPublicRepos get all the public repos.
 	GetPublicRepos(*listing.Listing) (*ListRepositoryResponse, error)
 }
@@ -30,7 +30,7 @@ func NewService(s Store) Service {
 	return &service{s: s}
 }
 
-func (s *service) GetUserRepos(u *pkg.User, l *listing.Listing) (*ListRepositoryResponse, error) {
+func (s *service) GetUserRepos(u *domain.User, l *listing.Listing) (*ListRepositoryResponse, error) {
 	lrepo := domain.NewListing(*l)
 	lrepo.Owner = u.ID
 	repos, err := s.s.List(lrepo)

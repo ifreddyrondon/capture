@@ -28,7 +28,7 @@ func TestServiceGetUserReposOK(t *testing.T) {
 	}}
 	s := listing.NewService(store)
 
-	u := &pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+	u := &domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 	l := &listingBastion.Listing{
 		Paging: paging.Paging{
 			Limit:  50,
@@ -47,7 +47,7 @@ func TestServiceGetUserReposErrWhenList(t *testing.T) {
 	store := &mockStore{err: errors.New("test")}
 	s := listing.NewService(store)
 
-	u := &pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+	u := &domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 	l := &listingBastion.Listing{
 		Paging: paging.Paging{
 			Limit:  50,

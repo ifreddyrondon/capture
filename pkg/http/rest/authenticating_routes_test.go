@@ -7,19 +7,19 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 )
 
 type mockAuthenticatingService struct {
-	usr      *pkg.User
+	usr      *domain.User
 	token    string
 	err      error
 	tokenErr error
 }
 
-func (s *mockAuthenticatingService) AuthenticateUser(credential authenticating.BasicCredential) (*pkg.User, error) {
+func (s *mockAuthenticatingService) AuthenticateUser(credential authenticating.BasicCredential) (*domain.User, error) {
 	return s.usr, s.err
 }
 func (s *mockAuthenticatingService) GetUserToken(string) (string, error) { return s.token, s.tokenErr }
@@ -33,7 +33,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 	t.Parallel()
 
 	s := &mockAuthenticatingService{
-		usr:   &pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"},
+		usr:   &domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"},
 		token: "token*test",
 	}
 	app := bastion.New()
@@ -51,7 +51,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 func TestAuthenticateFailBadRequest(t *testing.T) {
 	t.Parallel()
 
-	s := &mockAuthenticatingService{usr: &pkg.User{}}
+	s := &mockAuthenticatingService{usr: &domain.User{}}
 	app := bastion.New()
 	app.APIRouter.Post("/", rest.Authenticating(s))
 
@@ -111,7 +111,7 @@ func TestAuthenticateFailInternalServerErrorWhenAuthenticateUser(t *testing.T) {
 func TestAuthenticateFailInternalServerErrorWhenGetUserToken(t *testing.T) {
 	t.Parallel()
 
-	s := &mockAuthenticatingService{usr: &pkg.User{}, tokenErr: errors.New("test")}
+	s := &mockAuthenticatingService{usr: &domain.User{}, tokenErr: errors.New("test")}
 	app := bastion.New()
 	app.APIRouter.Post("/", rest.Authenticating(s))
 

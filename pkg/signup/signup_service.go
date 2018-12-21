@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-password/password"
 	"golang.org/x/crypto/bcrypt"
@@ -29,7 +29,7 @@ func isConstraintErr(err error) bool {
 
 // Store provides access to the user storage.
 type Store interface {
-	SaveUser(user *pkg.User) error
+	SaveUser(user *domain.User) error
 }
 
 // Service provides sign-up operations.
@@ -62,9 +62,9 @@ func (s *service) EnrollUser(p Payload) (*User, error) {
 	return getUser(*u), nil
 }
 
-func getDomainUser(p Payload) (*pkg.User, error) {
+func getDomainUser(p Payload) (*domain.User, error) {
 	now := time.Now()
-	u := &pkg.User{
+	u := &domain.User{
 		ID:        kallax.NewULID().String(),
 		Email:     *p.Email,
 		CreatedAt: now,
@@ -88,7 +88,7 @@ func getDomainUser(p Payload) (*pkg.User, error) {
 	return u, nil
 }
 
-func getUser(u pkg.User) *User {
+func getUser(u domain.User) *User {
 	return &User{
 		ID:        u.ID,
 		Email:     u.Email,

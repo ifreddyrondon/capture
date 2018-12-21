@@ -13,6 +13,7 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 )
@@ -70,7 +71,7 @@ type mockListingService struct {
 	err   error
 }
 
-func (m *mockListingService) GetUserRepos(u *pkg.User, l *listingBastionMiddleware.Listing) (*listing.ListRepositoryResponse, error) {
+func (m *mockListingService) GetUserRepos(u *domain.User, l *listingBastionMiddleware.Listing) (*listing.ListRepositoryResponse, error) {
 	return &listing.ListRepositoryResponse{Listing: l, Results: m.repos}, m.err
 }
 

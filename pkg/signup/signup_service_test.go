@@ -3,18 +3,18 @@ package signup_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockStore struct {
-	usr *pkg.User
+	usr *domain.User
 	err error
 }
 
-func (m *mockStore) SaveUser(user *pkg.User) error { return m.err }
+func (m *mockStore) SaveUser(user *domain.User) error { return m.err }
 
 func string2pointer(v string) *string { return &v }
 

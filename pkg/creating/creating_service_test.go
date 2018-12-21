@@ -5,6 +5,7 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/creating"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +38,7 @@ func TestServiceCreateRepoOK(t *testing.T) {
 		},
 	}
 
-	owner := &pkg.User{ID: "01679604-d8f6-29ce-2fe2-5d66dfa2d194"}
+	owner := &domain.User{ID: "01679604-d8f6-29ce-2fe2-5d66dfa2d194"}
 	s := creating.NewService(&mockStore{})
 
 	for _, tc := range tt {
@@ -58,7 +59,7 @@ func TestServiceCreateRepoErrWhenSaving(t *testing.T) {
 	t.Parallel()
 	s := creating.NewService(&mockStore{err: errors.New("test")})
 
-	owner := &pkg.User{ID: "01679604-d8f6-29ce-2fe2-5d66dfa2d194"}
+	owner := &domain.User{ID: "01679604-d8f6-29ce-2fe2-5d66dfa2d194"}
 	payl := creating.Payload{Name: string2pointer("test")}
 	_, err := s.CreateRepo(owner, payl)
 	assert.EqualError(t, err, "could not save repo: test")

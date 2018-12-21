@@ -3,7 +3,7 @@ package authenticating
 import (
 	"fmt"
 
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -30,7 +30,7 @@ const errInvalidPassword invalidCredentialErr = "invalid password"
 // Store provides access to the user storage.
 type Store interface {
 	// GetUserByEmail get user by email.
-	GetUserByEmail(string) (*pkg.User, error)
+	GetUserByEmail(string) (*domain.User, error)
 }
 
 // TokenService provides utils to handle authentication token.
@@ -42,7 +42,7 @@ type TokenService interface {
 // Service provides authenticating operations.
 type Service interface {
 	// AuthenticateUser compare the given credentials with the stored ones.
-	AuthenticateUser(BasicCredential) (*pkg.User, error)
+	AuthenticateUser(BasicCredential) (*domain.User, error)
 	GetUserToken(string) (string, error)
 }
 
@@ -65,7 +65,7 @@ func (s *service) GetUserToken(userID string) (string, error) {
 	return t, nil
 }
 
-func (s *service) AuthenticateUser(credential BasicCredential) (*pkg.User, error) {
+func (s *service) AuthenticateUser(credential BasicCredential) (*domain.User, error) {
 	u, err := s.s.GetUserByEmail(credential.Email)
 	if err != nil {
 		if isNotFound(err) {

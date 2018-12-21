@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
 )
@@ -18,7 +19,7 @@ type Store interface {
 // Service provides repository operations.
 type Service interface {
 	// CreateRepo creates a new repository to an user
-	CreateRepo(*pkg.User, Payload) (*Repository, error)
+	CreateRepo(*domain.User, Payload) (*Repository, error)
 }
 
 type service struct {
@@ -30,7 +31,7 @@ func NewService(s Store) Service {
 	return &service{s: s}
 }
 
-func (s *service) CreateRepo(owner *pkg.User, p Payload) (*Repository, error) {
+func (s *service) CreateRepo(owner *domain.User, p Payload) (*Repository, error) {
 	r := getDomainRepository(owner, p)
 	if err := s.s.SaveRepo(r); err != nil {
 		return nil, errors.Wrap(err, "could not save repo")
@@ -38,7 +39,7 @@ func (s *service) CreateRepo(owner *pkg.User, p Payload) (*Repository, error) {
 	return getRepo(*r), nil
 }
 
-func getDomainRepository(owner *pkg.User, r Payload) *pkg.Repository {
+func getDomainRepository(owner *domain.User, r Payload) *pkg.Repository {
 	// FIXME: handler id err
 	ownerID, _ := kallax.NewULIDFromText(owner.ID)
 	now := time.Now()

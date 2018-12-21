@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func TestServiceGetRepoOKWhenUserOwner(t *testing.T) {
 	store := &mockStore{repo: &pkg.Repository{ID: repoID, Name: "test1", UserID: userID}}
 	s := getting.NewService(store)
 
-	u := &pkg.User{ID: userIDTxt}
+	u := &domain.User{ID: userIDTxt}
 	repo, err := s.GetRepo(repoID.String(), u)
 	assert.Nil(t, err)
 	assert.Equal(t, "test1", repo.Name)
@@ -43,7 +44,7 @@ func TestServiceGetRepoOKWhenPublic(t *testing.T) {
 	store := &mockStore{repo: &pkg.Repository{ID: repoID, Name: "test1", Visibility: pkg.Public}}
 	s := getting.NewService(store)
 
-	u := &pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+	u := &domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 	repo, err := s.GetRepo(repoID.String(), u)
 	assert.Nil(t, err)
 	assert.Equal(t, "test1", repo.Name)
@@ -57,7 +58,7 @@ func TestServiceGetRepoErrWhenNoOwnerAndNoPublic(t *testing.T) {
 	s := getting.NewService(store)
 
 	userID := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
-	u := &pkg.User{ID: userID}
+	u := &domain.User{ID: userID}
 	_, err := s.GetRepo(repoID.String(), u)
 	assert.EqualError(t, err, fmt.Sprintf("user %v not authorized to get repo %v", userID, repoID))
 	authErr, ok := errors.Cause(err).(authorizationErr)
@@ -72,7 +73,7 @@ func TestServiceGetRepoErrGettingRepoFromStorage(t *testing.T) {
 	s := getting.NewService(store)
 
 	userID := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
-	u := &pkg.User{ID: userID}
+	u := &domain.User{ID: userID}
 	_, err := s.GetRepo("0167c8a5-d308-8692-809d-b1ad4a2d9562", u)
 	assert.EqualError(t, err, "could not get repo: test")
 }

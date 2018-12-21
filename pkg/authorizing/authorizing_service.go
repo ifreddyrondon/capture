@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 )
 
@@ -27,7 +27,7 @@ func isInvalidErr(err error) bool {
 // Store provides access to the user storage.
 type Store interface {
 	// GetUserByEmail get user by email.
-	GetUserByID(string) (*pkg.User, error)
+	GetUserByID(string) (*domain.User, error)
 }
 
 // TokenService provides utils to handle authorizing token.
@@ -38,7 +38,7 @@ type TokenService interface {
 
 // Service provides authorizing operations.
 type Service interface {
-	AuthorizeRequest(*http.Request) (*pkg.User, error)
+	AuthorizeRequest(*http.Request) (*domain.User, error)
 }
 
 type service struct {
@@ -51,7 +51,7 @@ func NewService(ts TokenService, s Store) Service {
 	return &service{ts: ts, s: s}
 }
 
-func (s *service) AuthorizeRequest(r *http.Request) (*pkg.User, error) {
+func (s *service) AuthorizeRequest(r *http.Request) (*domain.User, error) {
 	subjectID, err := s.ts.IsRequestAuthorized(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not authorized request")

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,17 +23,17 @@ func (m *mockTokenService) IsRequestAuthorized(*http.Request) (string, error) {
 }
 
 type mockStore struct {
-	usr *pkg.User
+	usr *domain.User
 	err error
 }
 
-func (m *mockStore) GetUserByID(string) (*pkg.User, error) { return m.usr, m.err }
+func (m *mockStore) GetUserByID(string) (*domain.User, error) { return m.usr, m.err }
 
 func TestServiceAuthorizeRequest(t *testing.T) {
 	t.Parallel()
 
 	uidText := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
-	u := &pkg.User{ID: uidText}
+	u := &domain.User{ID: uidText}
 
 	s := authorizing.NewService(&mockTokenService{subjectID: uidText}, &mockStore{usr: u})
 	req, _ := http.NewRequest("GET", "/", nil)

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -26,11 +26,11 @@ func setupAuthorizing(service authorizing.Service) *bastion.Bastion {
 }
 
 type mockAuthorizingService struct {
-	usr *pkg.User
+	usr *domain.User
 	err error
 }
 
-func (m *mockAuthorizingService) AuthorizeRequest(*http.Request) (*pkg.User, error) {
+func (m *mockAuthorizingService) AuthorizeRequest(*http.Request) (*domain.User, error) {
 	return m.usr, m.err
 }
 
@@ -97,7 +97,7 @@ func TestAuthorizingInternalErr(t *testing.T) {
 
 func TestContextGetUserOK(t *testing.T) {
 	ctx := context.Background()
-	u := pkg.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396", Email: "test@example.com"}
+	u := domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396", Email: "test@example.com"}
 	ctx = context.WithValue(ctx, middleware.UserCtxKey, &u)
 
 	u2, err := middleware.GetUser(ctx)

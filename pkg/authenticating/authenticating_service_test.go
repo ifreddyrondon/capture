@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,11 +18,11 @@ func (u userNotFoundMock) Error() string  { return fmt.Sprint("test") }
 func (u userNotFoundMock) NotFound() bool { return true }
 
 type mockStore struct {
-	usr *pkg.User
+	usr *domain.User
 	err error
 }
 
-func (m *mockStore) GetUserByEmail(string) (*pkg.User, error) { return m.usr, m.err }
+func (m *mockStore) GetUserByEmail(string) (*domain.User, error) { return m.usr, m.err }
 
 type mockTokenService struct {
 	token string
@@ -52,7 +52,7 @@ func TestAuthenticatingService(t *testing.T) {
 	t.Parallel()
 
 	credential := authenticating.BasicCredential{Password: "secret"}
-	mockUser := &pkg.User{Password: []byte("$2a$14$ajq8Q7fbtFRQvXpdCq7Jcuy.Rx1h/L4J60Otx.gyNLbAYctGMJ9tK")}
+	mockUser := &domain.User{Password: []byte("$2a$14$ajq8Q7fbtFRQvXpdCq7Jcuy.Rx1h/L4J60Otx.gyNLbAYctGMJ9tK")}
 	s := authenticating.NewService(&mockTokenService{}, &mockStore{usr: mockUser})
 	result, err := s.AuthenticateUser(credential)
 	assert.Nil(t, err)
@@ -81,7 +81,7 @@ func TestAuthenticatingServiceFailInvalidPassword(t *testing.T) {
 	t.Parallel()
 
 	credential := authenticating.BasicCredential{Password: "secret2"}
-	mockUser := &pkg.User{Password: []byte("$2a$14$ajq8Q7fbtFRQvXpdCq7Jcuy.Rx1h/L4J60Otx.gyNLbAYctGMJ9tK")}
+	mockUser := &domain.User{Password: []byte("$2a$14$ajq8Q7fbtFRQvXpdCq7Jcuy.Rx1h/L4J60Otx.gyNLbAYctGMJ9tK")}
 	s := authenticating.NewService(&mockTokenService{}, &mockStore{usr: mockUser})
 	_, err := s.AuthenticateUser(credential)
 	assert.EqualError(t, err, "invalid password")

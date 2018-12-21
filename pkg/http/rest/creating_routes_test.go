@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/creating"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
 
-var tempUser = pkg.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+var tempUser = domain.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
 
 func notUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +34,7 @@ type mockCreatingService struct {
 	err  error
 }
 
-func (m *mockCreatingService) CreateRepo(*pkg.User, creating.Payload) (*creating.Repository, error) {
+func (m *mockCreatingService) CreateRepo(*domain.User, creating.Payload) (*creating.Repository, error) {
 	return m.repo, m.err
 }
 
