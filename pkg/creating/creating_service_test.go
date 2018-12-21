@@ -3,18 +3,18 @@ package creating_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockStore struct {
 	err error
 }
 
-func (m *mockStore) SaveRepo(repo *pkg.Repository) error { return m.err }
+func (m *mockStore) SaveRepo(repo *domain.Repository) error { return m.err }
 
 func string2pointer(v string) *string { return &v }
 
@@ -38,7 +38,7 @@ func TestServiceCreateRepoOK(t *testing.T) {
 		},
 	}
 
-	owner := &domain.User{ID: "01679604-d8f6-29ce-2fe2-5d66dfa2d194"}
+	owner := &domain.User{ID: kallax.NewULID()}
 	s := creating.NewService(&mockStore{})
 
 	for _, tc := range tt {
@@ -59,7 +59,7 @@ func TestServiceCreateRepoErrWhenSaving(t *testing.T) {
 	t.Parallel()
 	s := creating.NewService(&mockStore{err: errors.New("test")})
 
-	owner := &domain.User{ID: "01679604-d8f6-29ce-2fe2-5d66dfa2d194"}
+	owner := &domain.User{ID: kallax.NewULID()}
 	payl := creating.Payload{Name: string2pointer("test")}
 	_, err := s.CreateRepo(owner, payl)
 	assert.EqualError(t, err, "could not save repo: test")

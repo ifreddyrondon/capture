@@ -65,7 +65,7 @@ func (s *service) EnrollUser(p Payload) (*User, error) {
 func getDomainUser(p Payload) (*domain.User, error) {
 	now := time.Now()
 	u := &domain.User{
-		ID:        kallax.NewULID().String(),
+		ID:        kallax.NewULID(),
 		Email:     *p.Email,
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -90,7 +90,7 @@ func getDomainUser(p Payload) (*domain.User, error) {
 
 func getUser(u domain.User) *User {
 	return &User{
-		ID:        u.ID,
+		ID:        u.ID.String(),
 		Email:     u.Email,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,

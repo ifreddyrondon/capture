@@ -6,6 +6,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type notFoundErr interface {
@@ -43,7 +44,7 @@ type TokenService interface {
 type Service interface {
 	// AuthenticateUser compare the given credentials with the stored ones.
 	AuthenticateUser(BasicCredential) (*domain.User, error)
-	GetUserToken(string) (string, error)
+	GetUserToken(kallax.ULID) (string, error)
 }
 
 type service struct {
@@ -57,8 +58,8 @@ func NewService(ts TokenService, s Store) Service {
 }
 
 // GenerateToken creates a new token
-func (s *service) GetUserToken(userID string) (string, error) {
-	t, err := s.ts.GenerateToken(userID)
+func (s *service) GetUserToken(userID kallax.ULID) (string, error) {
+	t, err := s.ts.GenerateToken(userID.String())
 	if err != nil {
 		return "", errors.Wrap(err, "could not generate token")
 	}

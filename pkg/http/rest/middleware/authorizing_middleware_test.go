@@ -13,6 +13,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func setupAuthorizing(service authorizing.Service) *bastion.Bastion {
@@ -42,6 +43,23 @@ func TestAuthorizingSuccess(t *testing.T) {
 	e.GET("/").WithHeader("Authorization", fmt.Sprintf("Bearer %v", "test")).
 		Expect().
 		Status(http.StatusOK)
+}
+
+func TestAuthorizingInvalidID(t *testing.T) {
+	t.Parallel()
+
+	app := setupAuthorizing(&mockAuthorizingService{err: invalidErr("test")})
+	response := map[string]interface{}{
+		"status":  400.0,
+		"error":   "Bad Request",
+		"message": "invalid user id format",
+	}
+
+	e := bastion.Tester(t, app)
+	e.GET("/").WithHeader("Authorization", "Bearer Test").
+		Expect().
+		Status(http.StatusBadRequest).
+		JSON().Object().Equal(response)
 }
 
 func TestAuthorizingNotAuthorized(t *testing.T) {
@@ -97,7 +115,7 @@ func TestAuthorizingInternalErr(t *testing.T) {
 
 func TestContextGetUserOK(t *testing.T) {
 	ctx := context.Background()
-	u := domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396", Email: "test@example.com"}
+	u := domain.User{ID: kallax.NewULID(), Email: "test@example.com"}
 	ctx = context.WithValue(ctx, middleware.UserCtxKey, &u)
 
 	u2, err := middleware.GetUser(ctx)

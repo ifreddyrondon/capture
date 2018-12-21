@@ -2,7 +2,7 @@ package domain
 
 import (
 	"github.com/ifreddyrondon/bastion/middleware/listing"
-	"github.com/ifreddyrondon/capture/pkg"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 // Listing allows to sort and filter search results between services and storage.
@@ -10,8 +10,8 @@ type Listing struct {
 	SortKey    string
 	Offset     int64
 	Limit      int
-	Owner      string
-	Visibility *pkg.Visibility
+	Owner      *kallax.ULID
+	Visibility *Visibility
 }
 
 // NewListing returns a new Listing instance with offset and limit from listing.Listing.
@@ -32,7 +32,7 @@ func NewListing(l listing.Listing) *Listing {
 
 	for i := range l.Filtering.Filters {
 		if l.Filtering.Filters[i].ID == "visibility" {
-			visibility := pkg.Visibility(l.Filtering.Filters[i].Values[0].ID)
+			visibility := Visibility(l.Filtering.Filters[i].Values[0].ID)
 			domainListing.Visibility = &visibility
 			break
 		}

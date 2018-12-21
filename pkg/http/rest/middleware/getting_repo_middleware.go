@@ -8,9 +8,10 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/pkg/errors"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 var (
@@ -24,18 +25,18 @@ var (
 	errInvalidRepoID  = errors.New("invalid repository id")
 )
 
-func withRepo(ctx context.Context, repo *pkg.Repository) context.Context {
+func withRepo(ctx context.Context, repo *domain.Repository) context.Context {
 	return context.WithValue(ctx, RepoCtxKey, repo)
 }
 
 // GetRepo returns the repo assigned to the context, or error if there
 // is any error or there isn't a repo.
-func GetRepo(ctx context.Context) (*pkg.Repository, error) {
+func GetRepo(ctx context.Context) (*domain.Repository, error) {
 	tmp := ctx.Value(RepoCtxKey)
 	if tmp == nil {
 		return nil, errMissingCtxRepo
 	}
-	repo, ok := tmp.(*pkg.Repository)
+	repo, ok := tmp.(*domain.Repository)
 	if !ok {
 		return nil, errWrongRepoValue
 	}
@@ -54,12 +55,14 @@ func RepoCtx(service getting.Service) func(next http.Handler) http.Handler {
 				return
 			}
 
-			repo, err := service.GetRepo(repoID, u)
+			id, err := kallax.NewULIDFromText(repoID)
 			if err != nil {
-				if isInvalidErr(err) {
-					json.BadRequest(w, errInvalidRepoID)
-					return
-				}
+				json.BadRequest(w, errInvalidRepoID)
+				return
+			}
+
+			repo, err := service.GetRepo(id, u)
+			if err != nil {
 				if isNotFound(err) {
 					json.NotFound(w, errMissingRepo)
 					return

@@ -3,7 +3,6 @@ package getting
 import (
 	"fmt"
 
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
@@ -17,13 +16,13 @@ func (i notAuthorizedErr) IsNotAuthorized() bool { return true }
 // Store provides access to the repository storage.
 type Store interface {
 	// Get retrieve a repository from storage.
-	Get(string) (*pkg.Repository, error)
+	Get(kallax.ULID) (*domain.Repository, error)
 }
 
 // Service provides listing repository operations.
 type Service interface {
 	// GetRepo retrieve a user repo or public repository .
-	GetRepo(string, *domain.User) (*pkg.Repository, error)
+	GetRepo(kallax.ULID, *domain.User) (*domain.Repository, error)
 }
 
 type service struct {
@@ -35,14 +34,13 @@ func NewService(s Store) Service {
 	return &service{s: s}
 }
 
-func (s *service) GetRepo(id string, user *domain.User) (*pkg.Repository, error) {
+func (s *service) GetRepo(id kallax.ULID, user *domain.User) (*domain.Repository, error) {
 	repo, err := s.s.Get(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get repo")
 	}
 
-	loggedUsrID, _ := kallax.NewULIDFromText(user.ID)
-	if repo.Visibility != pkg.Public && repo.UserID != loggedUsrID {
+	if repo.Visibility != domain.Public && repo.UserID != user.ID {
 		errStr := fmt.Sprintf("user %v not authorized to get repo %v", user.ID, id)
 		return nil, errors.WithStack(notAuthorizedErr(errStr))
 	}

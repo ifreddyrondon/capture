@@ -13,6 +13,7 @@ import (
 )
 
 var (
+	errInvalidUserID  = errors.New("invalid user id format")
 	errMissingUser    = errors.New("user not found in context")
 	errWrongUserValue = errors.New("user value set incorrectly in context")
 )
@@ -45,6 +46,10 @@ func AuthorizeReq(service authorizing.Service) func(next http.Handler) http.Hand
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			u, err := service.AuthorizeRequest(r)
 			if err != nil {
+				if isInvalidErr(err) {
+					json.BadRequest(w, errInvalidUserID)
+					return
+				}
 				if isNotAuthorized(err) {
 					httpErr := render.HTTPError{
 						Status:  http.StatusForbidden,

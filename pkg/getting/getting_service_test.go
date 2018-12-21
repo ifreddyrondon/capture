@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/pkg/errors"
@@ -15,11 +14,11 @@ import (
 type authorizationErr interface{ IsNotAuthorized() bool }
 
 type mockStore struct {
-	repo *pkg.Repository
+	repo *domain.Repository
 	err  error
 }
 
-func (m *mockStore) Get(string) (*pkg.Repository, error) { return m.repo, m.err }
+func (m *mockStore) Get(kallax.ULID) (*domain.Repository, error) { return m.repo, m.err }
 
 func TestServiceGetRepoOKWhenUserOwner(t *testing.T) {
 	t.Parallel()
@@ -28,11 +27,11 @@ func TestServiceGetRepoOKWhenUserOwner(t *testing.T) {
 	userID, err := kallax.NewULIDFromText(userIDTxt)
 	assert.Nil(t, err)
 	repoID := kallax.NewULID()
-	store := &mockStore{repo: &pkg.Repository{ID: repoID, Name: "test1", UserID: userID}}
+	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", UserID: userID}}
 	s := getting.NewService(store)
 
-	u := &domain.User{ID: userIDTxt}
-	repo, err := s.GetRepo(repoID.String(), u)
+	u := &domain.User{ID: userID}
+	repo, err := s.GetRepo(repoID, u)
 	assert.Nil(t, err)
 	assert.Equal(t, "test1", repo.Name)
 }
@@ -41,11 +40,14 @@ func TestServiceGetRepoOKWhenPublic(t *testing.T) {
 	t.Parallel()
 
 	repoID := kallax.NewULID()
-	store := &mockStore{repo: &pkg.Repository{ID: repoID, Name: "test1", Visibility: pkg.Public}}
+	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Public}}
 	s := getting.NewService(store)
 
-	u := &domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
-	repo, err := s.GetRepo(repoID.String(), u)
+	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
+	userID, err := kallax.NewULIDFromText(userIDTxt)
+	assert.Nil(t, err)
+	u := &domain.User{ID: userID}
+	repo, err := s.GetRepo(repoID, u)
 	assert.Nil(t, err)
 	assert.Equal(t, "test1", repo.Name)
 }
@@ -54,12 +56,14 @@ func TestServiceGetRepoErrWhenNoOwnerAndNoPublic(t *testing.T) {
 	t.Parallel()
 
 	repoID := kallax.NewULID()
-	store := &mockStore{repo: &pkg.Repository{ID: repoID, Name: "test1", Visibility: pkg.Private}}
+	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Private}}
 	s := getting.NewService(store)
 
-	userID := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
+	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
+	userID, err := kallax.NewULIDFromText(userIDTxt)
+	assert.Nil(t, err)
 	u := &domain.User{ID: userID}
-	_, err := s.GetRepo(repoID.String(), u)
+	_, err = s.GetRepo(repoID, u)
 	assert.EqualError(t, err, fmt.Sprintf("user %v not authorized to get repo %v", userID, repoID))
 	authErr, ok := errors.Cause(err).(authorizationErr)
 	assert.True(t, ok)
@@ -72,8 +76,10 @@ func TestServiceGetRepoErrGettingRepoFromStorage(t *testing.T) {
 	store := &mockStore{err: errors.New("test")}
 	s := getting.NewService(store)
 
-	userID := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
+	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
+	userID, err := kallax.NewULIDFromText(userIDTxt)
+	assert.Nil(t, err)
 	u := &domain.User{ID: userID}
-	_, err := s.GetRepo("0167c8a5-d308-8692-809d-b1ad4a2d9562", u)
+	_, err = s.GetRepo(kallax.NewULID(), u)
 	assert.EqualError(t, err, "could not get repo: test")
 }

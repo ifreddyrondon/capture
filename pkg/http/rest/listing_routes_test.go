@@ -12,7 +12,6 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/listing"
@@ -67,7 +66,7 @@ func listingMiddlewareBAD(next http.Handler) http.Handler {
 }
 
 type mockListingService struct {
-	repos []pkg.Repository
+	repos []domain.Repository
 	err   error
 }
 
@@ -97,7 +96,7 @@ func setupListingUserReposHandler(s listing.Service, listMiddle, auth func(http.
 func TestListingPublicReposSuccess(t *testing.T) {
 	t.Parallel()
 
-	repos := []pkg.Repository{
+	repos := []domain.Repository{
 		{Name: "test public", Visibility: "public"},
 		{Name: "test private", Visibility: "private"},
 	}
@@ -153,7 +152,7 @@ func TestListingPublicReposInternalServerGettingRepos(t *testing.T) {
 func TestListingUserReposSuccess(t *testing.T) {
 	t.Parallel()
 
-	repos := []pkg.Repository{
+	repos := []domain.Repository{
 		{Name: "test public", Visibility: "public"},
 		{Name: "test private", Visibility: "private"},
 	}

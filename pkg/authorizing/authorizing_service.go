@@ -6,7 +6,13 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
+	"gopkg.in/src-d/go-kallax.v1"
 )
+
+type invalidIDErr string
+
+func (i invalidIDErr) Error() string   { return fmt.Sprintf(string(i)) }
+func (i invalidIDErr) IsInvalid() bool { return true }
 
 type invalidCredentialErr string
 
@@ -26,8 +32,8 @@ func isInvalidErr(err error) bool {
 
 // Store provides access to the user storage.
 type Store interface {
-	// GetUserByEmail get user by email.
-	GetUserByID(string) (*domain.User, error)
+	// GetUserByID get user by id.
+	GetUserByID(kallax.ULID) (*domain.User, error)
 }
 
 // TokenService provides utils to handle authorizing token.
@@ -56,8 +62,11 @@ func (s *service) AuthorizeRequest(r *http.Request) (*domain.User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not authorized request")
 	}
-
-	u, err := s.s.GetUserByID(subjectID)
+	id, err := kallax.NewULIDFromText(subjectID)
+	if err != nil {
+		return nil, invalidIDErr(fmt.Sprintf("%v is not a valid ULID", subjectID))
+	}
+	u, err := s.s.GetUserByID(id)
 	if isInvalidErr(err) {
 		return nil, errors.WithStack(invalidCredentialErr(err.Error()))
 	}

@@ -12,9 +12,10 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
-var tempUser = domain.User{Email: "test@example.com", ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+var tempUser = domain.User{Email: "test@example.com", ID: kallax.NewULID()}
 
 func notUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

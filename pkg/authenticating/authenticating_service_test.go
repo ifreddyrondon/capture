@@ -8,6 +8,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type authenticatingErr interface{ InvalidCredentials() bool }
@@ -34,17 +35,17 @@ func (m *mockTokenService) GenerateToken(string) (string, error) { return m.toke
 func TestAuthenticatingServiceGenerateToken(t *testing.T) {
 	t.Parallel()
 
-	s := authenticating.NewService(&mockTokenService{token: "a"}, &mockStore{})
-	result, err := s.GetUserToken("a")
+	s := authenticating.NewService(&mockTokenService{token: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}, &mockStore{})
+	result, err := s.GetUserToken(kallax.NewULID())
 	assert.Nil(t, err)
-	assert.Equal(t, "a", result)
+	assert.Equal(t, "0162eb39-a65e-04a1-7ad9-d663bb49a396", result)
 }
 
 func TestAuthenticatingServiceGenerateTokenErr(t *testing.T) {
 	t.Parallel()
 
 	s := authenticating.NewService(&mockTokenService{token: "", err: errors.New("test")}, &mockStore{})
-	_, err := s.GetUserToken("a")
+	_, err := s.GetUserToken(kallax.NewULID())
 	assert.Error(t, err)
 }
 

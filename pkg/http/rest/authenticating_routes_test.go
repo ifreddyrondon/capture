@@ -10,6 +10,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockAuthenticatingService struct {
@@ -22,7 +23,9 @@ type mockAuthenticatingService struct {
 func (s *mockAuthenticatingService) AuthenticateUser(credential authenticating.BasicCredential) (*domain.User, error) {
 	return s.usr, s.err
 }
-func (s *mockAuthenticatingService) GetUserToken(string) (string, error) { return s.token, s.tokenErr }
+func (s *mockAuthenticatingService) GetUserToken(kallax.ULID) (string, error) {
+	return s.token, s.tokenErr
+}
 
 type invalidCredentialErr string
 
@@ -33,7 +36,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 	t.Parallel()
 
 	s := &mockAuthenticatingService{
-		usr:   &domain.User{ID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"},
+		usr:   &domain.User{ID: kallax.NewULID()},
 		token: "token*test",
 	}
 	app := bastion.New()

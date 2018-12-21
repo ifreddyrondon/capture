@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
 
 func repoCtxtMiddlewareOK(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		repo := &pkg.Repository{Name: "test public", Visibility: "public"}
+		repo := &domain.Repository{Name: "test public", Visibility: "public"}
 
 		ctx := context.WithValue(r.Context(), middleware.RepoCtxKey, repo)
 		next.ServeHTTP(w, r.WithContext(ctx))

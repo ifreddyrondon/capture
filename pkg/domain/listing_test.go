@@ -7,7 +7,6 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,7 +24,7 @@ func TestNewListingWithoutVisibilityFilterAndSorting(t *testing.T) {
 	assert.Equal(t, 50, result.Limit)
 	assert.Equal(t, int64(0), result.Offset)
 	assert.Equal(t, "", result.SortKey)
-	assert.Equal(t, "", result.Owner)
+	assert.Nil(t, result.Owner)
 	assert.Nil(t, result.Visibility)
 }
 
@@ -49,7 +48,7 @@ func TestNewListingWithSortingAndWithoutVisibilityFilter(t *testing.T) {
 	assert.Equal(t, 50, result.Limit)
 	assert.Equal(t, int64(0), result.Offset)
 	assert.Equal(t, "created_at DESC", result.SortKey)
-	assert.Equal(t, "", result.Owner)
+	assert.Nil(t, result.Owner)
 	assert.Nil(t, result.Visibility)
 }
 
@@ -79,7 +78,7 @@ func TestNewListingWithVisibilityFilterNotAppliedAndWithoutSorting(t *testing.T)
 	assert.Equal(t, 50, result.Limit)
 	assert.Equal(t, int64(0), result.Offset)
 	assert.Equal(t, "", result.SortKey)
-	assert.Equal(t, "", result.Owner)
+	assert.Nil(t, result.Owner)
 	assert.Nil(t, result.Visibility)
 }
 
@@ -117,8 +116,8 @@ func TestNewListingWithVisibilityFilterAppliedAndWithoutSorting(t *testing.T) {
 	assert.Equal(t, 50, result.Limit)
 	assert.Equal(t, int64(0), result.Offset)
 	assert.Equal(t, "", result.SortKey)
-	assert.Equal(t, "", result.Owner)
-	assert.Equal(t, &pkg.Public, result.Visibility)
+	assert.Nil(t, result.Owner)
+	assert.Equal(t, &domain.Public, result.Visibility)
 }
 
 func TestNewListingWithVisibilityFilterAppliedAndSorting(t *testing.T) {
@@ -161,6 +160,6 @@ func TestNewListingWithVisibilityFilterAppliedAndSorting(t *testing.T) {
 	assert.Equal(t, 50, result.Limit)
 	assert.Equal(t, int64(0), result.Offset)
 	assert.Equal(t, "created_at DESC", result.SortKey)
-	assert.Equal(t, "", result.Owner)
-	assert.Equal(t, &pkg.Public, result.Visibility)
+	assert.Nil(t, result.Owner)
+	assert.Equal(t, &domain.Public, result.Visibility)
 }
