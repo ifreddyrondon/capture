@@ -27,7 +27,7 @@ func Routes(store Store) http.Handler {
 
 	r := bastion.NewRouter()
 	r.Get("/", c.list)
-	r.Post("/", c.create)
+	r.Post("/test", c.create)
 	r.Route("/{id}", func(r chi.Router) {
 		r.Use(c.captureCtx)
 		r.Get("/", c.get)

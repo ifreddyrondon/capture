@@ -3,8 +3,11 @@ package config
 import (
 	"time"
 
+	"github.com/ifreddyrondon/capture/pkg/adding"
+	captureOld "github.com/ifreddyrondon/capture/pkg/capture"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/listing"
+	"github.com/ifreddyrondon/capture/pkg/storage/postgres/capture"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
 
 	"github.com/ifreddyrondon/capture/pkg/creating"
@@ -12,7 +15,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
 	"github.com/ifreddyrondon/capture/pkg/branch"
-	"github.com/ifreddyrondon/capture/pkg/capture"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/multipost"
@@ -31,10 +33,10 @@ func getResources(cfg *Config) di.Container {
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				database := cfg.Resources.Get("database").(*gorm.DB)
-				store := capture.NewPGStore(database)
+				store := captureOld.NewPGStore(database)
 				store.Drop()
 				store.Migrate()
-				return capture.Routes(store), nil
+				return captureOld.Routes(store), nil
 			},
 		},
 		{
@@ -169,6 +171,26 @@ func getResources(cfg *Config) di.Container {
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				return rest.GettingRepo(), nil
+			},
+		},
+		{
+			Name:  "capture-storage",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				database := cfg.Resources.Get("database").(*gorm.DB)
+				s := capture.NewPGStorage(database)
+				s.Drop()
+				s.Migrate()
+				return s, nil
+			},
+		},
+		{
+			Name:  "adding-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("capture-storage").(adding.Store)
+				s := adding.NewService(store)
+				return rest.Adding(s), nil
 			},
 		},
 	}

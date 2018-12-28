@@ -2,8 +2,6 @@ package capture_test
 
 import (
 	"fmt"
-	"math"
-	"math/rand"
 	"net/http"
 	"testing"
 
@@ -26,302 +24,9 @@ func setup(t *testing.T) (*bastion.Bastion, func()) {
 	store.Migrate()
 
 	app := bastion.New()
-	app.APIRouter.Mount("/captures/", capture.Routes(store))
+	app.APIRouter.Mount("/", capture.Routes(store))
 
 	return app, func() { store.Drop() }
-}
-
-func TestCreateValidCapture(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
-
-	e := bastion.Tester(t, app)
-	tt := []struct {
-		name     string
-		payload  map[string]interface{}
-		response map[string]interface{}
-	}{
-		{
-			name: "create capture with payload, date and point",
-			payload: map[string]interface{}{
-				"location": map[string]float64{
-					"latitude":  1,
-					"longitude": 12,
-				},
-				"timestamp": "630655260",
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-			response: map[string]interface{}{
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-				"location": map[string]float64{
-					"lat": 1,
-					"lng": 12,
-				},
-				"timestamp": "1989-12-26T06:01:00Z",
-				"tags":      []string{},
-			},
-		},
-		{
-			name: "create capture with multiple metrics in payload",
-			payload: map[string]interface{}{
-				"location": map[string]float64{
-					"latitude":  1,
-					"longitude": 12,
-				},
-				"timestamp": "630655260",
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-					{
-						"name":  "frequency",
-						"value": []interface{}{100.0, 200.0, 300.0},
-					},
-				},
-			},
-			response: map[string]interface{}{
-				"location": map[string]float64{
-					"lat": 1,
-					"lng": 12,
-				},
-				"timestamp": "1989-12-26T06:01:00Z",
-				"tags":      []string{},
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-					{
-						"name":  "frequency",
-						"value": []interface{}{100.0, 200.0, 300.0},
-					},
-				},
-			},
-		},
-		{
-			name: "create capture with payload, date and point with altitude",
-			payload: map[string]interface{}{
-				"location": map[string]float64{
-					"latitude":  1,
-					"longitude": 12,
-					"altitude":  50,
-				},
-				"timestamp": "630655260",
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-			response: map[string]interface{}{
-				"location": map[string]float64{
-					"lat":       1,
-					"lng":       12,
-					"elevation": 50,
-				},
-				"timestamp": "1989-12-26T06:01:00Z",
-				"tags":      []string{},
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-		},
-		{
-			name: "create capture with payload and date without point",
-			payload: map[string]interface{}{
-				"date": "630655260",
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-			response: map[string]interface{}{
-				"location":  nil,
-				"timestamp": "1989-12-26T06:01:00Z",
-				"tags":      []string{},
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-		},
-		{
-			name: "create capture with payload and tags",
-			payload: map[string]interface{}{
-				"timestamp": "630655260",
-				"tags":      []string{"tag1", "tag2"},
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-			response: map[string]interface{}{
-				"location":  nil,
-				"timestamp": "1989-12-26T06:01:00Z",
-				"tags":      []string{"tag1", "tag2"},
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-			},
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			e.POST("/captures/").
-				WithJSON(tc.payload).
-				Expect().
-				Status(http.StatusCreated).
-				JSON().Object().
-				ContainsKey("payload").ValueEqual("payload", tc.response["payload"]).
-				ContainsKey("location").ValueEqual("location", tc.response["location"]).
-				ContainsKey("timestamp").ValueEqual("timestamp", tc.response["timestamp"]).
-				ContainsKey("tags").ValueEqual("tags", tc.response["tags"]).
-				ContainsKey("id").NotEmpty().
-				ContainsKey("createdAt").NotEmpty().
-				ContainsKey("updatedAt").NotEmpty()
-		})
-	}
-}
-
-func TestCreateOnlyPayloadCapture(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
-
-	body := map[string]interface{}{
-		"payload": []map[string]interface{}{
-			{
-				"name":  "power",
-				"value": []interface{}{-70.0, -100.1, 3.1},
-			},
-		},
-	}
-	e := bastion.Tester(t, app)
-	e.POST("/captures/").
-		WithJSON(body).
-		Expect().
-		Status(http.StatusCreated).
-		JSON().Object().
-		ContainsKey("payload").ValueEqual("payload", body["payload"]).
-		ContainsKey("tags").ValueEqual("tags", []string{}).
-		ContainsKey("location").ValueEqual("location", nil).
-		ContainsKey("timestamp").NotEmpty().
-		ContainsKey("id").NotEmpty().
-		ContainsKey("createdAt").NotEmpty().
-		ContainsKey("updatedAt").NotEmpty()
-}
-
-func TestCreateInvalidCapture(t *testing.T) {
-	app, teardown := setup(t)
-	defer teardown()
-
-	e := bastion.Tester(t, app)
-	tt := []struct {
-		name     string
-		payload  map[string]interface{}
-		response map[string]interface{}
-	}{
-		{
-			name:    "bad request, missing body",
-			payload: map[string]interface{}{},
-			response: map[string]interface{}{
-				"status":  400.0,
-				"error":   "Bad Request",
-				"message": "payload value must not be blank",
-			},
-		},
-		{
-			name: "bad request, missing lng",
-			payload: map[string]interface{}{
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-				"location": map[string]float64{
-					"lat": 1,
-				},
-				"date": "630655260",
-			},
-			response: map[string]interface{}{
-				"status":  400.0,
-				"error":   "Bad Request",
-				"message": "longitude must not be blank",
-			},
-		},
-		{
-			name: "bad request, missing lat",
-			payload: map[string]interface{}{
-				"payload": []map[string]interface{}{
-					{
-						"name":  "power",
-						"value": []interface{}{-70.0, -100.1, 3.1},
-					},
-				},
-				"location": map[string]float64{
-					"lng": 1,
-				},
-				"date": "630655260",
-			},
-			response: map[string]interface{}{
-				"status":  400.0,
-				"error":   "Bad Request",
-				"message": "latitude must not be blank",
-			},
-		},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			e.POST("/captures/").
-				WithJSON(tc.payload).
-				Expect().
-				Status(http.StatusBadRequest).
-				JSON().Object().Equal(tc.response)
-		})
-	}
-}
-
-func TestCreateInvalidPayloadCapture(t *testing.T) {
-	response := map[string]interface{}{
-		"status":  400.0,
-		"error":   "Bad Request",
-		"message": "cannot unmarshal json into valid capture",
-	}
-
-	app, teardown := setup(t)
-	defer teardown()
-	e := bastion.Tester(t, app)
-	e.POST("/captures/").
-		WithJSON("{").
-		Expect().
-		Status(http.StatusBadRequest).
-		JSON().Object().Equal(response)
 }
 
 //func TestBulkCreateValidCapture(t *testing.T) {
@@ -500,7 +205,7 @@ func TestCreateInvalidPayloadCapture(t *testing.T) {
 //
 //	for _, tc := range tt {
 //		t.Run(tc.name, func(t *testing.T) {
-//			array := e.POST("/captures/").
+//			array := e.POST("/test").
 //				WithJSON(tc.payload).
 //				Expect().
 //				Status(http.StatusCreated).
@@ -562,7 +267,7 @@ func TestCreateInvalidPayloadCapture(t *testing.T) {
 //		},
 //	}
 //
-//	e.POST("/captures/").
+//	e.POST("/test").
 //		WithJSON(payload).
 //		Expect().
 //		Status(http.StatusCreated).
@@ -630,7 +335,7 @@ func TestCreateInvalidPayloadCapture(t *testing.T) {
 //
 //	for _, tc := range tt {
 //		t.Run(tc.name, func(t *testing.T) {
-//			e.POST("/captures/").
+//			e.POST("/test").
 //				WithJSON(tc.payload).
 //				Expect().
 //				Status(http.StatusBadRequest).
@@ -644,7 +349,7 @@ func TestListCapturesWhenEmpty(t *testing.T) {
 	defer teardown()
 
 	e := bastion.Tester(t, app)
-	e.GET("/captures/").Expect().JSON().Array().Empty()
+	e.GET("/").Expect().JSON().Array().Empty()
 }
 
 func TestListCapturesWithValues(t *testing.T) {
@@ -660,9 +365,9 @@ func TestListCapturesWithValues(t *testing.T) {
 		},
 	}
 	e := bastion.Tester(t, app)
-	e.POST("/captures/").WithJSON(payload).Expect().Status(http.StatusCreated)
+	e.POST("/test").WithJSON(payload).Expect().Status(http.StatusCreated)
 
-	array := e.GET("/captures/").
+	array := e.GET("/").
 		Expect().
 		Status(http.StatusOK).
 		JSON().Array().NotEmpty()
@@ -698,10 +403,10 @@ func TestGetCapture(t *testing.T) {
 		},
 	}
 	e := bastion.Tester(t, app)
-	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
+	obj := e.POST("/test").WithJSON(capPayload).Expect().Status(http.StatusCreated).
 		JSON().Object().Raw()
 
-	e.GET(fmt.Sprintf("/captures/%v", obj["id"])).Expect().
+	e.GET(fmt.Sprintf("/%v", obj["id"])).Expect().
 		Status(http.StatusOK).
 		JSON().Object().
 		ContainsKey("payload").ValueEqual("payload", capPayload["payload"]).
@@ -724,7 +429,7 @@ func TestGetMissingCapture(t *testing.T) {
 	}
 
 	e := bastion.Tester(t, app)
-	e.GET("/captures/00000000-0000-0000-0000-000000000000").Expect().
+	e.GET("/00000000-0000-0000-0000-000000000000").Expect().
 		Status(http.StatusNotFound).
 		JSON().Object().Equal(response)
 }
@@ -740,7 +445,7 @@ func TestGetCaptureBadRequest(t *testing.T) {
 	}
 
 	e := bastion.Tester(t, app)
-	e.GET("/captures/ads").Expect().
+	e.GET("/ads").Expect().
 		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
 }
@@ -758,14 +463,14 @@ func TestDeleteCapture(t *testing.T) {
 		},
 	}
 	e := bastion.Tester(t, app)
-	obj := e.POST("/captures/").WithJSON(capPayload).Expect().Status(http.StatusCreated).
+	obj := e.POST("/test").WithJSON(capPayload).Expect().Status(http.StatusCreated).
 		JSON().Object().Raw()
 
 	id := obj["id"]
 
-	e.GET(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusOK)
-	e.DELETE(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusNoContent)
-	e.GET(fmt.Sprintf("/captures/%v", id)).Expect().Status(http.StatusNotFound)
+	e.GET(fmt.Sprintf("/%v", id)).Expect().Status(http.StatusOK)
+	e.DELETE(fmt.Sprintf("/%v", id)).Expect().Status(http.StatusNoContent)
+	e.GET(fmt.Sprintf("/%v", id)).Expect().Status(http.StatusNotFound)
 }
 
 func TestUpdateCapture(t *testing.T) {
@@ -879,13 +584,13 @@ func TestUpdateCapture(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			createdObj := e.POST("/captures/").WithJSON(capPayload).Expect().
+			createdObj := e.POST("/test").WithJSON(capPayload).Expect().
 				Status(http.StatusCreated).JSON().Object().Raw()
 
-			e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
+			e.GET(fmt.Sprintf("/%v", createdObj["id"])).Expect().Status(http.StatusOK)
 			tc.updatePayload["id"] = createdObj["id"]
 
-			updatedObj := e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
+			updatedObj := e.PUT(fmt.Sprintf("/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
 				Status(http.StatusOK).
 				JSON().Object().
 				ContainsKey("id").ValueEqual("id", tc.updatePayload["id"]).
@@ -966,11 +671,11 @@ func TestUpdateCaptureFailsBadRequest(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			createdObj := e.POST("/captures/").WithJSON(capPayload).Expect().
+			createdObj := e.POST("/test").WithJSON(capPayload).Expect().
 				Status(http.StatusCreated).JSON().Object().Raw()
-			e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
+			e.GET(fmt.Sprintf("/%v", createdObj["id"])).Expect().Status(http.StatusOK)
 			tc.updatePayload["id"] = createdObj["id"]
-			e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
+			e.PUT(fmt.Sprintf("/%v", createdObj["id"])).WithJSON(tc.updatePayload).Expect().
 				Status(http.StatusBadRequest).
 				JSON().Object().Equal(tc.response)
 		})
@@ -1002,11 +707,11 @@ func TestUpdateCaptureFailsBadRequestWhenMissingID(t *testing.T) {
 		"message": "capture id must not be blank",
 	}
 
-	createdObj := e.POST("/captures/").WithJSON(capPayload).Expect().
+	createdObj := e.POST("/test").WithJSON(capPayload).Expect().
 		Status(http.StatusCreated).JSON().Object().Raw()
-	e.GET(fmt.Sprintf("/captures/%v", createdObj["id"])).Expect().Status(http.StatusOK)
+	e.GET(fmt.Sprintf("/%v", createdObj["id"])).Expect().Status(http.StatusOK)
 
-	e.PUT(fmt.Sprintf("/captures/%v", createdObj["id"])).WithJSON(capPayload).Expect().
+	e.PUT(fmt.Sprintf("/%v", createdObj["id"])).WithJSON(capPayload).Expect().
 		Status(http.StatusBadRequest).
 		JSON().Object().Equal(response)
 }
@@ -1034,7 +739,7 @@ func TestUpdateCaptureFailsBadRequestWhenMissingID(t *testing.T) {
 //
 //	for _, tc := range tt {
 //		t.Run(tc.name, func(t *testing.T) {
-//			e.POST("/captures/").
+//			e.POST("/test").
 //				WithJSON(tc.payload).
 //				Expect().
 //				Status(http.StatusBadRequest).
@@ -1042,20 +747,3 @@ func TestUpdateCaptureFailsBadRequestWhenMissingID(t *testing.T) {
 //		})
 //	}
 //}
-
-func randomCapturePayload() map[string]interface{} {
-	return map[string]interface{}{
-		"payload": map[string]interface{}{
-			"power": []interface{}{
-				getRandomPower(),
-				getRandomPower(),
-				getRandomPower(),
-			},
-		},
-	}
-}
-
-func getRandomPower() float64 {
-	p := -150 + rand.Float64()*(-10+(-150))
-	return math.Ceil(p*100) / 100
-}

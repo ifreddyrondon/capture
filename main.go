@@ -45,9 +45,7 @@ func router(resources di.Container) http.Handler {
 	ctxRepo := resources.Get("ctx-repo-middleware").(func(next http.Handler) http.Handler)
 	gettingRepo := resources.Get("getting-repo-routes").(http.HandlerFunc)
 
-	captureRoutes := resources.Get("capture-routes").(http.Handler)
-	branchRoutes := resources.Get("branch-routes").(http.Handler)
-	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
+	addingCapture := resources.Get("adding-routes").(http.HandlerFunc)
 
 	r.Post("/sign/", signUp)
 	r.Route("/auth/", func(r chi.Router) {
@@ -74,9 +72,15 @@ func router(resources di.Container) http.Handler {
 		r.Route("/{id}", func(r chi.Router) {
 			r.Use(ctxRepo)
 			r.Get("/", gettingRepo)
+			r.Route("/captures/", func(r chi.Router) {
+				r.Post("/", addingCapture)
+			})
 		})
 	})
 
+	captureRoutes := resources.Get("capture-routes").(http.Handler)
+	branchRoutes := resources.Get("branch-routes").(http.Handler)
+	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
 	r.Mount("/captures/", captureRoutes)
 	r.Mount("/branches/", branchRoutes)
 	r.Mount("/multipost/", multipostRoutes)
