@@ -77,6 +77,12 @@
   version = "v1.4.1"
 
 [[projects]]
+  name = "github.com/gobuffalo/validate"
+  packages = ["."]
+  revision = "f6f3be4568c1ac31b364193100816d272e36ddc5"
+  version = "v2.0.3"
+
+[[projects]]
   branch = "master"
   name = "github.com/google/go-querystring"
   packages = ["query"]
@@ -200,22 +206,13 @@
 [[projects]]
   branch = "master"
   name = "github.com/markbates/going"
-  packages = [
-    "defaults",
-    "wait"
-  ]
+  packages = ["defaults"]
   revision = "0576708c56cea02331f864fe6e157ac7841923e4"
 
 [[projects]]
   name = "github.com/markbates/sigtx"
   packages = ["."]
   revision = "daa2e5f08161c569ca3d938d70750ccd038daf16"
-  version = "v1.0.0"
-
-[[projects]]
-  name = "github.com/markbates/validate"
-  packages = ["."]
-  revision = "cd8cc34c703420d6b084fbbfd5085e8e71c5b830"
   version = "v1.0.0"
 
 [[projects]]
@@ -474,6 +471,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "3b0e158601deb726dad375322f7b33b02a7019615ef911067b890c35038399ac"
+  inputs-digest = "362dfb30888d1be757cb049d02a3ed8e18fc450ebebbdb403866070049cee0cb"
   solver-name = "gps-cdcl"
   solver-version = 1

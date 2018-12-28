@@ -1,9 +1,9 @@
 package decoder
 
 import (
+	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/capture/geocoding"
-	"github.com/markbates/validate"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 

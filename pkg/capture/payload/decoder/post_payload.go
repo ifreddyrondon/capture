@@ -1,8 +1,8 @@
 package decoder
 
 import (
+	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/pkg/capture/payload"
-	"github.com/markbates/validate"
 )
 
 const errMissingPayload = "payload value must not be blank"

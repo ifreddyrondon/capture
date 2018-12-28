@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/validator"
-	"github.com/markbates/validate"
 )
 
 const (

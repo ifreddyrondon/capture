@@ -47,7 +47,7 @@ func TestGettingRepoSuccess(t *testing.T) {
 		ContainsKey("visibility").ValueEqual("visibility", "public")
 }
 
-func TestLGettingRepoInternalServer(t *testing.T) {
+func TestGettingRepoInternalServer(t *testing.T) {
 	t.Parallel()
 
 	app := setupGettingHandler(repoCtxtMiddlewareBAD)

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/markbates/validate"
+	"github.com/gobuffalo/validate"
 )
 
 const (

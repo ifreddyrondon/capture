@@ -15,7 +15,7 @@ type Store interface {
 	SaveRepo(*domain.Repository) error
 }
 
-// Service provides repository operations.
+// Service provides creating operations.
 type Service interface {
 	// CreateRepo creates a new repository to an user
 	CreateRepo(*domain.User, Payload) (*Repository, error)

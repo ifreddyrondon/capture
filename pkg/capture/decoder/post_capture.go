@@ -3,13 +3,13 @@ package decoder
 import (
 	"time"
 
+	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/capture/geocoding"
 	pointDecoder "github.com/ifreddyrondon/capture/pkg/capture/geocoding/decoder"
 	payloadDecoder "github.com/ifreddyrondon/capture/pkg/capture/payload/decoder"
 	tagsDecoder "github.com/ifreddyrondon/capture/pkg/capture/tags/decoder"
 	timestampDecoder "github.com/ifreddyrondon/capture/pkg/capture/timestamp/decoder"
-	"github.com/markbates/validate"
 	"gopkg.in/src-d/go-kallax.v1"
 )
 

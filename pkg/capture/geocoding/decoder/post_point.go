@@ -2,8 +2,8 @@ package decoder
 
 import (
 	"github.com/asaskevich/govalidator"
+	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/pkg/capture/geocoding"
-	"github.com/markbates/validate"
 )
 
 const (
