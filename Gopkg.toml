@@ -76,3 +76,7 @@
 [[constraint]]
   name = "github.com/sethvargo/go-password"
   version = "v0.1.2"
+
+[[constraint]]
+  name = "github.com/go-pg/pg"
+  version = "7.1.0"
