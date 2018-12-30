@@ -63,7 +63,6 @@ func router(resources di.Container) http.Handler {
 	})
 	r.Route("/repositories/", func(r chi.Router) {
 		r.Use(authorize)
-		r.Post("/", creating)
 		r.Route("/", func(r chi.Router) {
 			r.Use(listingMiddleware)
 			r.Get("/", listingPublicRepos)

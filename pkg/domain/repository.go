@@ -8,12 +8,12 @@ import (
 
 // Repository represent a place with the history of all captures.
 type Repository struct {
-	ID            kallax.ULID `json:"id" sql:"type:uuid" gorm:"primary_key"`
-	Name          string      `json:"name"`
-	CurrentBranch string      `json:"current_branch"`
-	Visibility    Visibility  `json:"visibility"`
-	CreatedAt     time.Time   `json:"createdAt" sql:"not null"`
-	UpdatedAt     time.Time   `json:"updatedAt" sql:"not null"`
-	DeletedAt     *time.Time  `json:"-"`
-	UserID        kallax.ULID `json:"owner"`
+	ID            kallax.ULID `json:"id" sql:"type:uuid,pk"`
+	Name          string      `json:"name" sql:",notnull"`
+	CurrentBranch string      `json:"current_branch" sql:",notnull"`
+	Visibility    Visibility  `json:"visibility" sql:",notnull"`
+	CreatedAt     time.Time   `json:"createdAt" sql:",notnull"`
+	UpdatedAt     time.Time   `json:"updatedAt" sql:",notnull"`
+	DeletedAt     *time.Time  `json:"-" pg:",soft_delete"`
+	UserID        kallax.ULID `json:"owner" sql:"type:uuid"`
 }

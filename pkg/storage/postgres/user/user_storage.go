@@ -55,8 +55,7 @@ func (p *PGStorage) Drop() error {
 
 // Save capture into the database.
 func (p *PGStorage) SaveUser(user *domain.User) error {
-	err := p.db.Insert(user)
-	if err != nil {
+	if err := p.db.Insert(user); err != nil {
 		if isUniqueConstraintError(err) {
 			return errors.WithStack(uniqueConstraintErr(err.Error()))
 		}
