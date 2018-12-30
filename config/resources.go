@@ -3,12 +3,14 @@ package config
 import (
 	"time"
 
+	"github.com/go-pg/pg"
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	captureOld "github.com/ifreddyrondon/capture/pkg/capture"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/capture"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
+	"github.com/pkg/errors"
 
 	"github.com/ifreddyrondon/capture/pkg/creating"
 
@@ -66,13 +68,35 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
+			Name:  "ps-database",
+			Scope: di.App,
+			Build: func(ctn di.Container) (i interface{}, e error) {
+				opts, err := pg.ParseURL(cfg.Constants.PG)
+				if err != nil {
+					return nil, errors.Wrap(err, "parsing postgres url into pg options when di")
+				}
+				db := pg.Connect(opts)
+				if db == nil {
+					return nil, errors.New("failed to connect to postgres db when di")
+				}
+				return db, nil
+			},
+			Close: func(obj interface{}) error {
+				return obj.(*pg.DB).Close()
+			},
+		},
+		{
 			Name:  "user-storage",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("database").(*gorm.DB)
+				database := cfg.Resources.Get("ps-database").(*pg.DB)
 				s := user.NewPGStorage(database)
-				s.Drop()
-				s.Migrate()
+				if err := s.Drop(); err != nil {
+					return nil, errors.Wrap(err, "di dropping schema for user-storage")
+				}
+				if err := s.CreateSchema(); err != nil {
+					return nil, errors.Wrap(err, "di creating schema for user-storage")
+				}
 				return s, nil
 			},
 		},

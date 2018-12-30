@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi"
+	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/middleware"
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-
-	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/config"
 	"github.com/sarulabs/di"
 )
