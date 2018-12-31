@@ -205,10 +205,14 @@ func getResources(cfg *Config) di.Container {
 			Name:  "capture-storage",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("database").(*gorm.DB)
+				database := cfg.Resources.Get("ps-database").(*pg.DB)
 				s := capture.NewPGStorage(database)
-				s.Drop()
-				s.Migrate()
+				if err := s.Drop(); err != nil {
+					return nil, errors.Wrap(err, "di dropping schema for capture-storage")
+				}
+				if err := s.CreateSchema(); err != nil {
+					return nil, errors.Wrap(err, "di creating schema for capture-storage")
+				}
 				return s, nil
 			},
 		},

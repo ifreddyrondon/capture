@@ -76,10 +76,10 @@ func router(resources di.Container) http.Handler {
 		})
 	})
 
-	captureRoutes := resources.Get("capture-routes").(http.Handler)
+	//captureRoutes := resources.Get("capture-routes").(http.Handler)
 	branchRoutes := resources.Get("branch-routes").(http.Handler)
 	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
-	r.Mount("/captures/", captureRoutes)
+	//r.Mount("/captures/", captureRoutes)
 	r.Mount("/branches/", branchRoutes)
 	r.Mount("/multipost/", multipostRoutes)
 

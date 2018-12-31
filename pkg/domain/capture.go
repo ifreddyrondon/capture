@@ -23,12 +23,13 @@ type Point struct {
 }
 
 type Capture struct {
-	ID        kallax.ULID `json:"id"`
-	Payload   Payload     `json:"payload"`
-	Location  *Point      `json:"location"`
-	Tags      []string    `json:"tags"`
-	Timestamp time.Time   `json:"timestamp"`
-	CreatedAt time.Time   `json:"createdAt"`
-	UpdatedAt time.Time   `json:"updatedAt"`
-	DeletedAt *time.Time  `json:"-"`
+	ID           kallax.ULID `json:"id" sql:"type:uuid,pk"`
+	Payload      Payload     `json:"payload" sql:"type:jsonb,notnull"`
+	Location     *Point      `json:"location" sql:"type:jsonb"`
+	Tags         []string    `json:"tags" sql:",array,notnull"`
+	Timestamp    time.Time   `json:"timestamp" sql:",notnull"`
+	CreatedAt    time.Time   `json:"createdAt" sql:",notnull"`
+	UpdatedAt    time.Time   `json:"updatedAt" sql:",notnull"`
+	DeletedAt    *time.Time  `json:"-" pg:",soft_delete"`
+	RepositoryID kallax.ULID `json:"repoId" sql:"type:uuid"`
 }

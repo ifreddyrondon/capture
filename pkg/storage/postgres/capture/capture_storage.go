@@ -1,52 +1,41 @@
 package capture
 
 import (
+	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/jinzhu/gorm"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
 // PGStorage postgres storage layer
-type PGStorage struct{ db *gorm.DB }
+type PGStorage struct{ db *pg.DB }
 
 // NewPGStorage creates a new instance of PGStorage
-func NewPGStorage(db *gorm.DB) *PGStorage { return &PGStorage{db: db} }
+func NewPGStorage(db *pg.DB) *PGStorage { return &PGStorage{db: db} }
 
-// Migrate (panic) runs schema migration.
-func (p *PGStorage) Migrate() {
-	p.db.AutoMigrate(Capture{})
-}
-
-// Drop (panic) delete schema.
-func (p *PGStorage) Drop() {
-	p.db.DropTableIfExists(Capture{})
-}
-
-func (p *PGStorage) CreateCapture(capt *domain.Capture) error {
-	c := getCapture(*capt)
-	if err := p.db.Create(c).Error; err != nil {
-		return errors.Wrap(err, "err saving capture with pgstorage")
+// CreateSchema runs schema migration.
+func (p *PGStorage) CreateSchema() error {
+	opts := &orm.CreateTableOptions{IfNotExists: true}
+	err := p.db.CreateTable(&domain.Capture{}, opts)
+	if err != nil {
+		return errors.Wrap(err, "creating capture schema")
 	}
 	return nil
 }
 
-func getCapture(c domain.Capture) *Capture {
-	result := &Capture{
-		ID:        c.ID,
-		Payload:   payload(c.Payload),
-		Tags:      pq.StringArray(c.Tags),
-		Timestamp: c.Timestamp,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
-		DeletedAt: c.DeletedAt,
+// Drop delete schema.
+func (p *PGStorage) Drop() error {
+	opts := &orm.DropTableOptions{IfExists: true}
+	err := p.db.DropTable(&domain.Capture{}, opts)
+	if err != nil {
+		return errors.Wrap(err, "dropping capture schema")
 	}
-	if c.Location != nil {
-		result.Location = &point{
-			LAT:       c.Location.LAT,
-			LNG:       c.Location.LNG,
-			Elevation: c.Location.Elevation,
-		}
+	return nil
+}
+
+func (p *PGStorage) CreateCapture(c *domain.Capture) error {
+	if err := p.db.Insert(c); err != nil {
+		return errors.Wrap(err, "err saving capture with pgstorage")
 	}
-	return result
+	return nil
 }

@@ -41,11 +41,12 @@ func (s *service) AddCapture(r *domain.Repository, c Capture) (*domain.Capture, 
 func (s *service) getDomainCapture(r *domain.Repository, c Capture) *domain.Capture {
 	now := time.Now()
 	result := &domain.Capture{
-		ID:        kallax.NewULID(),
-		Payload:   c.Payload.Payload,
-		Tags:      c.Tags,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:           kallax.NewULID(),
+		Payload:      c.Payload.Payload,
+		Tags:         c.Tags,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		RepositoryID: r.ID,
 	}
 	if c.Location != nil {
 		result.Location = &domain.Point{
