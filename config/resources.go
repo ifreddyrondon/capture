@@ -189,8 +189,8 @@ func getResources(cfg *Config) di.Container {
 			Name:  "ctx-repo-middleware",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-storage").(getting.Store)
-				s := getting.NewService(store)
+				store := cfg.Resources.Get("repository-storage").(getting.RepoStore)
+				s := getting.NewRepoService(store)
 				return middleware.RepoCtx(s), nil
 			},
 		},

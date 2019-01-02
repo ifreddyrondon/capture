@@ -28,10 +28,10 @@ func TestServiceGetRepoOKWhenUserOwner(t *testing.T) {
 	assert.Nil(t, err)
 	repoID := kallax.NewULID()
 	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", UserID: userID}}
-	s := getting.NewService(store)
+	s := getting.NewRepoService(store)
 
 	u := &domain.User{ID: userID}
-	repo, err := s.GetRepo(repoID, u)
+	repo, err := s.Get(repoID, u)
 	assert.Nil(t, err)
 	assert.Equal(t, "test1", repo.Name)
 }
@@ -41,13 +41,13 @@ func TestServiceGetRepoOKWhenPublic(t *testing.T) {
 
 	repoID := kallax.NewULID()
 	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Public}}
-	s := getting.NewService(store)
+	s := getting.NewRepoService(store)
 
 	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
 	userID, err := kallax.NewULIDFromText(userIDTxt)
 	assert.Nil(t, err)
 	u := &domain.User{ID: userID}
-	repo, err := s.GetRepo(repoID, u)
+	repo, err := s.Get(repoID, u)
 	assert.Nil(t, err)
 	assert.Equal(t, "test1", repo.Name)
 }
@@ -57,13 +57,13 @@ func TestServiceGetRepoErrWhenNoOwnerAndNoPublic(t *testing.T) {
 
 	repoID := kallax.NewULID()
 	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Private}}
-	s := getting.NewService(store)
+	s := getting.NewRepoService(store)
 
 	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
 	userID, err := kallax.NewULIDFromText(userIDTxt)
 	assert.Nil(t, err)
 	u := &domain.User{ID: userID}
-	_, err = s.GetRepo(repoID, u)
+	_, err = s.Get(repoID, u)
 	assert.EqualError(t, err, fmt.Sprintf("user %v not authorized to get repo %v", userID, repoID))
 	authErr, ok := errors.Cause(err).(authorizationErr)
 	assert.True(t, ok)
@@ -74,12 +74,12 @@ func TestServiceGetRepoErrGettingRepoFromStorage(t *testing.T) {
 	t.Parallel()
 
 	store := &mockStore{err: errors.New("test")}
-	s := getting.NewService(store)
+	s := getting.NewRepoService(store)
 
 	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
 	userID, err := kallax.NewULIDFromText(userIDTxt)
 	assert.Nil(t, err)
 	u := &domain.User{ID: userID}
-	_, err = s.GetRepo(kallax.NewULID(), u)
+	_, err = s.Get(kallax.NewULID(), u)
 	assert.EqualError(t, err, "could not get repo: test")
 }

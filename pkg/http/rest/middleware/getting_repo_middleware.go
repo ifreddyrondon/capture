@@ -43,7 +43,7 @@ func GetRepo(ctx context.Context) (*domain.Repository, error) {
 	return repo, nil
 }
 
-func RepoCtx(service getting.Service) func(next http.Handler) http.Handler {
+func RepoCtx(service getting.RepoService) func(next http.Handler) http.Handler {
 	json := render.NewJSON()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func RepoCtx(service getting.Service) func(next http.Handler) http.Handler {
 				return
 			}
 
-			repo, err := service.GetRepo(id, u)
+			repo, err := service.Get(id, u)
 			if err != nil {
 				if isNotFound(err) {
 					json.NotFound(w, errMissingRepo)

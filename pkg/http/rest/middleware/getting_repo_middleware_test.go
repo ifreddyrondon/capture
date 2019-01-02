@@ -30,7 +30,7 @@ func notUserMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func setupRepoCtx(service getting.Service, auth func(http.Handler) http.Handler) *bastion.Bastion {
+func setupRepoCtx(service getting.RepoService, auth func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/{id}", func(r chi.Router) {
 		r.Use(auth)
@@ -46,7 +46,7 @@ type mockGettingService struct {
 	err  error
 }
 
-func (m *mockGettingService) GetRepo(kallax.ULID, *domain.User) (*domain.Repository, error) {
+func (m *mockGettingService) Get(kallax.ULID, *domain.User) (*domain.Repository, error) {
 	return m.repo, m.err
 }
 
