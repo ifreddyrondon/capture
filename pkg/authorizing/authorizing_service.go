@@ -19,13 +19,13 @@ type invalidCredentialErr string
 func (i invalidCredentialErr) Error() string         { return fmt.Sprintf(string(i)) }
 func (i invalidCredentialErr) IsNotAuthorized() bool { return true }
 
-type invalidErr interface {
-	IsInvalid() bool
+type notFoundErr interface {
+	NotFound() bool
 }
 
-func isInvalidErr(err error) bool {
-	if e, ok := errors.Cause(err).(invalidErr); ok {
-		return e.IsInvalid()
+func isNotFound(err error) bool {
+	if e, ok := errors.Cause(err).(notFoundErr); ok {
+		return e.NotFound()
 	}
 	return false
 }
@@ -67,8 +67,11 @@ func (s *service) AuthorizeRequest(r *http.Request) (*domain.User, error) {
 		return nil, invalidIDErr(fmt.Sprintf("%v is not a valid ULID", subjectID))
 	}
 	u, err := s.s.GetUserByID(id)
-	if isInvalidErr(err) {
-		return nil, errors.WithStack(invalidCredentialErr(err.Error()))
+	if err != nil {
+		if isNotFound(err) {
+			return nil, errors.WithStack(invalidCredentialErr(err.Error()))
+		}
+		return nil, errors.Wrap(err, "error when get user by id in AuthorizeRequest")
 	}
 	return u, nil
 }

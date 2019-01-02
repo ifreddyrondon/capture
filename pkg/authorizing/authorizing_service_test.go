@@ -1,7 +1,6 @@
 package authorizing_test
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -72,18 +71,18 @@ func TestServiceAuthorizeRequestInvalidSubjectID(t *testing.T) {
 	assert.True(t, authErr.IsInvalid())
 }
 
-type invalidCredentialErr string
+type userNotFound string
 
-func (i invalidCredentialErr) Error() string   { return fmt.Sprintf(string(i)) }
-func (i invalidCredentialErr) IsInvalid() bool { return true }
+func (u userNotFound) Error() string  { return string(u) }
+func (u userNotFound) NotFound() bool { return true }
 
 type authorizationErr interface{ IsNotAuthorized() bool }
 
-func TestServiceAuthorizeRequestInvalidCredentials(t *testing.T) {
+func TestServiceAuthorizeRequestNotFoundUser(t *testing.T) {
 	t.Parallel()
 
 	ts := &mockTokenService{subjectID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
-	s := authorizing.NewService(ts, &mockStore{err: invalidCredentialErr("test")})
+	s := authorizing.NewService(ts, &mockStore{err: userNotFound("test")})
 	req, _ := http.NewRequest("GET", "/", nil)
 
 	req.Header.Set("Authorization", "Bearer test")
@@ -92,4 +91,16 @@ func TestServiceAuthorizeRequestInvalidCredentials(t *testing.T) {
 	authErr, ok := errors.Cause(err).(authorizationErr)
 	assert.True(t, ok)
 	assert.True(t, authErr.IsNotAuthorized())
+}
+
+func TestServiceAuthorizeRequestInvalid(t *testing.T) {
+	t.Parallel()
+
+	ts := &mockTokenService{subjectID: "0162eb39-a65e-04a1-7ad9-d663bb49a396"}
+	s := authorizing.NewService(ts, &mockStore{err: errors.New("test")})
+	req, _ := http.NewRequest("GET", "/", nil)
+
+	req.Header.Set("Authorization", "Bearer test")
+	_, err := s.AuthorizeRequest(req)
+	assert.EqualError(t, err, "error when get user by id in AuthorizeRequest: test")
 }

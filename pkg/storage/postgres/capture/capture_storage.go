@@ -39,3 +39,13 @@ func (p *PGStorage) CreateCapture(c *domain.Capture) error {
 	}
 	return nil
 }
+
+func (p *PGStorage) List(l *domain.Listing) ([]domain.Capture, error) {
+	var captures []domain.Capture
+	f := filter(*l)
+	err := p.db.Model(&captures).Apply(f.Filter).Select()
+	if err != nil {
+		return nil, errors.Wrap(err, "err listing captures with pgstorage")
+	}
+	return captures, nil
+}

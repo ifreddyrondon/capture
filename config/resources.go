@@ -162,18 +162,18 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "listing-services",
+			Name:  "listing-repo-services",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-storage").(listing.Store)
-				return listing.NewService(store), nil
+				store := cfg.Resources.Get("repository-storage").(listing.RepoStore)
+				return listing.NewRepoService(store), nil
 			},
 		},
 		{
 			Name:  "listing-user-repo-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-services").(listing.Service)
+				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
 				return rest.ListingUserRepos(s), nil
 			},
 		},
@@ -181,7 +181,7 @@ func getResources(cfg *Config) di.Container {
 			Name:  "listing-public-repos-routes",
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-services").(listing.Service)
+				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
 				return rest.ListingPublicRepos(s), nil
 			},
 		},
@@ -223,6 +223,22 @@ func getResources(cfg *Config) di.Container {
 				store := cfg.Resources.Get("capture-storage").(adding.Store)
 				s := adding.NewService(store)
 				return rest.Adding(s), nil
+			},
+		},
+		{
+			Name:  "listing-capture-services",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("capture-storage").(listing.CaptureStore)
+				return listing.NewCaptureService(store), nil
+			},
+		},
+		{
+			Name:  "listing-captures-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				s := cfg.Resources.Get("listing-capture-services").(listing.CaptureService)
+				return rest.ListingRepoCaptures(s), nil
 			},
 		},
 	}

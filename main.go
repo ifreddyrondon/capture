@@ -33,17 +33,21 @@ func router(resources di.Container) http.Handler {
 	privateVisibility := filtering.NewValue("private", "private repos")
 	visibilityFilter := filtering.NewText("visibility", "filters the repos by their visibility", publicVisibility, privateVisibility)
 
-	listingMiddleware := middleware.Listing(
+	listingReposMiddle := middleware.Listing(
 		middleware.MaxAllowedLimit(50),
 		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
 		middleware.Filter(visibilityFilter),
 	)
 	listingUserRepos := resources.Get("listing-user-repo-routes").(http.HandlerFunc)
 	listingPublicRepos := resources.Get("listing-public-repos-routes").(http.HandlerFunc)
+	listingCapturesMiddle := middleware.Listing(
+		middleware.MaxAllowedLimit(100),
+		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
+	)
+	listingCaptures := resources.Get("listing-captures-routes").(http.HandlerFunc)
 
 	ctxRepo := resources.Get("ctx-repo-middleware").(func(next http.Handler) http.Handler)
 	gettingRepo := resources.Get("getting-repo-routes").(http.HandlerFunc)
-
 	addingCapture := resources.Get("adding-routes").(http.HandlerFunc)
 
 	r.Post("/sign/", signUp)
@@ -55,7 +59,7 @@ func router(resources di.Container) http.Handler {
 		r.Route("/repos/", func(r chi.Router) {
 			r.Post("/", creating)
 			r.Route("/", func(r chi.Router) {
-				r.Use(listingMiddleware)
+				r.Use(listingReposMiddle)
 				r.Get("/", listingUserRepos)
 			})
 
@@ -64,7 +68,7 @@ func router(resources di.Container) http.Handler {
 	r.Route("/repositories/", func(r chi.Router) {
 		r.Use(authorize)
 		r.Route("/", func(r chi.Router) {
-			r.Use(listingMiddleware)
+			r.Use(listingReposMiddle)
 			r.Get("/", listingPublicRepos)
 		})
 		r.Route("/{id}", func(r chi.Router) {
@@ -72,6 +76,10 @@ func router(resources di.Container) http.Handler {
 			r.Get("/", gettingRepo)
 			r.Route("/captures/", func(r chi.Router) {
 				r.Post("/", addingCapture)
+				r.Route("/", func(r chi.Router) {
+					r.Use(listingCapturesMiddle)
+					r.Get("/", listingCaptures)
+				})
 			})
 		})
 	})

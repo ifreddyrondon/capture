@@ -6,50 +6,57 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Store provides access to the repository storage.
-type Store interface {
+// RepoStore provides access to the repository storage.
+type RepoStore interface {
 	// List retrieve repositories with domain.Listing attrs.
 	List(*domain.Listing) ([]domain.Repository, error)
 }
 
-// Service provides listing repository operations.
-type Service interface {
+// RepoService provides listing repository operations.
+type RepoService interface {
 	// GetUserRepos get the repositories from a given user.
 	GetUserRepos(*domain.User, *listing.Listing) (*ListRepositoryResponse, error)
 	// GetPublicRepos get all the public repos.
 	GetPublicRepos(*listing.Listing) (*ListRepositoryResponse, error)
 }
 
-type service struct {
-	s Store
+type repoService struct {
+	s RepoStore
 }
 
-// NewService creates a listing service with the necessary dependencies
-func NewService(s Store) Service {
-	return &service{s: s}
+// NewRepoService creates a listing service with the necessary dependencies
+func NewRepoService(s RepoStore) RepoService {
+	return &repoService{s: s}
 }
 
-func (s *service) GetUserRepos(u *domain.User, l *listing.Listing) (*ListRepositoryResponse, error) {
+func (s *repoService) GetUserRepos(u *domain.User, l *listing.Listing) (*ListRepositoryResponse, error) {
 	lrepo := domain.NewListing(*l)
 	lrepo.Owner = &u.ID
 	repos, err := s.s.List(lrepo)
 	if err != nil {
 		return nil, errors.Wrap(err, "err getting user repos")
 	}
-	return &ListRepositoryResponse{Listing: l, Results: repos}, nil
+	return newListRepoResponse(repos, l), nil
 }
 
-func (s *service) GetPublicRepos(l *listing.Listing) (*ListRepositoryResponse, error) {
+func (s *repoService) GetPublicRepos(l *listing.Listing) (*ListRepositoryResponse, error) {
 	lrepo := domain.NewListing(*l)
 	lrepo.Visibility = &domain.Public
 	repos, err := s.s.List(lrepo)
 	if err != nil {
 		return nil, errors.Wrap(err, "err getting public repos")
 	}
-	return &ListRepositoryResponse{Listing: l, Results: repos}, nil
+	return newListRepoResponse(repos, l), nil
 }
 
 type ListRepositoryResponse struct {
 	Results []domain.Repository `json:"results"`
 	Listing *listing.Listing    `json:"listing"`
+}
+
+func newListRepoResponse(repos []domain.Repository, l *listing.Listing) *ListRepositoryResponse {
+	if repos == nil {
+		repos = make([]domain.Repository, 0)
+	}
+	return &ListRepositoryResponse{Listing: l, Results: repos}
 }
