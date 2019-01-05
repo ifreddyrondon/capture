@@ -241,6 +241,22 @@ func getResources(cfg *Config) di.Container {
 				return rest.ListingRepoCaptures(s), nil
 			},
 		},
+		{
+			Name:  "ctx-capture-middleware",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("capture-storage").(getting.CaptureStore)
+				s := getting.NewCaptureService(store)
+				return middleware.CaptureCtx(s), nil
+			},
+		},
+		{
+			Name:  "getting-capture-routes",
+			Scope: di.App,
+			Build: func(ctn di.Container) (interface{}, error) {
+				return rest.GettingCapture(), nil
+			},
+		},
 	}
 
 	builder.Add(definitions...)

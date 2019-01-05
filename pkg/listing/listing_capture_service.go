@@ -1,17 +1,10 @@
 package listing
 
 import (
-	"fmt"
-
 	"github.com/ifreddyrondon/bastion/middleware/listing"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 )
-
-type notAuthorizedErr string
-
-func (i notAuthorizedErr) Error() string         { return fmt.Sprintf(string(i)) }
-func (i notAuthorizedErr) IsNotAuthorized() bool { return true }
 
 // CaptureStore provides access to the captures storage.
 type CaptureStore interface {
@@ -22,7 +15,7 @@ type CaptureStore interface {
 // CaptureService provides capture repository operations.
 type CaptureService interface {
 	// ListRepoCaptures list repo captures.
-	ListRepoCaptures(*domain.User, *domain.Repository, *listing.Listing) (*ListCaptureResponse, error)
+	ListRepoCaptures(*domain.Repository, *listing.Listing) (*ListCaptureResponse, error)
 }
 
 type captureService struct {
@@ -34,11 +27,7 @@ func NewCaptureService(s CaptureStore) CaptureService {
 	return &captureService{s: s}
 }
 
-func (s *captureService) ListRepoCaptures(u *domain.User, r *domain.Repository, l *listing.Listing) (*ListCaptureResponse, error) {
-	if r.Visibility != domain.Public && r.UserID != u.ID {
-		errStr := fmt.Sprintf("user %v not authorized to get captures from repo %v", u.ID, r.ID)
-		return nil, notAuthorizedErr(errStr)
-	}
+func (s *captureService) ListRepoCaptures(r *domain.Repository, l *listing.Listing) (*ListCaptureResponse, error) {
 	lcapt := domain.NewListing(*l)
 	lcapt.Owner = &r.ID
 	captures, err := s.s.List(lcapt)

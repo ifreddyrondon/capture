@@ -13,12 +13,12 @@ import (
 
 type authorizationErr interface{ IsNotAuthorized() bool }
 
-type mockStore struct {
+type mockRepoStore struct {
 	repo *domain.Repository
 	err  error
 }
 
-func (m *mockStore) Get(kallax.ULID) (*domain.Repository, error) { return m.repo, m.err }
+func (m *mockRepoStore) Get(kallax.ULID) (*domain.Repository, error) { return m.repo, m.err }
 
 func TestServiceGetRepoOKWhenUserOwner(t *testing.T) {
 	t.Parallel()
@@ -27,7 +27,7 @@ func TestServiceGetRepoOKWhenUserOwner(t *testing.T) {
 	userID, err := kallax.NewULIDFromText(userIDTxt)
 	assert.Nil(t, err)
 	repoID := kallax.NewULID()
-	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", UserID: userID}}
+	store := &mockRepoStore{repo: &domain.Repository{ID: repoID, Name: "test1", UserID: userID}}
 	s := getting.NewRepoService(store)
 
 	u := &domain.User{ID: userID}
@@ -40,7 +40,7 @@ func TestServiceGetRepoOKWhenPublic(t *testing.T) {
 	t.Parallel()
 
 	repoID := kallax.NewULID()
-	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Public}}
+	store := &mockRepoStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Public}}
 	s := getting.NewRepoService(store)
 
 	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
@@ -56,7 +56,7 @@ func TestServiceGetRepoErrWhenNoOwnerAndNoPublic(t *testing.T) {
 	t.Parallel()
 
 	repoID := kallax.NewULID()
-	store := &mockStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Private}}
+	store := &mockRepoStore{repo: &domain.Repository{ID: repoID, Name: "test1", Visibility: domain.Private}}
 	s := getting.NewRepoService(store)
 
 	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"
@@ -73,7 +73,7 @@ func TestServiceGetRepoErrWhenNoOwnerAndNoPublic(t *testing.T) {
 func TestServiceGetRepoErrGettingRepoFromStorage(t *testing.T) {
 	t.Parallel()
 
-	store := &mockStore{err: errors.New("test")}
+	store := &mockRepoStore{err: errors.New("test")}
 	s := getting.NewRepoService(store)
 
 	userIDTxt := "0162eb39-a65e-04a1-7ad9-d663bb49a396"

@@ -130,9 +130,10 @@ func TestContextGetUserMissingUser(t *testing.T) {
 	assert.EqualError(t, err, "user not found in context")
 }
 
-func TestContextGetUserIDMissingUser(t *testing.T) {
+func TestContextGetUserWhenWrongUserValue(t *testing.T) {
 	ctx := context.Background()
+	ctx = context.WithValue(ctx, middleware.UserCtxKey, "test")
 
 	_, err := middleware.GetUser(ctx)
-	assert.EqualError(t, err, "user not found in context")
+	assert.EqualError(t, err, "user value set incorrectly in context")
 }

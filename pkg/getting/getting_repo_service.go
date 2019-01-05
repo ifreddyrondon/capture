@@ -19,22 +19,22 @@ type RepoStore interface {
 	Get(kallax.ULID) (*domain.Repository, error)
 }
 
-// RepoService provides listing repository operations.
+// RepoService provides getting repository operations.
 type RepoService interface {
-	// Get retrieve a user repo or public repository .
+	// Get retrieve a user repo or public repository.
 	Get(kallax.ULID, *domain.User) (*domain.Repository, error)
 }
 
-type service struct {
+type repoService struct {
 	s RepoStore
 }
 
 // NewRepoService creates a listing service with the necessary dependencies
 func NewRepoService(s RepoStore) RepoService {
-	return &service{s: s}
+	return &repoService{s: s}
 }
 
-func (s *service) Get(id kallax.ULID, user *domain.User) (*domain.Repository, error) {
+func (s *repoService) Get(id kallax.ULID, user *domain.User) (*domain.Repository, error) {
 	repo, err := s.s.Get(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get repo")

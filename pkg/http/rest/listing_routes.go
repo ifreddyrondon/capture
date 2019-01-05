@@ -73,13 +73,6 @@ func ListingRepoCaptures(service listing.CaptureService) http.HandlerFunc {
 			return
 		}
 
-		u, err := middleware.GetUser(r.Context())
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
-			return
-		}
-
 		repo, err := middleware.GetRepo(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -87,7 +80,7 @@ func ListingRepoCaptures(service listing.CaptureService) http.HandlerFunc {
 			return
 		}
 
-		res, err := service.ListRepoCaptures(u, repo, l)
+		res, err := service.ListRepoCaptures(repo, l)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)

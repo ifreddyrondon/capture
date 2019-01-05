@@ -50,6 +50,9 @@ func router(resources di.Container) http.Handler {
 	gettingRepo := resources.Get("getting-repo-routes").(http.HandlerFunc)
 	addingCapture := resources.Get("adding-routes").(http.HandlerFunc)
 
+	ctxCapture := resources.Get("ctx-capture-middleware").(func(next http.Handler) http.Handler)
+	gettingCapture := resources.Get("getting-capture-routes").(http.HandlerFunc)
+
 	r.Post("/sign/", signUp)
 	r.Route("/auth/", func(r chi.Router) {
 		r.Post("/token-auth", authenticating)
@@ -79,6 +82,10 @@ func router(resources di.Container) http.Handler {
 				r.Route("/", func(r chi.Router) {
 					r.Use(listingCapturesMiddle)
 					r.Get("/", listingCaptures)
+				})
+				r.Route("/{captureId}", func(r chi.Router) {
+					r.Use(ctxCapture)
+					r.Get("/", gettingCapture)
 				})
 			})
 		})

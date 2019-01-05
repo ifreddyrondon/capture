@@ -242,7 +242,7 @@ type mockListingCaptureService struct {
 	err      error
 }
 
-func (m *mockListingCaptureService) ListRepoCaptures(u *domain.User, r *domain.Repository, l *listingBastionMiddleware.Listing) (*listing.ListCaptureResponse, error) {
+func (m *mockListingCaptureService) ListRepoCaptures(r *domain.Repository, l *listingBastionMiddleware.Listing) (*listing.ListCaptureResponse, error) {
 	return &listing.ListCaptureResponse{Listing: l, Results: m.captures}, m.err
 }
 
@@ -277,23 +277,6 @@ func TestListingRepoCapturesInternalServerBadListing(t *testing.T) {
 
 	s := &mockListingCaptureService{err: errors.New("test")}
 	app := setupListingRepoCapturesHandler(s, listingMiddlewareBAD, authenticatedMiddleware, repoCtxtMiddlewareOK)
-
-	response := map[string]interface{}{
-		"status":  500.0,
-		"error":   "Internal Server Error",
-		"message": "looks like something went wrong",
-	}
-
-	e := bastion.Tester(t, app)
-	e.GET("/").Expect().
-		Status(http.StatusInternalServerError).
-		JSON().Object().Equal(response)
-}
-
-func TestListingRepoCapturesFailInternalErrorGettingUser(t *testing.T) {
-	t.Parallel()
-	s := &mockListingCaptureService{}
-	app := setupListingRepoCapturesHandler(s, listingRepoMiddlewareOK, notUserMiddleware, repoCtxtMiddlewareOK)
 
 	response := map[string]interface{}{
 		"status":  500.0,

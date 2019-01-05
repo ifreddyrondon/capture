@@ -15,21 +15,6 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-var tempUser = domain.User{Email: "test@example.com", ID: kallax.NewULID()}
-
-func authenticatedMiddle(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), middleware.UserCtxKey, &tempUser)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func notUserMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
-}
-
 func setupRepoCtx(service getting.RepoService, auth func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/{id}", func(r chi.Router) {
@@ -41,19 +26,19 @@ func setupRepoCtx(service getting.RepoService, auth func(http.Handler) http.Hand
 	return app
 }
 
-type mockGettingService struct {
+type mockGettingRepoService struct {
 	repo *domain.Repository
 	err  error
 }
 
-func (m *mockGettingService) Get(kallax.ULID, *domain.User) (*domain.Repository, error) {
+func (m *mockGettingRepoService) Get(kallax.ULID, *domain.User) (*domain.Repository, error) {
 	return m.repo, m.err
 }
 
 func TestRepoCtxSuccess(t *testing.T) {
 	t.Parallel()
 
-	app := setupRepoCtx(&mockGettingService{}, authenticatedMiddle)
+	app := setupRepoCtx(&mockGettingRepoService{}, authenticatedMiddle)
 	e := bastion.Tester(t, app)
 	e.GET("/0167c8a5-d308-8692-809d-b1ad4a2d9562").
 		Expect().
@@ -62,7 +47,7 @@ func TestRepoCtxSuccess(t *testing.T) {
 
 func TestRepoCtxFailInternalErrorGettingUser(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingService{}
+	s := &mockGettingRepoService{}
 	app := setupRepoCtx(s, notUserMiddleware)
 	e := bastion.Tester(t, app)
 
@@ -80,7 +65,7 @@ func TestRepoCtxFailInternalErrorGettingUser(t *testing.T) {
 
 func TestRepoCtxFailBadRequestGettingRepoByInvalidIDErr(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingService{}
+	s := &mockGettingRepoService{}
 	app := setupRepoCtx(s, authenticatedMiddle)
 	e := bastion.Tester(t, app)
 
@@ -98,7 +83,7 @@ func TestRepoCtxFailBadRequestGettingRepoByInvalidIDErr(t *testing.T) {
 
 func TestRepoCtxFailNotFoundGettingRepo(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingService{err: notFound("test")}
+	s := &mockGettingRepoService{err: notFound("test")}
 	app := setupRepoCtx(s, authenticatedMiddle)
 	e := bastion.Tester(t, app)
 
@@ -116,7 +101,7 @@ func TestRepoCtxFailNotFoundGettingRepo(t *testing.T) {
 
 func TestRepoCtxFailForbiddenGettingRepo(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingService{err: notAllowedErr("test")}
+	s := &mockGettingRepoService{err: notAllowedErr("test")}
 	app := setupRepoCtx(s, authenticatedMiddle)
 	e := bastion.Tester(t, app)
 
@@ -134,7 +119,7 @@ func TestRepoCtxFailForbiddenGettingRepo(t *testing.T) {
 
 func TestRepoCtxFailInternalServerErrGettingRepo(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingService{err: errors.New("test")}
+	s := &mockGettingRepoService{err: errors.New("test")}
 	app := setupRepoCtx(s, authenticatedMiddle)
 	e := bastion.Tester(t, app)
 
@@ -166,9 +151,10 @@ func TestContextGetRepoMissingRepo(t *testing.T) {
 	assert.EqualError(t, err, "repo not found in context")
 }
 
-func TestContextGetRepoIDMissingRepo(t *testing.T) {
+func TestContextGetRepoWhenWrongRepoValue(t *testing.T) {
 	ctx := context.Background()
+	ctx = context.WithValue(ctx, middleware.RepoCtxKey, "test")
 
 	_, err := middleware.GetRepo(ctx)
-	assert.EqualError(t, err, "repo not found in context")
+	assert.EqualError(t, err, "repo value set incorrectly in context")
 }

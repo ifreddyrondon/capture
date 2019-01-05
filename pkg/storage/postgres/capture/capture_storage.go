@@ -1,11 +1,19 @@
 package capture
 
 import (
+	"fmt"
+
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
+	"gopkg.in/src-d/go-kallax.v1"
 )
+
+type captureNotFound string
+
+func (u captureNotFound) Error() string  { return string(u) }
+func (u captureNotFound) NotFound() bool { return true }
 
 // PGStorage postgres storage layer
 type PGStorage struct{ db *pg.DB }
@@ -48,4 +56,17 @@ func (p *PGStorage) List(l *domain.Listing) ([]domain.Capture, error) {
 		return nil, errors.Wrap(err, "err listing captures with pgstorage")
 	}
 	return captures, nil
+}
+
+func (p *PGStorage) Get(captureID, repoID kallax.ULID) (*domain.Capture, error) {
+	var capt domain.Capture
+	err := p.db.Model(&capt).
+		Where("id = ?", captureID).
+		Where("repository_id = ?", repoID).
+		First()
+	if err != nil {
+		errStr := fmt.Sprintf("capture with id %s not found in repo %v", captureID, repoID)
+		return nil, errors.WithStack(captureNotFound(errStr))
+	}
+	return &capt, nil
 }
