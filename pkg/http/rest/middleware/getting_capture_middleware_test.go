@@ -38,7 +38,7 @@ func (m *mockGettingCaptureService) Get(kallax.ULID, *domain.Repository) (*domai
 func TestCaptureCtxSuccess(t *testing.T) {
 	t.Parallel()
 
-	app := setupCaptureCtx(&mockGettingCaptureService{}, getRepoOKMiddle)
+	app := setupCaptureCtx(&mockGettingCaptureService{}, withRepoMiddle(defaultRepo))
 	e := bastion.Tester(t, app)
 	e.GET("/0167c8a5-d308-8692-809d-b1ad4a2d9562").
 		Expect().
@@ -48,7 +48,7 @@ func TestCaptureCtxSuccess(t *testing.T) {
 func TestCaptureCtxFailInternalErrorGettingRepo(t *testing.T) {
 	t.Parallel()
 	s := &mockGettingCaptureService{}
-	app := setupCaptureCtx(s, notRepoMiddle)
+	app := setupCaptureCtx(s, withRepoMiddle(nil))
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{
@@ -65,7 +65,7 @@ func TestCaptureCtxFailInternalErrorGettingRepo(t *testing.T) {
 
 func TestCaptureCtxFailBadRequestGettingCaptureByInvalidIDErr(t *testing.T) {
 	t.Parallel()
-	app := setupCaptureCtx(&mockGettingCaptureService{}, getRepoOKMiddle)
+	app := setupCaptureCtx(&mockGettingCaptureService{}, withRepoMiddle(defaultRepo))
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{
@@ -83,7 +83,7 @@ func TestCaptureCtxFailBadRequestGettingCaptureByInvalidIDErr(t *testing.T) {
 func TestCaptureCtxFailNotFoundGettingCapture(t *testing.T) {
 	t.Parallel()
 	s := &mockGettingCaptureService{err: notFound("test")}
-	app := setupCaptureCtx(s, getRepoOKMiddle)
+	app := setupCaptureCtx(s, withRepoMiddle(defaultRepo))
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{
@@ -101,7 +101,7 @@ func TestCaptureCtxFailNotFoundGettingCapture(t *testing.T) {
 func TestCaptureCtxFailInternalServerErrGettingCapture(t *testing.T) {
 	t.Parallel()
 	s := &mockGettingCaptureService{err: errors.New("test")}
-	app := setupCaptureCtx(s, getRepoOKMiddle)
+	app := setupCaptureCtx(s, withRepoMiddle(defaultRepo))
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{

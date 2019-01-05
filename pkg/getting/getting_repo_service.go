@@ -1,17 +1,10 @@
 package getting
 
 import (
-	"fmt"
-
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
 )
-
-type notAuthorizedErr string
-
-func (i notAuthorizedErr) Error() string         { return fmt.Sprintf(string(i)) }
-func (i notAuthorizedErr) IsNotAuthorized() bool { return true }
 
 // RepoStore provides access to the repository storage.
 type RepoStore interface {
@@ -21,8 +14,8 @@ type RepoStore interface {
 
 // RepoService provides getting repository operations.
 type RepoService interface {
-	// Get retrieve a user repo or public repository.
-	Get(kallax.ULID, *domain.User) (*domain.Repository, error)
+	// Get retrieve a repo.
+	Get(kallax.ULID) (*domain.Repository, error)
 }
 
 type repoService struct {
@@ -34,16 +27,10 @@ func NewRepoService(s RepoStore) RepoService {
 	return &repoService{s: s}
 }
 
-func (s *repoService) Get(id kallax.ULID, user *domain.User) (*domain.Repository, error) {
+func (s *repoService) Get(id kallax.ULID) (*domain.Repository, error) {
 	repo, err := s.s.Get(id)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get repo")
 	}
-
-	if repo.Visibility != domain.Public && repo.UserID != user.ID {
-		errStr := fmt.Sprintf("user %v not authorized to get repo %v", user.ID, id)
-		return nil, errors.WithStack(notAuthorizedErr(errStr))
-	}
-
 	return repo, nil
 }

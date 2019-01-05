@@ -15,10 +15,9 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-func setupRepoCtx(service getting.RepoService, auth func(http.Handler) http.Handler) *bastion.Bastion {
+func setupRepoCtx(service getting.RepoService) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Route("/{id}", func(r chi.Router) {
-		r.Use(auth)
 		r.Use(middleware.RepoCtx(service))
 		r.Get("/", handler)
 		r.Post("/", handler)
@@ -31,42 +30,23 @@ type mockGettingRepoService struct {
 	err  error
 }
 
-func (m *mockGettingRepoService) Get(kallax.ULID, *domain.User) (*domain.Repository, error) {
+func (m *mockGettingRepoService) Get(kallax.ULID) (*domain.Repository, error) {
 	return m.repo, m.err
 }
 
 func TestRepoCtxSuccess(t *testing.T) {
 	t.Parallel()
 
-	app := setupRepoCtx(&mockGettingRepoService{}, authenticatedMiddle)
+	app := setupRepoCtx(&mockGettingRepoService{})
 	e := bastion.Tester(t, app)
 	e.GET("/0167c8a5-d308-8692-809d-b1ad4a2d9562").
 		Expect().
 		Status(http.StatusOK)
 }
 
-func TestRepoCtxFailInternalErrorGettingUser(t *testing.T) {
-	t.Parallel()
-	s := &mockGettingRepoService{}
-	app := setupRepoCtx(s, notUserMiddleware)
-	e := bastion.Tester(t, app)
-
-	response := map[string]interface{}{
-		"status":  500.0,
-		"error":   "Internal Server Error",
-		"message": "looks like something went wrong",
-	}
-
-	e.GET("/0167c8a5-d308-8692-809d-b1ad4a2d9562").
-		Expect().
-		Status(http.StatusInternalServerError).
-		JSON().Object().Equal(response)
-}
-
 func TestRepoCtxFailBadRequestGettingRepoByInvalidIDErr(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingRepoService{}
-	app := setupRepoCtx(s, authenticatedMiddle)
+	app := setupRepoCtx(&mockGettingRepoService{})
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{
@@ -83,8 +63,7 @@ func TestRepoCtxFailBadRequestGettingRepoByInvalidIDErr(t *testing.T) {
 
 func TestRepoCtxFailNotFoundGettingRepo(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingRepoService{err: notFound("test")}
-	app := setupRepoCtx(s, authenticatedMiddle)
+	app := setupRepoCtx(&mockGettingRepoService{err: notFound("test")})
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{
@@ -99,28 +78,9 @@ func TestRepoCtxFailNotFoundGettingRepo(t *testing.T) {
 		JSON().Object().Equal(response)
 }
 
-func TestRepoCtxFailForbiddenGettingRepo(t *testing.T) {
-	t.Parallel()
-	s := &mockGettingRepoService{err: notAllowedErr("test")}
-	app := setupRepoCtx(s, authenticatedMiddle)
-	e := bastion.Tester(t, app)
-
-	response := map[string]interface{}{
-		"status":  403.0,
-		"error":   "Forbidden",
-		"message": "not authorized to see this repository",
-	}
-
-	e.GET("/0162eb39-a65e-04a1-7ad9-d663bb49a396").
-		Expect().
-		Status(http.StatusForbidden).
-		JSON().Object().Equal(response)
-}
-
 func TestRepoCtxFailInternalServerErrGettingRepo(t *testing.T) {
 	t.Parallel()
-	s := &mockGettingRepoService{err: errors.New("test")}
-	app := setupRepoCtx(s, authenticatedMiddle)
+	app := setupRepoCtx(&mockGettingRepoService{err: errors.New("test")})
 	e := bastion.Tester(t, app)
 
 	response := map[string]interface{}{

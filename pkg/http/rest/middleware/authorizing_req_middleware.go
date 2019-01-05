@@ -52,11 +52,11 @@ func AuthorizeReq(service authorizing.Service) func(next http.Handler) http.Hand
 				}
 				if isNotAuthorized(err) {
 					httpErr := render.HTTPError{
-						Status:  http.StatusForbidden,
-						Error:   http.StatusText(http.StatusForbidden),
-						Message: "you don’t have permission to access this resource",
+						Status:  http.StatusUnauthorized,
+						Error:   http.StatusText(http.StatusUnauthorized),
+						Message: "authorization required, access is denied due to invalid credentials",
 					}
-					json.Response(w, http.StatusForbidden, httpErr)
+					json.Response(w, http.StatusUnauthorized, httpErr)
 					return
 				}
 				if isNotFound(err) {

@@ -9,7 +9,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/stretchr/testify/assert"
-	kallax "gopkg.in/src-d/go-kallax.v1"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -36,32 +36,34 @@ func TestContextKeyString(t *testing.T) {
 	assert.Equal(t, "capture/middleware context value Repository", middleware.RepoCtxKey.String())
 }
 
-var tempUser = domain.User{Email: "test@example.com", ID: kallax.NewULID()}
+var (
+	defaultUserID = kallax.NewULID()
+	defaultUser   = &domain.User{Email: "test@example.com", ID: defaultUserID}
+	defaultRepo   = &domain.Repository{Name: "test", ID: kallax.NewULID()}
+)
 
-func authenticatedMiddle(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), middleware.UserCtxKey, &tempUser)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+func withUserMiddle(user *domain.User) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			if user != nil {
+				ctx = context.WithValue(ctx, middleware.UserCtxKey, user)
+			}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+		return http.HandlerFunc(fn)
+	}
 }
 
-func notUserMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
-}
-
-var tempRepo = domain.Repository{Name: "test", ID: kallax.NewULID()}
-
-func getRepoOKMiddle(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), middleware.RepoCtxKey, &tempRepo)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func notRepoMiddle(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
+func withRepoMiddle(repo *domain.Repository) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			if repo != nil {
+				ctx = context.WithValue(ctx, middleware.RepoCtxKey, repo)
+			}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+		return http.HandlerFunc(fn)
+	}
 }

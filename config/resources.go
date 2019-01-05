@@ -31,8 +31,7 @@ func getResources(cfg *Config) di.Container {
 	builder, _ := di.NewBuilder()
 	definitions := []di.Def{
 		{
-			Name:  "capture-routes",
-			Scope: di.App,
+			Name: "capture-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				database := cfg.Resources.Get("database").(*gorm.DB)
 				store := captureOld.NewPGStore(database)
@@ -42,15 +41,13 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "branch-routes",
-			Scope: di.App,
+			Name: "branch-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				return branch.Routes(), nil
 			},
 		},
 		{
-			Name:  "multipost-routes",
-			Scope: di.App,
+			Name: "multipost-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				return multipost.Routes(), nil
 			},
@@ -58,8 +55,7 @@ func getResources(cfg *Config) di.Container {
 
 		// resources for DDD migration
 		{
-			Name:  "database",
-			Scope: di.App,
+			Name: "database",
 			Build: func(ctn di.Container) (interface{}, error) {
 				return gorm.Open("postgres", cfg.Constants.PG)
 			},
@@ -68,8 +64,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "ps-database",
-			Scope: di.App,
+			Name: "ps-database",
 			Build: func(ctn di.Container) (i interface{}, e error) {
 				opts, err := pg.ParseURL(cfg.Constants.PG)
 				if err != nil {
@@ -86,8 +81,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "user-storage",
-			Scope: di.App,
+			Name: "user-storage",
 			Build: func(ctn di.Container) (interface{}, error) {
 				database := cfg.Resources.Get("ps-database").(*pg.DB)
 				s := user.NewPGStorage(database)
@@ -101,16 +95,14 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "jwt-service",
-			Scope: di.App,
+			Name: "jwt-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				duration := time.Duration(cfg.JWTExpirationDelta) * time.Second
 				return token.NewJWTService(cfg.JWTSigningKey, duration), nil
 			},
 		},
 		{
-			Name:  "authenticating-routes",
-			Scope: di.App,
+			Name: "authenticating-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				tokenService := cfg.Resources.Get("jwt-service").(authenticating.TokenService)
 				store := cfg.Resources.Get("user-storage").(authenticating.Store)
@@ -119,8 +111,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "authorize-middleware",
-			Scope: di.App,
+			Name: "authorize-middleware",
 			Build: func(ctn di.Container) (interface{}, error) {
 				tokenService := cfg.Resources.Get("jwt-service").(authorizing.TokenService)
 				store := cfg.Resources.Get("user-storage").(authorizing.Store)
@@ -129,8 +120,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "sign_up-routes",
-			Scope: di.App,
+			Name: "sign_up-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("user-storage").(signup.Store)
 				s := signup.NewService(store)
@@ -138,8 +128,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "repository-storage",
-			Scope: di.App,
+			Name: "repository-storage",
 			Build: func(ctn di.Container) (interface{}, error) {
 				database := cfg.Resources.Get("ps-database").(*pg.DB)
 				s := repo.NewPGStorage(database)
@@ -153,41 +142,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "creating-routes",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-storage").(creating.Store)
-				s := creating.NewService(store)
-				return rest.Creating(s), nil
-			},
-		},
-		{
-			Name:  "listing-repo-services",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-storage").(listing.RepoStore)
-				return listing.NewRepoService(store), nil
-			},
-		},
-		{
-			Name:  "listing-user-repo-routes",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
-				return rest.ListingUserRepos(s), nil
-			},
-		},
-		{
-			Name:  "listing-public-repos-routes",
-			Scope: di.App,
-			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
-				return rest.ListingPublicRepos(s), nil
-			},
-		},
-		{
-			Name:  "ctx-repo-middleware",
-			Scope: di.App,
+			Name: "ctx-repo-middleware",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("repository-storage").(getting.RepoStore)
 				s := getting.NewRepoService(store)
@@ -195,15 +150,54 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "getting-repo-routes",
-			Scope: di.App,
+			Name: "repo-owner-or-public-middleware",
+			Build: func(ctn di.Container) (interface{}, error) {
+				return middleware.RepoOwnerOrPublic(), nil
+			},
+		},
+		{
+			Name: "repo-owner-middleware",
+			Build: func(ctn di.Container) (interface{}, error) {
+				return middleware.RepoOwner(), nil
+			},
+		},
+		{
+			Name: "creating-routes",
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-storage").(creating.Store)
+				s := creating.NewService(store)
+				return rest.Creating(s), nil
+			},
+		},
+		{
+			Name: "listing-repo-services",
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("repository-storage").(listing.RepoStore)
+				return listing.NewRepoService(store), nil
+			},
+		},
+		{
+			Name: "listing-user-repo-routes",
+			Build: func(ctn di.Container) (interface{}, error) {
+				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
+				return rest.ListingUserRepos(s), nil
+			},
+		},
+		{
+			Name: "listing-public-repos-routes",
+			Build: func(ctn di.Container) (interface{}, error) {
+				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
+				return rest.ListingPublicRepos(s), nil
+			},
+		},
+		{
+			Name: "getting-repo-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				return rest.GettingRepo(), nil
 			},
 		},
 		{
-			Name:  "capture-storage",
-			Scope: di.App,
+			Name: "capture-storage",
 			Build: func(ctn di.Container) (interface{}, error) {
 				database := cfg.Resources.Get("ps-database").(*pg.DB)
 				s := capture.NewPGStorage(database)
@@ -217,8 +211,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "adding-routes",
-			Scope: di.App,
+			Name: "adding-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(adding.Store)
 				s := adding.NewService(store)
@@ -226,24 +219,21 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "listing-capture-services",
-			Scope: di.App,
+			Name: "listing-capture-services",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(listing.CaptureStore)
 				return listing.NewCaptureService(store), nil
 			},
 		},
 		{
-			Name:  "listing-captures-routes",
-			Scope: di.App,
+			Name: "listing-captures-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				s := cfg.Resources.Get("listing-capture-services").(listing.CaptureService)
 				return rest.ListingRepoCaptures(s), nil
 			},
 		},
 		{
-			Name:  "ctx-capture-middleware",
-			Scope: di.App,
+			Name: "ctx-capture-middleware",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(getting.CaptureStore)
 				s := getting.NewCaptureService(store)
@@ -251,8 +241,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name:  "getting-capture-routes",
-			Scope: di.App,
+			Name: "getting-capture-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				return rest.GettingCapture(), nil
 			},

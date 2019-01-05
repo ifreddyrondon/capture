@@ -67,15 +67,15 @@ func TestAuthorizingNotAuthorized(t *testing.T) {
 
 	app := setupAuthorizing(&mockAuthorizingService{err: notAllowedErr("you don’t have permission to access this resource")})
 	response := map[string]interface{}{
-		"status":  403.0,
-		"error":   "Forbidden",
-		"message": "you don’t have permission to access this resource",
+		"status":  401.0,
+		"error":   "Unauthorized",
+		"message": "authorization required, access is denied due to invalid credentials",
 	}
 
 	e := bastion.Tester(t, app)
 	e.GET("/").WithHeader("Authorization", "Bearer Test").
 		Expect().
-		Status(http.StatusForbidden).
+		Status(http.StatusUnauthorized).
 		JSON().Object().Equal(response)
 }
 
