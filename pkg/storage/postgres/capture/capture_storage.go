@@ -2,6 +2,7 @@ package capture
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
@@ -69,4 +70,14 @@ func (p *PGStorage) Get(captureID, repoID kallax.ULID) (*domain.Capture, error) 
 		return nil, errors.WithStack(captureNotFound(errStr))
 	}
 	return &capt, nil
+}
+
+func (p *PGStorage) Delete(capt *domain.Capture) error {
+	t := time.Now()
+	capt.DeletedAt = &t
+	if err := p.db.Update(capt); err != nil {
+		errStr := fmt.Sprintf("error deleting capture %s in repo %v", capt.ID, capt.RepositoryID)
+		return errors.Wrap(err, errStr)
+	}
+	return nil
 }

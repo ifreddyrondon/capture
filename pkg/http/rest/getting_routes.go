@@ -30,13 +30,13 @@ func GettingCapture() http.HandlerFunc {
 	renderJSON := render.NewJSON()
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		repo, err := middleware.GetCapture(r.Context())
+		capt, err := middleware.GetCapture(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Send(w, repo)
+		renderJSON.Send(w, capt)
 	}
 }

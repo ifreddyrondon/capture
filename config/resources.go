@@ -8,6 +8,7 @@ import (
 	captureOld "github.com/ifreddyrondon/capture/pkg/capture"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/listing"
+	"github.com/ifreddyrondon/capture/pkg/removing"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/capture"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
 	"github.com/pkg/errors"
@@ -244,6 +245,14 @@ func getResources(cfg *Config) di.Container {
 			Name: "getting-capture-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				return rest.GettingCapture(), nil
+			},
+		},
+		{
+			Name: "removing-capture-routes",
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("capture-storage").(removing.CaptureStore)
+				s := removing.NewCaptureService(store)
+				return rest.RemovingCapture(s), nil
 			},
 		},
 	}

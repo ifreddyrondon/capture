@@ -55,6 +55,7 @@ func router(resources di.Container) http.Handler {
 
 	ctxCapture := resources.Get("ctx-capture-middleware").(func(next http.Handler) http.Handler)
 	gettingCapture := resources.Get("getting-capture-routes").(http.HandlerFunc)
+	removingCapture := resources.Get("removing-capture-routes").(http.HandlerFunc)
 
 	r.Post("/sign/", signUp)
 	r.Route("/auth/", func(r chi.Router) {
@@ -64,10 +65,7 @@ func router(resources di.Container) http.Handler {
 		r.Use(authorize)
 		r.Route("/repos/", func(r chi.Router) {
 			r.Post("/", creating)
-			r.Route("/", func(r chi.Router) {
-				r.Use(listingReposMiddle)
-				r.Get("/", listingUserRepos)
-			})
+			r.With(listingReposMiddle).Get("/", listingUserRepos)
 
 		})
 	})
@@ -80,13 +78,11 @@ func router(resources di.Container) http.Handler {
 			r.With(repoOwnerOrPublic).Get("/", gettingRepo)
 			r.Route("/captures/", func(r chi.Router) {
 				r.With(repoOwnerOrPublic).With(listingCapturesMiddle).Get("/", listingCaptures)
-				r.Route("/", func(r chi.Router) {
-					r.Use(repoOwner)
-					r.Post("/", addingCapture)
-				})
+				r.With(repoOwner).Post("/", addingCapture)
 				r.Route("/{captureId}", func(r chi.Router) {
 					r.Use(ctxCapture)
 					r.With(repoOwnerOrPublic).Get("/", gettingCapture)
+					r.With(repoOwner).Delete("/", removingCapture)
 				})
 			})
 		})
