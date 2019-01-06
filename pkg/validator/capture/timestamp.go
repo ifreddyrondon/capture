@@ -1,19 +1,19 @@
-package adding
+package capture
 
 import (
 	"encoding/json"
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/ifreddyrondon/capture/validator"
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const TimestampValidator validator.StringValidator = "cannot unmarshal json into valid time value"
 
 type Timestamp struct {
-	Date          *json.Number `json:"date"`
-	Timestamp     *json.Number `json:"timestamp"`
-	postTimestamp *time.Time
+	Date      *json.Number `json:"date"`
+	Timestamp *json.Number `json:"timestamp"`
+	Time      *time.Time
 }
 
 func (t *Timestamp) OK() error {
@@ -23,7 +23,7 @@ func (t *Timestamp) OK() error {
 		if err != nil {
 			return err
 		}
-		t.postTimestamp = &parsedTime
+		t.Time = &parsedTime
 	}
 	return nil
 }

@@ -1,13 +1,13 @@
-package adding
+package capture
 
 import (
 	"github.com/gobuffalo/validate"
-	"github.com/ifreddyrondon/capture/validator"
+	"github.com/ifreddyrondon/capture/pkg/validator"
 
 	"github.com/pkg/errors"
 )
 
-const CaptureValidator validator.StringValidator = "cannot unmarshal json into valid capture value"
+const Validator validator.StringValidator = "cannot unmarshal json into valid capture value"
 
 type Capture struct {
 	Payload

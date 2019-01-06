@@ -1,4 +1,4 @@
-package adding_test
+package capture_test
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,13 +22,13 @@ func TestValidateCaptureOK(t *testing.T) {
 	tt := []struct {
 		name     string
 		body     string
-		expected adding.Capture
+		expected capture.Capture
 	}{
 		{
 			name: "decode capture with just payload",
 			body: `{"payload":[{"name":"power","value":10}]}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
@@ -38,63 +38,63 @@ func TestValidateCaptureOK(t *testing.T) {
 		{
 			name: "decode capture with payload and location with lat lng",
 			body: `{"payload":[{"name":"power","value":10}],"location":{"lat":1,"lng":1}}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
 				},
-				Location: &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1)},
+				Location: &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload and location with lat, lng and elevation",
 			body: `{"payload":[{"name":"power","value":10}],"location":{"lat":1,"lng":1,"elevation":1}}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Location: &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Location: &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload and timestamp",
 			body: `{"payload":[{"name":"power","value":10}],"date":"1989-12-26T06:01:00.00Z"}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Timestamp: adding.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
+				Timestamp: capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
 			},
 		},
 		{
 			name: "decode capture with payload, timestamp and location with lat, lng and elevation",
 			body: `{"payload":[{"name":"power","value":10}],"date":"1989-12-26T06:01:00.00Z","location":{"lat":1,"lng":1,"elevation":1}}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Timestamp: adding.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
-				Location:  &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Timestamp: capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
+				Location:  &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload, timestamp, location (lat, lng and elevation) and tags",
 			body: `{"payload":[{"name":"power","value":10}],"date":"1989-12-26T06:01:00.00Z","location":{"lat":1,"lng":1,"elevation":1},"tags":["at night"]}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Timestamp: adding.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
+				Timestamp: capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
 				Tags:      []string{"at night"},
-				Location:  &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Location:  &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload value as array",
 			body: `{"payload":[{"name":"power","value":[10, -1, -3]}]}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: []interface{}{10.0, -1.0, -3.0}}},
 				},
 			},
@@ -102,8 +102,8 @@ func TestValidateCaptureOK(t *testing.T) {
 		{
 			name: "decode capture with several metrict and value as array",
 			body: `{"payload":[{"name":"power","value":[10, -1, -3]},{"name":"signal","value":100}]}`,
-			expected: adding.Capture{
-				Payload: adding.Payload{
+			expected: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: []interface{}{10.0, -1.0, -3.0}},
 						{Name: "signal", Value: 100.0},
@@ -117,14 +117,14 @@ func TestValidateCaptureOK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var capture adding.Capture
-			err := adding.CaptureValidator.Decode(r, &capture)
+			var capt capture.Capture
+			err := capture.Validator.Decode(r, &capt)
 			assert.Nil(t, err)
-			assert.Equal(t, tc.expected.Payload, capture.Payload)
-			assert.Equal(t, tc.expected.Location, capture.Location)
-			assert.Equal(t, tc.expected.Timestamp.Timestamp, capture.Timestamp.Timestamp)
-			assert.Equal(t, tc.expected.Timestamp.Date, capture.Timestamp.Date)
-			assert.Equal(t, tc.expected.Tags, capture.Tags)
+			assert.Equal(t, tc.expected.Payload, capt.Payload)
+			assert.Equal(t, tc.expected.Location, capt.Location)
+			assert.Equal(t, tc.expected.Timestamp.Timestamp, capt.Timestamp.Timestamp)
+			assert.Equal(t, tc.expected.Timestamp.Date, capt.Timestamp.Date)
+			assert.Equal(t, tc.expected.Tags, capt.Tags)
 		})
 	}
 }
@@ -175,8 +175,8 @@ func TestValidationCaptureFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var capture adding.Capture
-			err := adding.CaptureValidator.Decode(r, &capture)
+			var capt capture.Capture
+			err := capture.Validator.Decode(r, &capt)
 			for _, e := range tc.errs {
 				assert.Contains(t, err.Error(), e)
 			}

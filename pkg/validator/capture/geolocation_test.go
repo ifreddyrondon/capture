@@ -1,11 +1,11 @@
-package adding_test
+package capture_test
 
 import (
 	"net/http"
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/adding"
+	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,57 +19,57 @@ func TestValidateGeolocationOK(t *testing.T) {
 	tt := []struct {
 		name     string
 		body     string
-		expected adding.GeoLocation
+		expected capture.GeoLocation
 	}{
 		{
 			name:     "decode point without data",
 			body:     `{}`,
-			expected: adding.GeoLocation{},
+			expected: capture.GeoLocation{},
 		},
 		{
 			name:     "decode point with lat, lng and without elevation",
 			body:     `{"lat":75,"lng":180}`,
-			expected: adding.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
+			expected: capture.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
 		},
 		{
 			name:     "decode point with lat, longitude and without elevation",
 			body:     `{"lat":75,"longitude":180}`,
-			expected: adding.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
+			expected: capture.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
 		},
 		{
 			name:     "decode point with latitude, lng and without elevation",
 			body:     `{"latitude":75,"lng":180}`,
-			expected: adding.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
+			expected: capture.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
 		},
 		{
 			name:     "decode point with latitude, longitude and without elevation",
 			body:     `{"latitude":75,"longitude":180}`,
-			expected: adding.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
+			expected: capture.GeoLocation{LAT: f2P(75), LNG: f2P(180)},
 		},
 		{
 			name:     "decode point with lat, lng and elevation",
 			body:     `{"lat":75,"lng":180,"elevation":1}`,
-			expected: adding.GeoLocation{LAT: f2P(75), LNG: f2P(180), Elevation: f2P(1)},
+			expected: capture.GeoLocation{LAT: f2P(75), LNG: f2P(180), Elevation: f2P(1)},
 		},
 		{
 			name:     "decode point with lat, lng and altitude",
 			body:     `{"lat":75,"lng":180,"altitude":1}`,
-			expected: adding.GeoLocation{LAT: f2P(75), LNG: f2P(180), Elevation: f2P(1)},
+			expected: capture.GeoLocation{LAT: f2P(75), LNG: f2P(180), Elevation: f2P(1)},
 		},
 		{
 			name:     "decode point with lat, lng for upper limits",
 			body:     `{"lat":90,"lng":-147.45}`,
-			expected: adding.GeoLocation{LAT: f2P(90), LNG: f2P(-147.45)},
+			expected: capture.GeoLocation{LAT: f2P(90), LNG: f2P(-147.45)},
 		},
 		{
 			name:     "decode point with lat, lng for lower limits",
 			body:     `{"lat":-90.00000,"lng":-180.0000}`,
-			expected: adding.GeoLocation{LAT: f2P(-90.00000), LNG: f2P(-180.0000)},
+			expected: capture.GeoLocation{LAT: f2P(-90.00000), LNG: f2P(-180.0000)},
 		},
 		{
 			name:     "decode point with lat, lng with decimals",
 			body:     `{"lat":77.11112223331,"lng":149.99999999}`,
-			expected: adding.GeoLocation{LAT: f2P(77.11112223331), LNG: f2P(149.99999999)},
+			expected: capture.GeoLocation{LAT: f2P(77.11112223331), LNG: f2P(149.99999999)},
 		},
 	}
 
@@ -77,8 +77,8 @@ func TestValidateGeolocationOK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var p adding.GeoLocation
-			err := adding.GeolocationValidator.Decode(r, &p)
+			var p capture.GeoLocation
+			err := capture.GeolocationValidator.Decode(r, &p)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.LAT, p.LAT)
 			assert.Equal(t, tc.expected.LNG, p.LNG)
@@ -136,8 +136,8 @@ func TestValidateGeolocationFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var p adding.GeoLocation
-			err := adding.GeolocationValidator.Decode(r, &p)
+			var p capture.GeoLocation
+			err := capture.GeolocationValidator.Decode(r, &p)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

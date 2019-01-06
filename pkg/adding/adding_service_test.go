@@ -1,15 +1,22 @@
 package adding_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
 )
+
+func s2n(v string) *json.Number {
+	n := json.Number(v)
+	return &n
+}
 
 type mockStore struct {
 	err error
@@ -22,13 +29,13 @@ func TestServiceAddCaptureOKWithDefaultTimestamp(t *testing.T) {
 
 	tt := []struct {
 		name     string
-		payl     adding.Capture
+		payl     capture.Capture
 		expected domain.Capture
 	}{
 		{
 			name: "given a only name payload should return a domain capture without location and tags",
-			payl: adding.Capture{
-				Payload: adding.Payload{
+			payl: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
@@ -43,13 +50,13 @@ func TestServiceAddCaptureOKWithDefaultTimestamp(t *testing.T) {
 		},
 		{
 			name: "given payload and location should return a domain capture with location without tags",
-			payl: adding.Capture{
-				Payload: adding.Payload{
+			payl: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
 				},
-				Location: &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1)},
+				Location: &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1)},
 			},
 			expected: domain.Capture{
 				Payload: domain.Payload{
@@ -61,13 +68,13 @@ func TestServiceAddCaptureOKWithDefaultTimestamp(t *testing.T) {
 		},
 		{
 			name: "given payload and location should return a domain capture with location and tags",
-			payl: adding.Capture{
-				Payload: adding.Payload{
+			payl: capture.Capture{
+				Payload: capture.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
 				},
-				Location: &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Location: &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 				Tags:     []string{"at night"},
 			},
 			expected: domain.Capture{
@@ -107,21 +114,25 @@ func s2t(date string) time.Time {
 	return v
 }
 
+func f2P(v float64) *float64 {
+	return &v
+}
+
 func TestServiceAddCaptureOKWithTimestamp(t *testing.T) {
 	t.Parallel()
 
 	expectedTime := s2t("1989-12-26T06:01:00.00Z")
 
-	tt := adding.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")}
-	adding.SetPostTimestampInstance(&tt, expectedTime)
-	payl := adding.Capture{
-		Payload: adding.Payload{
+	tt := capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")}
+	tt.Time = &expectedTime
+	payl := capture.Capture{
+		Payload: capture.Payload{
 			Payload: []domain.Metric{
 				{Name: "power", Value: 10.0},
 			},
 		},
 		Timestamp: tt,
-		Location:  &adding.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+		Location:  &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 		Tags:      []string{"at night"},
 	}
 	expected := domain.Capture{
@@ -154,8 +165,8 @@ func TestServiceAddCaptureErrWhenSaving(t *testing.T) {
 	s := adding.NewService(&mockStore{err: errors.New("test")})
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
-	payl := adding.Capture{
-		Payload: adding.Payload{
+	payl := capture.Capture{
+		Payload: capture.Payload{
 			Payload: []domain.Metric{
 				{Name: "power", Value: 10.0},
 			},

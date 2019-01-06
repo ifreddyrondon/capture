@@ -1,9 +1,9 @@
-package adding
+package capture
 
 import (
 	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/validator"
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const errMissingPayload = "payload value must not be blank"

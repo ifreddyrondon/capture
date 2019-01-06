@@ -1,4 +1,4 @@
-package adding
+package capture_test
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -58,10 +59,10 @@ func TestValidateTimestampOK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var d Timestamp
-			err := TimestampValidator.Decode(r, &d)
+			var d capture.Timestamp
+			err := capture.TimestampValidator.Decode(r, &d)
 			assert.Nil(t, err)
-			assert.Equal(t, tc.expectedTimestamp, d.postTimestamp)
+			assert.Equal(t, tc.expectedTimestamp, d.Time)
 		})
 	}
 }
@@ -94,8 +95,8 @@ func TestDecodeTimestampFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var d Timestamp
-			err := TimestampValidator.Decode(r, &d)
+			var d capture.Timestamp
+			err := capture.TimestampValidator.Decode(r, &d)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

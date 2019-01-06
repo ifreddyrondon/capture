@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/validator"
+	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
 
