@@ -1,14 +1,16 @@
 package removing
 
 import (
+	"time"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 )
 
 // CaptureStore provides access to the capture storage.
 type CaptureStore interface {
-	// Delete a capture from a repo.
-	Delete(*domain.Capture) error
+	// Save the capture state into the storage.
+	Save(*domain.Capture) error
 }
 
 // CaptureService provides removing capture operations.
@@ -27,7 +29,9 @@ func NewCaptureService(s CaptureStore) CaptureService {
 }
 
 func (s *captureService) Remove(c *domain.Capture) error {
-	err := s.s.Delete(c)
+	t := time.Now()
+	c.DeletedAt = &t
+	err := s.s.Save(c)
 	if err != nil {
 		return errors.Wrap(err, "could not remove capture")
 	}

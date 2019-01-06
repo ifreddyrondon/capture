@@ -9,7 +9,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func repoCtxtMiddlewareOK(next http.Handler) http.Handler {
@@ -65,22 +64,6 @@ func TestGettingRepoInternalServer(t *testing.T) {
 		JSON().Object().Equal(response)
 }
 
-func captureCtxtMiddlewareOK(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		capt := &domain.Capture{ID: kallax.NewULID()}
-
-		ctx := context.WithValue(r.Context(), middleware.CaptureCtxKey, capt)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func captureCtxtMiddlewareBAD(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), middleware.CaptureCtxKey, "bad capture")
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func setupGettingCaptureHandler(m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
@@ -91,7 +74,7 @@ func setupGettingCaptureHandler(m func(http.Handler) http.Handler) *bastion.Bast
 func TestGettingCaptureSuccess(t *testing.T) {
 	t.Parallel()
 
-	app := setupGettingCaptureHandler(captureCtxtMiddlewareOK)
+	app := setupGettingCaptureHandler(withCaptureMiddle(defaultCapture))
 
 	e := bastion.Tester(t, app)
 	e.GET("/0167c8a5-d308-8692-809d-b1ad4a2d9562").
@@ -103,7 +86,7 @@ func TestGettingCaptureSuccess(t *testing.T) {
 func TestGettingCaptureInternalServer(t *testing.T) {
 	t.Parallel()
 
-	app := setupGettingCaptureHandler(captureCtxtMiddlewareBAD)
+	app := setupGettingCaptureHandler(withCaptureMiddle(nil))
 
 	response := map[string]interface{}{
 		"status":  500.0,
