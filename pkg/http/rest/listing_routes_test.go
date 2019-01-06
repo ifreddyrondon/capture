@@ -159,7 +159,7 @@ func TestListingUserReposSuccess(t *testing.T) {
 		{Name: "test private", Visibility: "private"},
 	}
 	s := &mockListingRepoService{repos: repos}
-	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, authenticatedMiddleware)
+	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, withUserMiddle(defaultUser))
 
 	e := bastion.Tester(t, app)
 	res := e.GET("/").Expect().
@@ -180,7 +180,7 @@ func TestListingUserReposInternalServerBadListing(t *testing.T) {
 	t.Parallel()
 
 	s := &mockListingRepoService{err: errors.New("test")}
-	app := setupListingUserReposHandler(s, listingMiddlewareBAD, authenticatedMiddleware)
+	app := setupListingUserReposHandler(s, listingMiddlewareBAD, withUserMiddle(defaultUser))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -197,7 +197,7 @@ func TestListingUserReposInternalServerBadListing(t *testing.T) {
 func TestListingUserReposFailInternalErrorGettingUser(t *testing.T) {
 	t.Parallel()
 	s := &mockListingRepoService{}
-	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, notUserMiddleware)
+	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, withUserMiddle(nil))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -215,7 +215,7 @@ func TestListingUserReposInternalServerGettingRepos(t *testing.T) {
 	t.Parallel()
 
 	s := &mockListingRepoService{err: errors.New("test")}
-	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, authenticatedMiddleware)
+	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, withUserMiddle(defaultUser))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -260,7 +260,7 @@ func TestListingRepoCapturesSuccess(t *testing.T) {
 
 	captures := []domain.Capture{{ID: kallax.NewULID()}, {ID: kallax.NewULID()}}
 	s := &mockListingCaptureService{captures: captures}
-	app := setupListingRepoCapturesHandler(s, listingCaptureMiddlewareOK, authenticatedMiddleware, repoCtxtMiddlewareOK)
+	app := setupListingRepoCapturesHandler(s, listingCaptureMiddlewareOK, withUserMiddle(defaultUser), withRepoMiddle(defaultRepo))
 
 	e := bastion.Tester(t, app)
 	res := e.GET("/").Expect().
@@ -276,7 +276,7 @@ func TestListingRepoCapturesInternalServerBadListing(t *testing.T) {
 	t.Parallel()
 
 	s := &mockListingCaptureService{err: errors.New("test")}
-	app := setupListingRepoCapturesHandler(s, listingMiddlewareBAD, authenticatedMiddleware, repoCtxtMiddlewareOK)
+	app := setupListingRepoCapturesHandler(s, listingMiddlewareBAD, withUserMiddle(defaultUser), withRepoMiddle(defaultRepo))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -293,7 +293,7 @@ func TestListingRepoCapturesInternalServerBadListing(t *testing.T) {
 func TestListingRepoCapturesFailInternalErrorGettingRepo(t *testing.T) {
 	t.Parallel()
 	s := &mockListingCaptureService{}
-	app := setupListingRepoCapturesHandler(s, listingRepoMiddlewareOK, authenticatedMiddleware, repoCtxtMiddlewareBAD)
+	app := setupListingRepoCapturesHandler(s, listingRepoMiddlewareOK, withUserMiddle(defaultUser), withRepoMiddle(nil))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -311,7 +311,7 @@ func TestListingUserReposInternalServerGettingCaptures(t *testing.T) {
 	t.Parallel()
 
 	s := &mockListingCaptureService{err: errors.New("test")}
-	app := setupListingRepoCapturesHandler(s, listingCaptureMiddlewareOK, authenticatedMiddleware, repoCtxtMiddlewareOK)
+	app := setupListingRepoCapturesHandler(s, listingCaptureMiddlewareOK, withUserMiddle(defaultUser), withRepoMiddle(defaultRepo))
 
 	response := map[string]interface{}{
 		"status":  500.0,

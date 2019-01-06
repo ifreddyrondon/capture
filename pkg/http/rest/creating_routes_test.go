@@ -1,7 +1,6 @@
 package rest_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -11,24 +10,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
-	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"gopkg.in/src-d/go-kallax.v1"
 )
-
-var tempUser = domain.User{Email: "test@example.com", ID: kallax.NewULID()}
-
-func notUserMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
-}
-
-func authenticatedMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), middleware.UserCtxKey, &tempUser)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
 
 type mockCreatingService struct {
 	repo *creating.Repository
@@ -58,7 +40,7 @@ func TestCreateRepoSuccess(t *testing.T) {
 	}
 
 	s := &mockCreatingService{repo: repo}
-	app := setupCreateHandler(s, authenticatedMiddleware)
+	app := setupCreateHandler(s, withUserMiddle(defaultUser))
 	e := bastion.Tester(t, app)
 
 	payload := map[string]interface{}{"name": "test"}
@@ -103,7 +85,7 @@ func TestCreateRepoFailBadRequest(t *testing.T) {
 	}
 
 	s := &mockCreatingService{}
-	app := setupCreateHandler(s, authenticatedMiddleware)
+	app := setupCreateHandler(s, withUserMiddle(defaultUser))
 	e := bastion.Tester(t, app)
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -119,7 +101,7 @@ func TestCreateRepoFailBadRequest(t *testing.T) {
 func TestCreateRepoFailInternalErrorGettingUser(t *testing.T) {
 	t.Parallel()
 	s := &mockCreatingService{}
-	app := setupCreateHandler(s, notUserMiddleware)
+	app := setupCreateHandler(s, withUserMiddle(nil))
 	e := bastion.Tester(t, app)
 
 	payload := map[string]interface{}{"name": "test"}
@@ -139,7 +121,7 @@ func TestCreateRepoFailInternalErrorGettingUser(t *testing.T) {
 func TestCreateRepoFailInternalErrorCreatingRepo(t *testing.T) {
 	t.Parallel()
 	s := &mockCreatingService{err: errors.New("test")}
-	app := setupCreateHandler(s, authenticatedMiddleware)
+	app := setupCreateHandler(s, withUserMiddle(defaultUser))
 	e := bastion.Tester(t, app)
 
 	payload := map[string]interface{}{"name": "test"}

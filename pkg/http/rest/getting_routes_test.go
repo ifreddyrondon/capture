@@ -1,31 +1,12 @@
 package rest_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
-	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
-
-func repoCtxtMiddlewareOK(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		repo := &domain.Repository{Name: "test public", Visibility: "public"}
-
-		ctx := context.WithValue(r.Context(), middleware.RepoCtxKey, repo)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func repoCtxtMiddlewareBAD(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), middleware.RepoCtxKey, "bad listing")
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
 
 func setupGettingRepoHandler(m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
@@ -37,7 +18,7 @@ func setupGettingRepoHandler(m func(http.Handler) http.Handler) *bastion.Bastion
 func TestGettingRepoSuccess(t *testing.T) {
 	t.Parallel()
 
-	app := setupGettingRepoHandler(repoCtxtMiddlewareOK)
+	app := setupGettingRepoHandler(withRepoMiddle(defaultRepo))
 
 	e := bastion.Tester(t, app)
 	e.GET("/0167c8a5-d308-8692-809d-b1ad4a2d9562").
@@ -50,7 +31,7 @@ func TestGettingRepoSuccess(t *testing.T) {
 func TestGettingRepoInternalServer(t *testing.T) {
 	t.Parallel()
 
-	app := setupGettingRepoHandler(repoCtxtMiddlewareBAD)
+	app := setupGettingRepoHandler(withRepoMiddle(nil))
 
 	response := map[string]interface{}{
 		"status":  500.0,
