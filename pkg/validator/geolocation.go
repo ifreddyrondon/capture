@@ -1,9 +1,8 @@
-package capture
+package validator
 
 import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gobuffalo/validate"
-	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const (
@@ -13,7 +12,7 @@ const (
 	errLNGRange   = "longitude out of boundaries, may range from -180.0 to 180.0"
 )
 
-const GeolocationValidator validator.StringValidator = "cannot unmarshal json into valid geolocation value"
+const GeolocationValidator StringValidator = "cannot unmarshal json into valid geolocation value"
 
 type GeoLocation struct {
 	LAT       *float64 `json:"lat"`

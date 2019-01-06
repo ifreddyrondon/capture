@@ -1,14 +1,13 @@
-package capture
+package validator
 
 import (
 	"encoding/json"
 	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
-const TimestampValidator validator.StringValidator = "cannot unmarshal json into valid time value"
+const TimestampValidator StringValidator = "cannot unmarshal json into valid time value"
 
 type Timestamp struct {
 	Date      *json.Number `json:"date"`

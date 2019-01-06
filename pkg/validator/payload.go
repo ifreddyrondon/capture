@@ -1,15 +1,14 @@
-package capture
+package validator
 
 import (
 	"github.com/gobuffalo/validate"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const errMissingPayload = "payload value must not be blank"
 
 // PayloadValidator for adding request payload
-const PayloadValidator validator.StringValidator = "cannot unmarshal json into valid payload value"
+const PayloadValidator StringValidator = "cannot unmarshal json into valid payload value"
 
 type Payload struct {
 	Data    []domain.Metric `json:"data"`

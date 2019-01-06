@@ -8,7 +8,6 @@ import (
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 )
 
 // Adding returns a configured http.Handler with adding resources.
@@ -16,8 +15,8 @@ func Adding(service adding.Service) http.HandlerFunc {
 	renderJSON := render.NewJSON()
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payl capture.Capture
-		err := capture.Validator.Decode(r, &payl)
+		var payl adding.Capture
+		err := adding.CaptureValidator.Decode(r, &payl)
 		if err != nil {
 			renderJSON.BadRequest(w, err)
 			return

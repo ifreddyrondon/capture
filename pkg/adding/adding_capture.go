@@ -1,4 +1,4 @@
-package capture
+package adding
 
 import (
 	"github.com/gobuffalo/validate"
@@ -7,13 +7,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-const Validator validator.StringValidator = "cannot unmarshal json into valid capture value"
+const CaptureValidator validator.StringValidator = "cannot unmarshal json into valid capture value"
 
 type Capture struct {
-	Payload
-	Timestamp
-	Tags     []string     `json:"tags"`
-	Location *GeoLocation `json:"location"`
+	validator.Payload
+	validator.Timestamp
+	Tags     []string               `json:"tags"`
+	Location *validator.GeoLocation `json:"location"`
 }
 
 func (c *Capture) OK() error {

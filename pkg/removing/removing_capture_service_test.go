@@ -1,6 +1,7 @@
 package removing_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -38,8 +39,9 @@ func TestServiceRemoveCaptureFailsWhenSave(t *testing.T) {
 
 	store := &mockCaptureStore{err: errors.New("test")}
 	s := removing.NewCaptureService(store)
-	capt := &domain.Capture{ID: kallax.NewULID()}
+	captID := kallax.NewULID()
+	capt := &domain.Capture{ID: captID}
 
 	err := s.Remove(capt)
-	assert.EqualError(t, err, "could not remove capture: test")
+	assert.EqualError(t, err, fmt.Sprintf("could not remove capture %v: test", captID))
 }

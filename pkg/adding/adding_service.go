@@ -5,7 +5,6 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
 )
@@ -18,7 +17,7 @@ type Store interface {
 // Service provides adding operations.
 type Service interface {
 	// AddCapture add a new capture to a repository
-	AddCapture(*domain.Repository, capture.Capture) (*domain.Capture, error)
+	AddCapture(*domain.Repository, Capture) (*domain.Capture, error)
 }
 
 type service struct {
@@ -31,7 +30,7 @@ func NewService(s Store) Service {
 	return &service{s: s}
 }
 
-func (s *service) AddCapture(r *domain.Repository, c capture.Capture) (*domain.Capture, error) {
+func (s *service) AddCapture(r *domain.Repository, c Capture) (*domain.Capture, error) {
 	capt := s.getDomainCapture(r, c)
 	if err := s.s.CreateCapture(capt); err != nil {
 		return nil, errors.Wrap(err, "could not add capture")
@@ -39,7 +38,7 @@ func (s *service) AddCapture(r *domain.Repository, c capture.Capture) (*domain.C
 	return capt, nil
 }
 
-func (s *service) getDomainCapture(r *domain.Repository, c capture.Capture) *domain.Capture {
+func (s *service) getDomainCapture(r *domain.Repository, c Capture) *domain.Capture {
 	now := time.Now()
 	result := &domain.Capture{
 		ID:           kallax.NewULID(),

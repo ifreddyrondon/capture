@@ -1,20 +1,15 @@
-package capture_test
+package adding_test
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/validator/capture"
+	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/stretchr/testify/assert"
 )
-
-func s2n(v string) *json.Number {
-	n := json.Number(v)
-	return &n
-}
 
 func TestValidateCaptureOK(t *testing.T) {
 	t.Parallel()
@@ -22,13 +17,13 @@ func TestValidateCaptureOK(t *testing.T) {
 	tt := []struct {
 		name     string
 		body     string
-		expected capture.Capture
+		expected adding.Capture
 	}{
 		{
 			name: "decode capture with just payload",
 			body: `{"payload":[{"name":"power","value":10}]}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
@@ -38,63 +33,63 @@ func TestValidateCaptureOK(t *testing.T) {
 		{
 			name: "decode capture with payload and location with lat lng",
 			body: `{"payload":[{"name":"power","value":10}],"location":{"lat":1,"lng":1}}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: 10.0},
 					},
 				},
-				Location: &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1)},
+				Location: &validator.GeoLocation{LAT: f2P(1), LNG: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload and location with lat, lng and elevation",
 			body: `{"payload":[{"name":"power","value":10}],"location":{"lat":1,"lng":1,"elevation":1}}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Location: &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Location: &validator.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload and timestamp",
 			body: `{"payload":[{"name":"power","value":10}],"date":"1989-12-26T06:01:00.00Z"}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Timestamp: capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
+				Timestamp: validator.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
 			},
 		},
 		{
 			name: "decode capture with payload, timestamp and location with lat, lng and elevation",
 			body: `{"payload":[{"name":"power","value":10}],"date":"1989-12-26T06:01:00.00Z","location":{"lat":1,"lng":1,"elevation":1}}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Timestamp: capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
-				Location:  &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Timestamp: validator.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
+				Location:  &validator.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload, timestamp, location (lat, lng and elevation) and tags",
 			body: `{"payload":[{"name":"power","value":10}],"date":"1989-12-26T06:01:00.00Z","location":{"lat":1,"lng":1,"elevation":1},"tags":["at night"]}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: 10.0}},
 				},
-				Timestamp: capture.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
+				Timestamp: validator.Timestamp{Date: s2n("1989-12-26T06:01:00.00Z")},
 				Tags:      []string{"at night"},
-				Location:  &capture.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
+				Location:  &validator.GeoLocation{LAT: f2P(1), LNG: f2P(1), Elevation: f2P(1)},
 			},
 		},
 		{
 			name: "decode capture with payload value as array",
 			body: `{"payload":[{"name":"power","value":[10, -1, -3]}]}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{{Name: "power", Value: []interface{}{10.0, -1.0, -3.0}}},
 				},
 			},
@@ -102,8 +97,8 @@ func TestValidateCaptureOK(t *testing.T) {
 		{
 			name: "decode capture with several metrict and value as array",
 			body: `{"payload":[{"name":"power","value":[10, -1, -3]},{"name":"signal","value":100}]}`,
-			expected: capture.Capture{
-				Payload: capture.Payload{
+			expected: adding.Capture{
+				Payload: validator.Payload{
 					Payload: []domain.Metric{
 						{Name: "power", Value: []interface{}{10.0, -1.0, -3.0}},
 						{Name: "signal", Value: 100.0},
@@ -117,8 +112,8 @@ func TestValidateCaptureOK(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var capt capture.Capture
-			err := capture.Validator.Decode(r, &capt)
+			var capt adding.Capture
+			err := adding.CaptureValidator.Decode(r, &capt)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.Payload, capt.Payload)
 			assert.Equal(t, tc.expected.Location, capt.Location)
@@ -175,8 +170,8 @@ func TestValidationCaptureFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
-			var capt capture.Capture
-			err := capture.Validator.Decode(r, &capt)
+			var capt adding.Capture
+			err := adding.CaptureValidator.Decode(r, &capt)
 			for _, e := range tc.errs {
 				assert.Contains(t, err.Error(), e)
 			}

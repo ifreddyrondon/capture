@@ -1,6 +1,7 @@
 package removing
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ifreddyrondon/capture/pkg/domain"
@@ -33,7 +34,8 @@ func (s *captureService) Remove(c *domain.Capture) error {
 	c.DeletedAt = &t
 	err := s.s.Save(c)
 	if err != nil {
-		return errors.Wrap(err, "could not remove capture")
+		errStr := fmt.Sprintf("could not remove capture %v", c.ID)
+		return errors.Wrap(err, errStr)
 	}
 	return nil
 }
