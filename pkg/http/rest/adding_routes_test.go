@@ -9,7 +9,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
-	"github.com/ifreddyrondon/capture/pkg/validator/capture"
 )
 
 type mockAddingService struct {
@@ -17,7 +16,7 @@ type mockAddingService struct {
 	err  error
 }
 
-func (m *mockAddingService) AddCapture(r *domain.Repository, c capture.Capture) (*domain.Capture, error) {
+func (m *mockAddingService) AddCapture(r *domain.Repository, c adding.Capture) (*domain.Capture, error) {
 	return m.capt, m.err
 }
 

@@ -1,6 +1,4 @@
-package capture
-
-import "github.com/ifreddyrondon/capture/pkg"
+package domain
 
 //const (
 //	maxBulkPayload = 100
@@ -15,7 +13,7 @@ import "github.com/ifreddyrondon/capture/pkg"
 //)
 
 // Captures represent a collection of capture in any particular order
-type Captures []*pkg.Capture
+type Captures []Capture
 
 // UnmarshalJSON decodes a collection of captures from a JSON body.
 // Throws an error if the body of the branch cannot be interpreted as JSON.

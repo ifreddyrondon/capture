@@ -7,6 +7,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func TestMetricUnmarshalJSON(t *testing.T) {
@@ -64,6 +65,53 @@ func TestMetricMarshalJSON(t *testing.T) {
 			result, err := json.Marshal(tc.metric)
 			require.Nil(t, err)
 			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestCaptureMarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	data := domain.Payload{
+		domain.Metric{Name: "power", Value: []interface{}{-70.0, -100.1, 3.1}},
+	}
+	date := "1989-12-26T06:01:00.00Z"
+	tt := []struct {
+		name     string
+		capture  domain.Capture
+		expected string
+	}{
+		{
+			"marshal capture with point",
+			getCapture(data, date, 1, 2),
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"location":{"lat":1,"lng":2},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","repoId":"00000000-0000-0000-0000-000000000000"}`,
+		},
+		{
+			"capture with point and elevation",
+			getCaptureWithElevation(data, date, 1, 2, 3),
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"location":{"lat":1,"lng":2,"elevation":3},"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","repoId":"00000000-0000-0000-0000-000000000000"}`,
+		},
+		{
+			"capture without a point",
+			getCaptureWithoutPoint(data, date),
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"location":null,"tags":[],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","repoId":"00000000-0000-0000-0000-000000000000"}`,
+		},
+		{
+			"capture with tags",
+			getCaptureWithTags(data, date, "tag1", "tag2"),
+			`{"id":"0162eb39-a65e-04a1-7ad9-d663bb49a396","payload":[{"name":"power","value":[-70,-100.1,3.1]}],"location":null,"tags":["tag1","tag2"],"timestamp":"1989-12-26T06:01:00Z","createdAt":"1989-12-26T06:01:00Z","updatedAt":"1989-12-26T06:01:00Z","repoId":"00000000-0000-0000-0000-000000000000"}`,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c := tc.capture
+			// override auto generated fields for test purpose
+			c.ID, _ = kallax.NewULIDFromText("0162eb39-a65e-04a1-7ad9-d663bb49a396")
+			c.CreatedAt, c.UpdatedAt = getDate(date), getDate(date)
+			result, err := json.Marshal(c)
+			require.Nil(t, err)
+			assert.Equal(t, tc.expected, string(result))
 		})
 	}
 }

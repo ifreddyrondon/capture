@@ -5,12 +5,12 @@ import (
 
 	"github.com/go-pg/pg"
 	"github.com/ifreddyrondon/capture/pkg/adding"
-	captureOld "github.com/ifreddyrondon/capture/pkg/capture"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 	"github.com/ifreddyrondon/capture/pkg/removing"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/capture"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
+	"github.com/ifreddyrondon/capture/pkg/updating"
 	"github.com/pkg/errors"
 
 	"github.com/ifreddyrondon/capture/pkg/creating"
@@ -24,23 +24,12 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/user"
 	"github.com/ifreddyrondon/capture/pkg/token"
-	"github.com/jinzhu/gorm"
 	"github.com/sarulabs/di"
 )
 
 func getResources(cfg *Config) di.Container {
 	builder, _ := di.NewBuilder()
 	definitions := []di.Def{
-		{
-			Name: "capture-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("database").(*gorm.DB)
-				store := captureOld.NewPGStore(database)
-				store.Drop()
-				store.Migrate()
-				return captureOld.Routes(store), nil
-			},
-		},
 		{
 			Name: "branch-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
@@ -53,19 +42,9 @@ func getResources(cfg *Config) di.Container {
 				return multipost.Routes(), nil
 			},
 		},
-
 		// resources for DDD migration
 		{
 			Name: "database",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return gorm.Open("postgres", cfg.Constants.PG)
-			},
-			Close: func(obj interface{}) error {
-				return obj.(*gorm.DB).Close()
-			},
-		},
-		{
-			Name: "ps-database",
 			Build: func(ctn di.Container) (i interface{}, e error) {
 				opts, err := pg.ParseURL(cfg.Constants.PG)
 				if err != nil {
@@ -84,7 +63,7 @@ func getResources(cfg *Config) di.Container {
 		{
 			Name: "user-storage",
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("ps-database").(*pg.DB)
+				database := cfg.Resources.Get("database").(*pg.DB)
 				s := user.NewPGStorage(database)
 				if err := s.Drop(); err != nil {
 					return nil, errors.Wrap(err, "di dropping schema for user-storage")
@@ -131,7 +110,7 @@ func getResources(cfg *Config) di.Container {
 		{
 			Name: "repository-storage",
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("ps-database").(*pg.DB)
+				database := cfg.Resources.Get("database").(*pg.DB)
 				s := repo.NewPGStorage(database)
 				if err := s.Drop(); err != nil {
 					return nil, errors.Wrap(err, "di dropping schema for repository-storage")
@@ -200,7 +179,7 @@ func getResources(cfg *Config) di.Container {
 		{
 			Name: "capture-storage",
 			Build: func(ctn di.Container) (interface{}, error) {
-				database := cfg.Resources.Get("ps-database").(*pg.DB)
+				database := cfg.Resources.Get("database").(*pg.DB)
 				s := capture.NewPGStorage(database)
 				if err := s.Drop(); err != nil {
 					return nil, errors.Wrap(err, "di dropping schema for capture-storage")
@@ -253,6 +232,14 @@ func getResources(cfg *Config) di.Container {
 				store := cfg.Resources.Get("capture-storage").(removing.CaptureStore)
 				s := removing.NewCaptureService(store)
 				return rest.RemovingCapture(s), nil
+			},
+		},
+		{
+			Name: "updating-capture-routes",
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("capture-storage").(updating.CaptureStore)
+				s := updating.NewCaptureService(store)
+				return rest.UpdatingCapture(s), nil
 			},
 		},
 	}

@@ -1,4 +1,4 @@
-package capture_test
+package domain_test
 
 //func TestEmptyBranch(t *testing.T) {
 //	t.Parallel()
@@ -78,3 +78,34 @@ package capture_test
 //		})
 //	}
 //}
+
+//func TestUnmarshalCapturesFail(t *testing.T) {
+//	app, teardown := setup(t)
+//	defer teardown()
+//
+//	e := bastion.Tester(t, app)
+//	tt := []struct {
+//		name     string
+//		payload  []interface{}
+//		response map[string]interface{}
+//	}{
+//		{
+//			name:    "bad request, missing body",
+//			payload: []interface{}{},
+//			response: map[string]interface{}{
+//				"status":  400.0,
+//				"error":   "Bad Request",
+//				"message": "cannot unmarshal json into valid captures, it needs at least one valid capture",
+//			},
+//		},
+//	}
+//
+//	for _, tc := range tt {
+//		t.Run(tc.name, func(t *testing.T) {
+//			e.POST("/test").
+//				WithJSON(tc.payload).
+//				Expect().
+//				Status(http.StatusBadRequest).
+//				JSON().Object().Equal(tc.response)
+//		})
+//	}
