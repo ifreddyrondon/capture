@@ -5,7 +5,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 // Routes returns a configured http.Handler with branch resources.
@@ -22,6 +22,6 @@ type controller struct {
 }
 
 func (h *controller) list(w http.ResponseWriter, r *http.Request) {
-	b := pkg.Branch{}
+	b := domain.Branch{}
 	h.render.Send(w, b)
 }

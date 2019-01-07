@@ -8,11 +8,10 @@ import (
 
 // User represents a user account.
 type User struct {
-	ID           kallax.ULID `sql:"type:uuid" gorm:"primary_key"`
-	Email        string      `sql:"not null" gorm:"unique_index"`
-	Password     []byte
-	CreatedAt    time.Time `sql:"not null"`
-	UpdatedAt    time.Time `sql:"not null"`
-	DeletedAt    *time.Time
-	Repositories []Repository `gorm:"ForeignKey:UserID"`
+	ID        kallax.ULID `sql:"type:uuid,pk"`
+	Email     string      `sql:",notnull,unique"`
+	Password  []byte      `sql:",notnull"`
+	CreatedAt time.Time   `sql:",notnull"`
+	UpdatedAt time.Time   `sql:",notnull"`
+	DeletedAt *time.Time  `pg:",soft_delete"`
 }

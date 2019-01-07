@@ -15,45 +15,47 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/listing"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
-func listingMiddlewareOK(next http.Handler) http.Handler {
+func getBaseListing() listingBastionMiddleware.Listing {
+	createdDESC := sorting.NewSort("created_at_desc", "created_at DESC", "Created date descending")
+	createdASC := sorting.NewSort("created_at_asc", "created_at ASC", "Created date ascendant")
+	return listingBastionMiddleware.Listing{
+		Paging: paging.Paging{Limit: 50, Offset: 0},
+		Sorting: &sorting.Sorting{
+			Sort:      &createdDESC,
+			Available: []sorting.Sort{createdDESC, createdASC},
+		},
+	}
+}
+
+func listingRepoMiddlewareOK(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		createdDESC := sorting.NewSort("created_at_desc", "created_at DESC", "Created date descending")
-		createdASC := sorting.NewSort("created_at_asc", "created_at ASC", "Created date ascendant")
 		publicVisibility := filtering.NewValue("public", "public repos")
 		privateVisibility := filtering.NewValue("private", "private repos")
 
-		l := &listingBastionMiddleware.Listing{
-			Paging: paging.Paging{
-				Limit:  50,
-				Offset: 0,
-			},
-			Sorting: &sorting.Sorting{
-				Sort:      &createdDESC,
-				Available: []sorting.Sort{createdDESC, createdASC},
-			},
-			Filtering: &filtering.Filtering{
-				Filters: []filtering.Filter{
-					{
-						ID:          "visibility",
-						Description: "test",
-						Type:        "text",
-						Values:      []filtering.Value{publicVisibility},
-					},
+		l := getBaseListing()
+		l.Filtering = &filtering.Filtering{
+			Filters: []filtering.Filter{
+				{
+					ID:          "visibility",
+					Description: "test",
+					Type:        "text",
+					Values:      []filtering.Value{publicVisibility},
 				},
-				Available: []filtering.Filter{
-					{
-						ID:          "visibility",
-						Description: "test",
-						Type:        "text",
-						Values:      []filtering.Value{publicVisibility, privateVisibility},
-					},
+			},
+			Available: []filtering.Filter{
+				{
+					ID:          "visibility",
+					Description: "test",
+					Type:        "text",
+					Values:      []filtering.Value{publicVisibility, privateVisibility},
 				},
 			},
 		}
 
-		ctx := context.WithValue(r.Context(), bastionMiddleware.ListingCtxKey, l)
+		ctx := context.WithValue(r.Context(), bastionMiddleware.ListingCtxKey, &l)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -65,27 +67,27 @@ func listingMiddlewareBAD(next http.Handler) http.Handler {
 	})
 }
 
-type mockListingService struct {
+type mockListingRepoService struct {
 	repos []domain.Repository
 	err   error
 }
 
-func (m *mockListingService) GetUserRepos(u *domain.User, l *listingBastionMiddleware.Listing) (*listing.ListRepositoryResponse, error) {
+func (m *mockListingRepoService) GetUserRepos(u *domain.User, l *listingBastionMiddleware.Listing) (*listing.ListRepositoryResponse, error) {
 	return &listing.ListRepositoryResponse{Listing: l, Results: m.repos}, m.err
 }
 
-func (m *mockListingService) GetPublicRepos(l *listingBastionMiddleware.Listing) (*listing.ListRepositoryResponse, error) {
+func (m *mockListingRepoService) GetPublicRepos(l *listingBastionMiddleware.Listing) (*listing.ListRepositoryResponse, error) {
 	return &listing.ListRepositoryResponse{Listing: l, Results: m.repos}, m.err
 }
 
-func setupListingPublicReposHandler(s listing.Service, listMiddle func(http.Handler) http.Handler) *bastion.Bastion {
+func setupListingPublicReposHandler(s listing.RepoService, listMiddle func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(listMiddle)
 	app.APIRouter.Get("/", rest.ListingPublicRepos(s))
 	return app
 }
 
-func setupListingUserReposHandler(s listing.Service, listMiddle, auth func(http.Handler) http.Handler) *bastion.Bastion {
+func setupListingUserReposHandler(s listing.RepoService, listMiddle, auth func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(listMiddle)
 	app.APIRouter.Use(auth)
@@ -100,8 +102,8 @@ func TestListingPublicReposSuccess(t *testing.T) {
 		{Name: "test public", Visibility: "public"},
 		{Name: "test private", Visibility: "private"},
 	}
-	s := &mockListingService{repos: repos}
-	app := setupListingPublicReposHandler(s, listingMiddlewareOK)
+	s := &mockListingRepoService{repos: repos}
+	app := setupListingPublicReposHandler(s, listingRepoMiddlewareOK)
 
 	e := bastion.Tester(t, app)
 	res := e.GET("/").Expect().
@@ -116,7 +118,7 @@ func TestListingPublicReposSuccess(t *testing.T) {
 func TestListingPublicReposInternalServerBadListing(t *testing.T) {
 	t.Parallel()
 
-	s := &mockListingService{}
+	s := &mockListingRepoService{}
 	app := setupListingPublicReposHandler(s, listingMiddlewareBAD)
 
 	response := map[string]interface{}{
@@ -134,8 +136,8 @@ func TestListingPublicReposInternalServerBadListing(t *testing.T) {
 func TestListingPublicReposInternalServerGettingRepos(t *testing.T) {
 	t.Parallel()
 
-	s := &mockListingService{err: errors.New("test")}
-	app := setupListingPublicReposHandler(s, listingMiddlewareOK)
+	s := &mockListingRepoService{err: errors.New("test")}
+	app := setupListingPublicReposHandler(s, listingRepoMiddlewareOK)
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -156,8 +158,8 @@ func TestListingUserReposSuccess(t *testing.T) {
 		{Name: "test public", Visibility: "public"},
 		{Name: "test private", Visibility: "private"},
 	}
-	s := &mockListingService{repos: repos}
-	app := setupListingUserReposHandler(s, listingMiddlewareOK, authenticatedMiddleware)
+	s := &mockListingRepoService{repos: repos}
+	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, withUserMiddle(defaultUser))
 
 	e := bastion.Tester(t, app)
 	res := e.GET("/").Expect().
@@ -177,8 +179,8 @@ func TestListingUserReposSuccess(t *testing.T) {
 func TestListingUserReposInternalServerBadListing(t *testing.T) {
 	t.Parallel()
 
-	s := &mockListingService{err: errors.New("test")}
-	app := setupListingUserReposHandler(s, listingMiddlewareBAD, authenticatedMiddleware)
+	s := &mockListingRepoService{err: errors.New("test")}
+	app := setupListingUserReposHandler(s, listingMiddlewareBAD, withUserMiddle(defaultUser))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -194,8 +196,8 @@ func TestListingUserReposInternalServerBadListing(t *testing.T) {
 
 func TestListingUserReposFailInternalErrorGettingUser(t *testing.T) {
 	t.Parallel()
-	s := &mockListingService{}
-	app := setupListingUserReposHandler(s, listingMiddlewareOK, notUserMiddleware)
+	s := &mockListingRepoService{}
+	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, withUserMiddle(nil))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -212,8 +214,104 @@ func TestListingUserReposFailInternalErrorGettingUser(t *testing.T) {
 func TestListingUserReposInternalServerGettingRepos(t *testing.T) {
 	t.Parallel()
 
-	s := &mockListingService{err: errors.New("test")}
-	app := setupListingUserReposHandler(s, listingMiddlewareOK, authenticatedMiddleware)
+	s := &mockListingRepoService{err: errors.New("test")}
+	app := setupListingUserReposHandler(s, listingRepoMiddlewareOK, withUserMiddle(defaultUser))
+
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "looks like something went wrong",
+	}
+
+	e := bastion.Tester(t, app)
+	e.GET("/").Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(response)
+}
+
+func listingCaptureMiddlewareOK(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		l := getBaseListing()
+		ctx := context.WithValue(r.Context(), bastionMiddleware.ListingCtxKey, &l)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+type mockListingCaptureService struct {
+	captures []domain.Capture
+	err      error
+}
+
+func (m *mockListingCaptureService) ListRepoCaptures(r *domain.Repository, l *listingBastionMiddleware.Listing) (*listing.ListCaptureResponse, error) {
+	return &listing.ListCaptureResponse{Listing: l, Results: m.captures}, m.err
+}
+
+func setupListingRepoCapturesHandler(s listing.CaptureService, listMiddle, auth, repoMiddle func(http.Handler) http.Handler) *bastion.Bastion {
+	app := bastion.New()
+	app.APIRouter.Use(listMiddle)
+	app.APIRouter.Use(auth)
+	app.APIRouter.Use(repoMiddle)
+	app.APIRouter.Get("/", rest.ListingRepoCaptures(s))
+	return app
+}
+
+func TestListingRepoCapturesSuccess(t *testing.T) {
+	t.Parallel()
+
+	captures := []domain.Capture{{ID: kallax.NewULID()}, {ID: kallax.NewULID()}}
+	s := &mockListingCaptureService{captures: captures}
+	app := setupListingRepoCapturesHandler(s, listingCaptureMiddlewareOK, withUserMiddle(defaultUser), withRepoMiddle(defaultRepo))
+
+	e := bastion.Tester(t, app)
+	res := e.GET("/").Expect().
+		JSON().Object()
+	res.Value("results").Array().Length().Equal(2)
+	res.Value("listing").Object().
+		ContainsKey("paging").
+		ContainsKey("sorting").
+		NotContainsKey("filtering")
+}
+
+func TestListingRepoCapturesInternalServerBadListing(t *testing.T) {
+	t.Parallel()
+
+	s := &mockListingCaptureService{err: errors.New("test")}
+	app := setupListingRepoCapturesHandler(s, listingMiddlewareBAD, withUserMiddle(defaultUser), withRepoMiddle(defaultRepo))
+
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "looks like something went wrong",
+	}
+
+	e := bastion.Tester(t, app)
+	e.GET("/").Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(response)
+}
+
+func TestListingRepoCapturesFailInternalErrorGettingRepo(t *testing.T) {
+	t.Parallel()
+	s := &mockListingCaptureService{}
+	app := setupListingRepoCapturesHandler(s, listingRepoMiddlewareOK, withUserMiddle(defaultUser), withRepoMiddle(nil))
+
+	response := map[string]interface{}{
+		"status":  500.0,
+		"error":   "Internal Server Error",
+		"message": "looks like something went wrong",
+	}
+
+	e := bastion.Tester(t, app)
+	e.GET("/").Expect().
+		Status(http.StatusInternalServerError).
+		JSON().Object().Equal(response)
+}
+
+func TestListingUserReposInternalServerGettingCaptures(t *testing.T) {
+	t.Parallel()
+
+	s := &mockListingCaptureService{err: errors.New("test")}
+	app := setupListingRepoCapturesHandler(s, listingCaptureMiddlewareOK, withUserMiddle(defaultUser), withRepoMiddle(defaultRepo))
 
 	response := map[string]interface{}{
 		"status":  500.0,

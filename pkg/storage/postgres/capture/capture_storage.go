@@ -1,52 +1,80 @@
 package capture
 
 import (
+	"fmt"
+
+	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/jinzhu/gorm"
-	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"gopkg.in/src-d/go-kallax.v1"
 )
 
+type captureNotFound string
+
+func (u captureNotFound) Error() string  { return string(u) }
+func (u captureNotFound) NotFound() bool { return true }
+
 // PGStorage postgres storage layer
-type PGStorage struct{ db *gorm.DB }
+type PGStorage struct{ db *pg.DB }
 
 // NewPGStorage creates a new instance of PGStorage
-func NewPGStorage(db *gorm.DB) *PGStorage { return &PGStorage{db: db} }
+func NewPGStorage(db *pg.DB) *PGStorage { return &PGStorage{db: db} }
 
-// Migrate (panic) runs schema migration.
-func (p *PGStorage) Migrate() {
-	p.db.AutoMigrate(Capture{})
+// CreateSchema runs schema migration.
+func (p *PGStorage) CreateSchema() error {
+	opts := &orm.CreateTableOptions{IfNotExists: true}
+	err := p.db.CreateTable(&domain.Capture{}, opts)
+	if err != nil {
+		return errors.Wrap(err, "creating capture schema")
+	}
+	return nil
 }
 
-// Drop (panic) delete schema.
-func (p *PGStorage) Drop() {
-	p.db.DropTableIfExists(Capture{})
+// Drop delete schema.
+func (p *PGStorage) Drop() error {
+	opts := &orm.DropTableOptions{IfExists: true}
+	err := p.db.DropTable(&domain.Capture{}, opts)
+	if err != nil {
+		return errors.Wrap(err, "dropping capture schema")
+	}
+	return nil
 }
 
-func (p *PGStorage) CreateCapture(capt *domain.Capture) error {
-	c := getCapture(*capt)
-	if err := p.db.Create(c).Error; err != nil {
+func (p *PGStorage) CreateCapture(c *domain.Capture) error {
+	if err := p.db.Insert(c); err != nil {
 		return errors.Wrap(err, "err saving capture with pgstorage")
 	}
 	return nil
 }
 
-func getCapture(c domain.Capture) *Capture {
-	result := &Capture{
-		ID:        c.ID,
-		Payload:   payload(c.Payload),
-		Tags:      pq.StringArray(c.Tags),
-		Timestamp: c.Timestamp,
-		CreatedAt: c.CreatedAt,
-		UpdatedAt: c.UpdatedAt,
-		DeletedAt: c.DeletedAt,
+func (p *PGStorage) List(l *domain.Listing) ([]domain.Capture, error) {
+	var captures []domain.Capture
+	f := filter(*l)
+	err := p.db.Model(&captures).Apply(f.Filter).Select()
+	if err != nil {
+		return nil, errors.Wrap(err, "err listing captures with pgstorage")
 	}
-	if c.Location != nil {
-		result.Location = &point{
-			LAT:       c.Location.LAT,
-			LNG:       c.Location.LNG,
-			Elevation: c.Location.Elevation,
-		}
+	return captures, nil
+}
+
+func (p *PGStorage) Get(captureID, repoID kallax.ULID) (*domain.Capture, error) {
+	var capt domain.Capture
+	err := p.db.Model(&capt).
+		Where("id = ?", captureID).
+		Where("repository_id = ?", repoID).
+		First()
+	if err != nil {
+		errStr := fmt.Sprintf("capture with id %s not found in repo %v", captureID, repoID)
+		return nil, errors.WithStack(captureNotFound(errStr))
 	}
-	return result
+	return &capt, nil
+}
+
+func (p *PGStorage) Save(capt *domain.Capture) error {
+	if err := p.db.Update(capt); err != nil {
+		errStr := fmt.Sprintf("error saving the capture %s in repo %v", capt.ID, capt.RepositoryID)
+		return errors.Wrap(err, errStr)
+	}
+	return nil
 }

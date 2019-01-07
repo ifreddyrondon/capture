@@ -1,6 +1,7 @@
 package multipost
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/ifreddyrondon/bastion"
@@ -25,7 +26,12 @@ type controller struct {
 
 func (c *controller) createCaptures(w http.ResponseWriter, r *http.Request) {
 	var multiPostCaptures decoder.MultiPOSTCaptures
-	if err := decoder.Decode(r, &multiPostCaptures); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(multiPostCaptures); err != nil {
+		c.render.BadRequest(w, err)
+		return
+	}
+
+	if err := multiPostCaptures.OK(); err != nil {
 		c.render.BadRequest(w, err)
 		return
 	}

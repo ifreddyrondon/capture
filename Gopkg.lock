@@ -71,6 +71,22 @@
   version = "v3.3.2"
 
 [[projects]]
+  name = "github.com/go-pg/pg"
+  packages = [
+    ".",
+    "internal",
+    "internal/iszero",
+    "internal/parser",
+    "internal/pool",
+    "internal/struct_filter",
+    "internal/tag",
+    "orm",
+    "types"
+  ]
+  revision = "f3f33341f61a13a2a09654d0c175bbdc03f2ca12"
+  version = "v7.1.0"
+
+[[projects]]
   name = "github.com/gobuffalo/envy"
   packages = ["."]
   revision = "15f5083a6e269f8698715b13dd25f0538754ab37"
@@ -124,12 +140,6 @@
   packages = ["."]
   revision = "5accad8134979a6ac504d456a6c7f1c53da237ca"
   version = "v1.1.0"
-
-[[projects]]
-  name = "github.com/jinzhu/gorm"
-  packages = ["."]
-  revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
-  version = "v1.9.1"
 
 [[projects]]
   branch = "master"
@@ -407,7 +417,8 @@
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
-    "blowfish"
+    "blowfish",
+    "pbkdf2"
   ]
   revision = "1f94bef427e370e425e55b172f3b5e300ef38304"
 
@@ -468,9 +479,15 @@
   revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
   version = "v2.1.1"
 
+[[projects]]
+  name = "mellium.im/sasl"
+  packages = ["."]
+  revision = "e58e780e1378aa4df5dc705364ff5ae9a4dd1e04"
+  version = "v0.2.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "362dfb30888d1be757cb049d02a3ed8e18fc450ebebbdb403866070049cee0cb"
+  inputs-digest = "394f8dc54dfb4019450dbeb295ed4c9c9f1f991c4f20d435ea4908f106e23314"
   solver-name = "gps-cdcl"
   solver-version = 1

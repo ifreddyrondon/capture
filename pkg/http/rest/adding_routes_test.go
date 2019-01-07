@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg/adding"
@@ -28,15 +27,6 @@ func setupAddingHandler(s adding.Service, m func(http.Handler) http.Handler) *ba
 	return app
 }
 
-func f2P(v float64) *float64 {
-	return &v
-}
-
-func s2t(date string) time.Time {
-	v, _ := time.Parse(time.RFC3339, date)
-	return v
-}
-
 func TestAddingCaptureSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -50,7 +40,7 @@ func TestAddingCaptureSuccess(t *testing.T) {
 	}
 
 	s := &mockAddingService{capt: capt}
-	app := setupAddingHandler(s, repoCtxtMiddlewareOK)
+	app := setupAddingHandler(s, withRepoMiddle(defaultRepo))
 	e := bastion.Tester(t, app)
 
 	payload := map[string]interface{}{
@@ -156,7 +146,7 @@ func TestAddingCaptureFailBadRequest(t *testing.T) {
 	}
 
 	s := &mockAddingService{}
-	app := setupAddingHandler(s, repoCtxtMiddlewareOK)
+	app := setupAddingHandler(s, withRepoMiddle(defaultRepo))
 	e := bastion.Tester(t, app)
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -173,7 +163,7 @@ func TestGettingRepoFromAddingCaptureInternalServer(t *testing.T) {
 	t.Parallel()
 
 	s := &mockAddingService{}
-	app := setupAddingHandler(s, repoCtxtMiddlewareBAD)
+	app := setupAddingHandler(s, withRepoMiddle(nil))
 
 	payload := map[string]interface{}{
 		"payload": []map[string]interface{}{
@@ -201,7 +191,7 @@ func TestAddingCaptureInternalServer(t *testing.T) {
 	t.Parallel()
 
 	s := &mockAddingService{err: errors.New("test")}
-	app := setupAddingHandler(s, repoCtxtMiddlewareOK)
+	app := setupAddingHandler(s, withRepoMiddle(defaultRepo))
 
 	payload := map[string]interface{}{
 		"payload": []map[string]interface{}{

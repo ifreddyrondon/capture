@@ -43,37 +43,21 @@ func GetRepo(ctx context.Context) (*domain.Repository, error) {
 	return repo, nil
 }
 
-func RepoCtx(service getting.Service) func(next http.Handler) http.Handler {
+func RepoCtx(service getting.RepoService) func(next http.Handler) http.Handler {
 	json := render.NewJSON()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			repoID := chi.URLParam(r, "id")
-			u, err := GetUser(r.Context())
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				json.InternalServerError(w, err)
-				return
-			}
-
 			id, err := kallax.NewULIDFromText(repoID)
 			if err != nil {
 				json.BadRequest(w, errInvalidRepoID)
 				return
 			}
 
-			repo, err := service.GetRepo(id, u)
+			repo, err := service.Get(id)
 			if err != nil {
 				if isNotFound(err) {
 					json.NotFound(w, errMissingRepo)
-					return
-				}
-				if isNotAuthorized(err) {
-					httpErr := render.HTTPError{
-						Status:  http.StatusForbidden,
-						Error:   http.StatusText(http.StatusForbidden),
-						Message: "not authorized to see this repository",
-					}
-					json.Response(w, http.StatusForbidden, httpErr)
 					return
 				}
 				fmt.Fprintln(os.Stderr, err)

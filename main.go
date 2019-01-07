@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi"
+	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/bastion/middleware"
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-
-	"github.com/go-chi/chi"
-	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/config"
 	"github.com/sarulabs/di"
 )
@@ -34,18 +33,30 @@ func router(resources di.Container) http.Handler {
 	privateVisibility := filtering.NewValue("private", "private repos")
 	visibilityFilter := filtering.NewText("visibility", "filters the repos by their visibility", publicVisibility, privateVisibility)
 
-	listingMiddleware := middleware.Listing(
+	listingReposMiddle := middleware.Listing(
 		middleware.MaxAllowedLimit(50),
 		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
 		middleware.Filter(visibilityFilter),
 	)
 	listingUserRepos := resources.Get("listing-user-repo-routes").(http.HandlerFunc)
 	listingPublicRepos := resources.Get("listing-public-repos-routes").(http.HandlerFunc)
+	listingCapturesMiddle := middleware.Listing(
+		middleware.MaxAllowedLimit(100),
+		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
+	)
+	listingCaptures := resources.Get("listing-captures-routes").(http.HandlerFunc)
 
 	ctxRepo := resources.Get("ctx-repo-middleware").(func(next http.Handler) http.Handler)
-	gettingRepo := resources.Get("getting-repo-routes").(http.HandlerFunc)
+	repoOwnerOrPublic := resources.Get("repo-owner-or-public-middleware").(func(next http.Handler) http.Handler)
+	repoOwner := resources.Get("repo-owner-middleware").(func(next http.Handler) http.Handler)
 
+	gettingRepo := resources.Get("getting-repo-routes").(http.HandlerFunc)
 	addingCapture := resources.Get("adding-routes").(http.HandlerFunc)
+
+	ctxCapture := resources.Get("ctx-capture-middleware").(func(next http.Handler) http.Handler)
+	gettingCapture := resources.Get("getting-capture-routes").(http.HandlerFunc)
+	removingCapture := resources.Get("removing-capture-routes").(http.HandlerFunc)
+	updatingCapture := resources.Get("updating-capture-routes").(http.HandlerFunc)
 
 	r.Post("/sign/", signUp)
 	r.Route("/auth/", func(r chi.Router) {
@@ -55,33 +66,32 @@ func router(resources di.Container) http.Handler {
 		r.Use(authorize)
 		r.Route("/repos/", func(r chi.Router) {
 			r.Post("/", creating)
-			r.Route("/", func(r chi.Router) {
-				r.Use(listingMiddleware)
-				r.Get("/", listingUserRepos)
-			})
+			r.With(listingReposMiddle).Get("/", listingUserRepos)
 
 		})
 	})
 	r.Route("/repositories/", func(r chi.Router) {
 		r.Use(authorize)
-		r.Post("/", creating)
-		r.Route("/", func(r chi.Router) {
-			r.Use(listingMiddleware)
-			r.Get("/", listingPublicRepos)
-		})
+		r.With(listingReposMiddle).
+			Get("/", listingPublicRepos)
 		r.Route("/{id}", func(r chi.Router) {
 			r.Use(ctxRepo)
-			r.Get("/", gettingRepo)
+			r.With(repoOwnerOrPublic).Get("/", gettingRepo)
 			r.Route("/captures/", func(r chi.Router) {
-				r.Post("/", addingCapture)
+				r.With(repoOwnerOrPublic).With(listingCapturesMiddle).Get("/", listingCaptures)
+				r.With(repoOwner).Post("/", addingCapture)
+				r.Route("/{captureId}", func(r chi.Router) {
+					r.Use(ctxCapture)
+					r.With(repoOwnerOrPublic).Get("/", gettingCapture)
+					r.With(repoOwner).Delete("/", removingCapture)
+					r.With(repoOwner).Put("/", updatingCapture)
+				})
 			})
 		})
 	})
 
-	captureRoutes := resources.Get("capture-routes").(http.Handler)
 	branchRoutes := resources.Get("branch-routes").(http.Handler)
 	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
-	r.Mount("/captures/", captureRoutes)
 	r.Mount("/branches/", branchRoutes)
 	r.Mount("/multipost/", multipostRoutes)
 

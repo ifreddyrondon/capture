@@ -5,24 +5,24 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ifreddyrondon/bastion/middleware"
+	bastionMiddleware "github.com/ifreddyrondon/bastion/middleware"
 	"github.com/ifreddyrondon/bastion/render"
-	auth "github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
+	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 )
 
 // ListingUserRepos returns a configured http.Handler with user repos resources to get user's repos.
-func ListingUserRepos(service listing.Service) http.HandlerFunc {
+func ListingUserRepos(service listing.RepoService) http.HandlerFunc {
 	renderJSON := render.NewJSON()
 	return func(w http.ResponseWriter, r *http.Request) {
-		l, err := middleware.GetListing(r.Context())
+		l, err := bastionMiddleware.GetListing(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)
 			return
 		}
 
-		u, err := auth.GetUser(r.Context())
+		u, err := middleware.GetUser(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)
@@ -41,10 +41,10 @@ func ListingUserRepos(service listing.Service) http.HandlerFunc {
 }
 
 // ListingPublicRepos returns a configured http.Handler with repos resources to get public repos.
-func ListingPublicRepos(service listing.Service) http.HandlerFunc {
+func ListingPublicRepos(service listing.RepoService) http.HandlerFunc {
 	renderJSON := render.NewJSON()
 	return func(w http.ResponseWriter, r *http.Request) {
-		l, err := middleware.GetListing(r.Context())
+		l, err := bastionMiddleware.GetListing(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)
@@ -52,6 +52,35 @@ func ListingPublicRepos(service listing.Service) http.HandlerFunc {
 		}
 
 		res, err := service.GetPublicRepos(l)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			renderJSON.InternalServerError(w, err)
+			return
+		}
+
+		renderJSON.Send(w, res)
+	}
+}
+
+// ListingRepoCaptures returns a configured http.Handler with capture resources to get list of captures.
+func ListingRepoCaptures(service listing.CaptureService) http.HandlerFunc {
+	renderJSON := render.NewJSON()
+	return func(w http.ResponseWriter, r *http.Request) {
+		l, err := bastionMiddleware.GetListing(r.Context())
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			renderJSON.InternalServerError(w, err)
+			return
+		}
+
+		repo, err := middleware.GetRepo(r.Context())
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			renderJSON.InternalServerError(w, err)
+			return
+		}
+
+		res, err := service.ListRepoCaptures(repo, l)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)
