@@ -191,11 +191,11 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "adding-routes",
+			Name: "adding-capture-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("capture-storage").(adding.Store)
-				s := adding.NewService(store)
-				return rest.Adding(s), nil
+				store := cfg.Resources.Get("capture-storage").(adding.CaptureStore)
+				s := adding.NewCaptureService(store)
+				return rest.AddingCapture(s), nil
 			},
 		},
 		{

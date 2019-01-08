@@ -88,7 +88,7 @@ func TestServiceAddCaptureOKWithDefaultTimestamp(t *testing.T) {
 	}
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
-	s := adding.NewService(&mockStore{})
+	s := adding.NewCaptureService(&mockStore{})
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -145,7 +145,7 @@ func TestServiceAddCaptureOKWithTimestamp(t *testing.T) {
 	}
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
-	s := adding.NewService(&mockStore{})
+	s := adding.NewCaptureService(&mockStore{})
 
 	capt, err := s.AddCapture(repo, payl)
 	assert.Nil(t, err)
@@ -162,7 +162,7 @@ func TestServiceAddCaptureOKWithTimestamp(t *testing.T) {
 
 func TestServiceAddCaptureErrWhenSaving(t *testing.T) {
 	t.Parallel()
-	s := adding.NewService(&mockStore{err: errors.New("test")})
+	s := adding.NewCaptureService(&mockStore{err: errors.New("test")})
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
 	payl := adding.Capture{

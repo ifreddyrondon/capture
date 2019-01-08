@@ -10,8 +10,8 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
 
-// Adding returns a configured http.Handler with adding resources.
-func Adding(service adding.Service) http.HandlerFunc {
+// AddingCapture returns a configured http.Handler with adding resources.
+func AddingCapture(service adding.CaptureService) http.HandlerFunc {
 	renderJSON := render.NewJSON()
 
 	return func(w http.ResponseWriter, r *http.Request) {

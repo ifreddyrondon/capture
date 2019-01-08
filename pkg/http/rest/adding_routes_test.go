@@ -20,10 +20,10 @@ func (m *mockAddingService) AddCapture(r *domain.Repository, c adding.Capture) (
 	return m.capt, m.err
 }
 
-func setupAddingHandler(s adding.Service, m func(http.Handler) http.Handler) *bastion.Bastion {
+func setupAddingHandler(s adding.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Post("/", rest.Adding(s))
+	app.APIRouter.Post("/", rest.AddingCapture(s))
 	return app
 }
 

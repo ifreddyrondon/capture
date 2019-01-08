@@ -51,7 +51,7 @@ func router(resources di.Container) http.Handler {
 	repoOwner := resources.Get("repo-owner-middleware").(func(next http.Handler) http.Handler)
 
 	gettingRepo := resources.Get("getting-repo-routes").(http.HandlerFunc)
-	addingCapture := resources.Get("adding-routes").(http.HandlerFunc)
+	addingCapture := resources.Get("adding-capture-routes").(http.HandlerFunc)
 
 	ctxCapture := resources.Get("ctx-capture-middleware").(func(next http.Handler) http.Handler)
 	gettingCapture := resources.Get("getting-capture-routes").(http.HandlerFunc)

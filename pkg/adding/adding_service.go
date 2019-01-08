@@ -9,28 +9,28 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-// Store provides access to the repository storage.
-type Store interface {
+// CaptureStore provides access to the repository storage.
+type CaptureStore interface {
 	CreateCapture(*domain.Capture) error
 }
 
-// Service provides adding operations.
-type Service interface {
+// CaptureService provides adding operations.
+type CaptureService interface {
 	// AddCapture add a new capture to a repository
 	AddCapture(*domain.Repository, Capture) (*domain.Capture, error)
 }
 
-type service struct {
-	s     Store
+type captureService struct {
+	s     CaptureStore
 	clock *pkg.Clock
 }
 
-// NewService creates an adding service with the necessary dependencies
-func NewService(s Store) Service {
-	return &service{s: s}
+// NewCaptureService creates an adding service with the necessary dependencies
+func NewCaptureService(s CaptureStore) CaptureService {
+	return &captureService{s: s}
 }
 
-func (s *service) AddCapture(r *domain.Repository, c Capture) (*domain.Capture, error) {
+func (s *captureService) AddCapture(r *domain.Repository, c Capture) (*domain.Capture, error) {
 	capt := s.getDomainCapture(r, c)
 	if err := s.s.CreateCapture(capt); err != nil {
 		return nil, errors.Wrap(err, "could not add capture")
@@ -38,7 +38,7 @@ func (s *service) AddCapture(r *domain.Repository, c Capture) (*domain.Capture, 
 	return capt, nil
 }
 
-func (s *service) getDomainCapture(r *domain.Repository, c Capture) *domain.Capture {
+func (s *captureService) getDomainCapture(r *domain.Repository, c Capture) *domain.Capture {
 	now := time.Now()
 	result := &domain.Capture{
 		ID:           kallax.NewULID(),
