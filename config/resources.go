@@ -127,7 +127,7 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "creating-routes",
+			Name: "creating-repo-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("repository-storage").(creating.Store)
 				s := creating.NewService(store)
@@ -142,10 +142,22 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "listing-user-repo-routes",
+			Name: "listing-user-repos-middleware",
+			Build: func(ctn di.Container) (interface{}, error) {
+				return middleware.FilterOwnRepos(), nil
+			},
+		},
+		{
+			Name: "listing-user-repos-routes",
 			Build: func(ctn di.Container) (interface{}, error) {
 				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
 				return rest.ListingUserRepos(s), nil
+			},
+		},
+		{
+			Name: "listing-public-repos-middleware",
+			Build: func(ctn di.Container) (interface{}, error) {
+				return middleware.FilterPublicRepos(), nil
 			},
 		},
 		{
@@ -188,6 +200,12 @@ func getResources(cfg *Config) di.Container {
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(listing.CaptureStore)
 				return listing.NewCaptureService(store), nil
+			},
+		},
+		{
+			Name: "listing-captures-middleware",
+			Build: func(ctn di.Container) (interface{}, error) {
+				return middleware.FilterCaptures(), nil
 			},
 		},
 		{
