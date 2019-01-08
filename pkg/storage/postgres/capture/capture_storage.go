@@ -48,14 +48,14 @@ func (p *PGStorage) CreateCapture(c *domain.Capture) error {
 	return nil
 }
 
-func (p *PGStorage) List(l *domain.Listing) ([]domain.Capture, error) {
+func (p *PGStorage) List(l *domain.Listing) ([]domain.Capture, int64, error) {
 	var captures []domain.Capture
 	f := filter(*l)
-	err := p.db.Model(&captures).Apply(f.Filter).Select()
+	total, err := p.db.Model(&captures).Apply(f.Filter).SelectAndCount()
 	if err != nil {
-		return nil, errors.Wrap(err, "err listing captures with pgstorage")
+		return nil, 0, errors.Wrap(err, "err listing captures with pgstorage")
 	}
-	return captures, nil
+	return captures, int64(total), nil
 }
 
 func (p *PGStorage) Get(captureID, repoID kallax.ULID) (*domain.Capture, error) {

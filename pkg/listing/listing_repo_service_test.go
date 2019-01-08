@@ -14,10 +14,13 @@ import (
 
 type mockRepoStore struct {
 	repos []domain.Repository
+	count int64
 	err   error
 }
 
-func (m *mockRepoStore) List(*domain.Listing) ([]domain.Repository, error) { return m.repos, m.err }
+func (m *mockRepoStore) List(*domain.Listing) ([]domain.Repository, int64, error) {
+	return m.repos, m.count, m.err
+}
 
 func TestServiceGetUserReposOK(t *testing.T) {
 	t.Parallel()

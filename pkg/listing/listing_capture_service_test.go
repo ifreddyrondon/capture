@@ -14,10 +14,13 @@ import (
 
 type mockCaptureStore struct {
 	captures []domain.Capture
+	count    int64
 	err      error
 }
 
-func (m *mockCaptureStore) List(*domain.Listing) ([]domain.Capture, error) { return m.captures, m.err }
+func (m *mockCaptureStore) List(*domain.Listing) ([]domain.Capture, int64, error) {
+	return m.captures, m.count, m.err
+}
 
 func TestCaptureServiceListRepoCapturesOK(t *testing.T) {
 	t.Parallel()

@@ -50,14 +50,14 @@ func (p *PGStorage) SaveRepo(repo *domain.Repository) error {
 	return nil
 }
 
-func (p *PGStorage) List(l *domain.Listing) ([]domain.Repository, error) {
+func (p *PGStorage) List(l *domain.Listing) ([]domain.Repository, int64, error) {
 	var repos []domain.Repository
 	f := filter(*l)
-	err := p.db.Model(&repos).Apply(f.Filter).Select()
+	total, err := p.db.Model(&repos).Apply(f.Filter).SelectAndCount()
 	if err != nil {
-		return nil, errors.Wrap(err, "err listing repo with pgstorage")
+		return nil, 0, errors.Wrap(err, "err listing repo with pgstorage")
 	}
-	return repos, nil
+	return repos, int64(total), nil
 }
 
 func (p *PGStorage) Get(id kallax.ULID) (*domain.Repository, error) {

@@ -9,7 +9,7 @@ import (
 // CaptureStore provides access to the captures storage.
 type CaptureStore interface {
 	// List retrieve captures with domain.Listing attrs.
-	List(*domain.Listing) ([]domain.Capture, error)
+	List(*domain.Listing) ([]domain.Capture, int64, error)
 }
 
 // CaptureService provides capture repository operations.
@@ -30,10 +30,11 @@ func NewCaptureService(s CaptureStore) CaptureService {
 func (s *captureService) ListRepoCaptures(r *domain.Repository, l *listing.Listing) (*ListCaptureResponse, error) {
 	lcapt := domain.NewListing(*l)
 	lcapt.Owner = &r.ID
-	captures, err := s.s.List(lcapt)
+	captures, total, err := s.s.List(lcapt)
 	if err != nil {
 		return nil, errors.Wrap(err, "err getting repo captures")
 	}
+	l.Paging.Total = total
 	return newListCaptureResponse(captures, l), err
 }
 

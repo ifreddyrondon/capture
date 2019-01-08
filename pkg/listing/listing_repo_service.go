@@ -9,7 +9,7 @@ import (
 // RepoStore provides access to the repository storage.
 type RepoStore interface {
 	// List retrieve repositories with domain.Listing attrs.
-	List(*domain.Listing) ([]domain.Repository, error)
+	List(*domain.Listing) ([]domain.Repository, int64, error)
 }
 
 // RepoService provides listing repository operations.
@@ -32,20 +32,22 @@ func NewRepoService(s RepoStore) RepoService {
 func (s *repoService) GetUserRepos(u *domain.User, l *listing.Listing) (*ListRepositoryResponse, error) {
 	lrepo := domain.NewListing(*l)
 	lrepo.Owner = &u.ID
-	repos, err := s.s.List(lrepo)
+	repos, total, err := s.s.List(lrepo)
 	if err != nil {
 		return nil, errors.Wrap(err, "err getting user repos")
 	}
+	l.Paging.Total = total
 	return newListRepoResponse(repos, l), nil
 }
 
 func (s *repoService) GetPublicRepos(l *listing.Listing) (*ListRepositoryResponse, error) {
 	lrepo := domain.NewListing(*l)
 	lrepo.Visibility = &domain.Public
-	repos, err := s.s.List(lrepo)
+	repos, total, err := s.s.List(lrepo)
 	if err != nil {
 		return nil, errors.Wrap(err, "err getting public repos")
 	}
+	l.Paging.Total = total
 	return newListRepoResponse(repos, l), nil
 }
 
