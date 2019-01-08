@@ -1,4 +1,4 @@
-package rest
+package handler
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"github.com/ifreddyrondon/capture/pkg/removing"
+	"github.com/ifreddyrondon/capture/pkg/updating"
 )
 
-// RemovingCapture returns a configured http.Handler with removing capture resources.
-func RemovingCapture(service removing.CaptureService) http.HandlerFunc {
+// UpdatingCapture returns a configured http.Handler with updating capture resources.
+func UpdatingCapture(service updating.CaptureService) http.HandlerFunc {
 	renderJSON := render.NewJSON()
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +22,14 @@ func RemovingCapture(service removing.CaptureService) http.HandlerFunc {
 			return
 		}
 
-		err = service.Remove(capt)
+		var data updating.Capture
+		err = updating.CaptureValidator.Decode(r, &data)
+		if err != nil {
+			renderJSON.BadRequest(w, err)
+			return
+		}
+
+		err = service.Update(data, capt)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			renderJSON.InternalServerError(w, err)

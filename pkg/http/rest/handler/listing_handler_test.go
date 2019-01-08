@@ -1,10 +1,12 @@
-package rest_test
+package handler_test
 
 import (
 	"context"
 	"errors"
 	"net/http"
 	"testing"
+
+	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 
 	"github.com/ifreddyrondon/bastion"
 	bastionMiddleware "github.com/ifreddyrondon/bastion/middleware"
@@ -13,7 +15,6 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 	"gopkg.in/src-d/go-kallax.v1"
 )
@@ -83,7 +84,7 @@ func (m *mockListingRepoService) GetPublicRepos(l *listingBastionMiddleware.List
 func setupListingPublicReposHandler(s listing.RepoService, listMiddle func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(listMiddle)
-	app.APIRouter.Get("/", rest.ListingPublicRepos(s))
+	app.APIRouter.Get("/", handler.ListingPublicRepos(s))
 	return app
 }
 
@@ -91,7 +92,7 @@ func setupListingUserReposHandler(s listing.RepoService, listMiddle, auth func(h
 	app := bastion.New()
 	app.APIRouter.Use(listMiddle)
 	app.APIRouter.Use(auth)
-	app.APIRouter.Get("/", rest.ListingUserRepos(s))
+	app.APIRouter.Get("/", handler.ListingUserRepos(s))
 	return app
 }
 
@@ -251,7 +252,7 @@ func setupListingRepoCapturesHandler(s listing.CaptureService, listMiddle, auth,
 	app.APIRouter.Use(listMiddle)
 	app.APIRouter.Use(auth)
 	app.APIRouter.Use(repoMiddle)
-	app.APIRouter.Get("/", rest.ListingRepoCaptures(s))
+	app.APIRouter.Get("/", handler.ListingRepoCaptures(s))
 	return app
 }
 

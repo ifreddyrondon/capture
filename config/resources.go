@@ -5,23 +5,19 @@ import (
 
 	"github.com/go-pg/pg"
 	"github.com/ifreddyrondon/capture/pkg/adding"
+	"github.com/ifreddyrondon/capture/pkg/authenticating"
+	"github.com/ifreddyrondon/capture/pkg/authorizing"
+	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/ifreddyrondon/capture/pkg/listing"
 	"github.com/ifreddyrondon/capture/pkg/removing"
+	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/capture"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/repo"
-	"github.com/ifreddyrondon/capture/pkg/updating"
-	"github.com/pkg/errors"
-
-	"github.com/ifreddyrondon/capture/pkg/creating"
-
-	"github.com/ifreddyrondon/capture/pkg/authenticating"
-	"github.com/ifreddyrondon/capture/pkg/authorizing"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
-	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/user"
 	"github.com/ifreddyrondon/capture/pkg/token"
+	"github.com/ifreddyrondon/capture/pkg/updating"
+	"github.com/pkg/errors"
 	"github.com/sarulabs/di"
 )
 
@@ -60,6 +56,13 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
+			Name: "sign_up-service",
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("user-storage").(signup.Store)
+				return signup.NewService(store), nil
+			},
+		},
+		{
 			Name: "jwt-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				duration := time.Duration(cfg.JWTExpirationDelta) * time.Second
@@ -67,29 +70,19 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "authenticating-routes",
+			Name: "authenticating-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				tokenService := cfg.Resources.Get("jwt-service").(authenticating.TokenService)
 				store := cfg.Resources.Get("user-storage").(authenticating.Store)
-				s := authenticating.NewService(tokenService, store)
-				return rest.Authenticating(s), nil
+				return authenticating.NewService(tokenService, store), nil
 			},
 		},
 		{
-			Name: "authorize-middleware",
+			Name: "authorize-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				tokenService := cfg.Resources.Get("jwt-service").(authorizing.TokenService)
 				store := cfg.Resources.Get("user-storage").(authorizing.Store)
-				s := authorizing.NewService(tokenService, store)
-				return middleware.AuthorizeReq(s), nil
-			},
-		},
-		{
-			Name: "sign_up-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("user-storage").(signup.Store)
-				s := signup.NewService(store)
-				return rest.SignUp(s), nil
+				return authorizing.NewService(tokenService, store), nil
 			},
 		},
 		{
@@ -107,31 +100,10 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "ctx-repo-middleware",
-			Build: func(ctn di.Container) (interface{}, error) {
-				store := cfg.Resources.Get("repository-storage").(getting.RepoStore)
-				s := getting.NewRepoService(store)
-				return middleware.RepoCtx(s), nil
-			},
-		},
-		{
-			Name: "repo-owner-or-public-middleware",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return middleware.RepoOwnerOrPublic(), nil
-			},
-		},
-		{
-			Name: "repo-owner-middleware",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return middleware.RepoOwner(), nil
-			},
-		},
-		{
-			Name: "creating-repo-routes",
+			Name: "creating-repo-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("repository-storage").(creating.Store)
-				s := creating.NewService(store)
-				return rest.Creating(s), nil
+				return creating.NewService(store), nil
 			},
 		},
 		{
@@ -142,35 +114,10 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "listing-user-repos-middleware",
+			Name: "getting-repo-service",
 			Build: func(ctn di.Container) (interface{}, error) {
-				return middleware.FilterUserRepos(), nil
-			},
-		},
-		{
-			Name: "listing-user-repos-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
-				return rest.ListingUserRepos(s), nil
-			},
-		},
-		{
-			Name: "listing-public-repos-middleware",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return middleware.FilterPublicRepos(), nil
-			},
-		},
-		{
-			Name: "listing-public-repos-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-repo-services").(listing.RepoService)
-				return rest.ListingPublicRepos(s), nil
-			},
-		},
-		{
-			Name: "getting-repo-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return rest.GettingRepo(), nil
+				store := cfg.Resources.Get("repository-storage").(getting.RepoStore)
+				return getting.NewRepoService(store), nil
 			},
 		},
 		{
@@ -188,11 +135,10 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "adding-capture-routes",
+			Name: "adding-capture-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(adding.CaptureStore)
-				s := adding.NewCaptureService(store)
-				return rest.AddingCapture(s), nil
+				return adding.NewCaptureService(store), nil
 			},
 		},
 		{
@@ -203,46 +149,24 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
-			Name: "listing-captures-middleware",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return middleware.FilterCaptures(), nil
-			},
-		},
-		{
-			Name: "listing-captures-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				s := cfg.Resources.Get("listing-capture-services").(listing.CaptureService)
-				return rest.ListingRepoCaptures(s), nil
-			},
-		},
-		{
-			Name: "ctx-capture-middleware",
+			Name: "getting-capture-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(getting.CaptureStore)
-				s := getting.NewCaptureService(store)
-				return middleware.CaptureCtx(s), nil
+				return getting.NewCaptureService(store), nil
 			},
 		},
 		{
-			Name: "getting-capture-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return rest.GettingCapture(), nil
-			},
-		},
-		{
-			Name: "removing-capture-routes",
+			Name: "removing-capture-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(removing.CaptureStore)
-				s := removing.NewCaptureService(store)
-				return rest.RemovingCapture(s), nil
+				return removing.NewCaptureService(store), nil
 			},
 		},
 		{
-			Name: "updating-capture-routes",
+			Name: "updating-capture-service",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(updating.CaptureStore)
-				s := updating.NewCaptureService(store)
-				return rest.UpdatingCapture(s), nil
+				return updating.NewCaptureService(store), nil
 			},
 		},
 	}

@@ -1,12 +1,13 @@
-package rest_test
+package handler_test
 
 import (
 	"net/http"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
+
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/removing"
 	"github.com/pkg/errors"
 )
@@ -20,7 +21,7 @@ func (m *removingCaptureServiceMock) Remove(*domain.Capture) error { return m.er
 func setupRemovingCaptureHandler(s removing.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Get("/", rest.RemovingCapture(s))
+	app.APIRouter.Get("/", handler.RemovingCapture(s))
 	return app
 }
 

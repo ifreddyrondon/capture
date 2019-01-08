@@ -1,4 +1,4 @@
-package rest_test
+package handler_test
 
 import (
 	"errors"
@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
+
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
 )
 
 type mockCreatingService struct {
@@ -24,7 +25,7 @@ func (m *mockCreatingService) CreateRepo(*domain.User, creating.Payload) (*creat
 func setupCreateHandler(s creating.Service, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Post("/", rest.Creating(s))
+	app.APIRouter.Post("/", handler.Creating(s))
 	return app
 }
 

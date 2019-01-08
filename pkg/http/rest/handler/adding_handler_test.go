@@ -1,14 +1,15 @@
-package rest_test
+package handler_test
 
 import (
 	"errors"
 	"net/http"
 	"testing"
 
+	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
+
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
 )
 
 type mockAddingService struct {
@@ -23,7 +24,7 @@ func (m *mockAddingService) AddCapture(r *domain.Repository, c adding.Capture) (
 func setupAddingHandler(s adding.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Post("/", rest.AddingCapture(s))
+	app.APIRouter.Post("/", handler.AddingCapture(s))
 	return app
 }
 

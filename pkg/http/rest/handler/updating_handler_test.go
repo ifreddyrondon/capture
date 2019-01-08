@@ -1,4 +1,4 @@
-package rest_test
+package handler_test
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/ifreddyrondon/bastion"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
+	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 	"github.com/ifreddyrondon/capture/pkg/updating"
 	"gopkg.in/src-d/go-kallax.v1"
 )
@@ -23,7 +23,7 @@ func (m *mockUpdatingCaptureService) Update(updating.Capture, *domain.Capture) e
 func setupUpdatingCaptureHandler(s updating.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Put("/", rest.UpdatingCapture(s))
+	app.APIRouter.Put("/", handler.UpdatingCapture(s))
 	return app
 }
 

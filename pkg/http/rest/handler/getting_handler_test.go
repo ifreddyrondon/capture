@@ -1,17 +1,17 @@
-package rest_test
+package handler_test
 
 import (
 	"net/http"
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg/http/rest"
+	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 )
 
 func setupGettingRepoHandler(m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Get("/{id}", rest.GettingRepo())
+	app.APIRouter.Get("/{id}", handler.GettingRepo())
 	return app
 }
 
@@ -48,7 +48,7 @@ func TestGettingRepoInternalServer(t *testing.T) {
 func setupGettingCaptureHandler(m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
 	app.APIRouter.Use(m)
-	app.APIRouter.Get("/{id}", rest.GettingCapture())
+	app.APIRouter.Get("/{id}", handler.GettingCapture())
 	return app
 }
 
