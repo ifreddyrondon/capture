@@ -33,12 +33,16 @@ func router(resources di.Container) http.Handler {
 	privateVisibility := filtering.NewValue("private", "private repos")
 	visibilityFilter := filtering.NewText("visibility", "filters the repos by their visibility", publicVisibility, privateVisibility)
 
-	listingReposMiddle := middleware.Listing(
+	listingOwnerReposMiddle := middleware.Listing(
 		middleware.MaxAllowedLimit(50),
 		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
 		middleware.Filter(visibilityFilter),
 	)
 	listingUserRepos := resources.Get("listing-user-repo-routes").(http.HandlerFunc)
+	listingPublicReposMiddle := middleware.Listing(
+		middleware.MaxAllowedLimit(50),
+		middleware.Sort(updatedDESC, updatedASC, createdDESC, createdASC),
+	)
 	listingPublicRepos := resources.Get("listing-public-repos-routes").(http.HandlerFunc)
 	listingCapturesMiddle := middleware.Listing(
 		middleware.MaxAllowedLimit(100),
@@ -66,13 +70,13 @@ func router(resources di.Container) http.Handler {
 		r.Use(authorize)
 		r.Route("/repos/", func(r chi.Router) {
 			r.Post("/", creating)
-			r.With(listingReposMiddle).Get("/", listingUserRepos)
+			r.With(listingOwnerReposMiddle).Get("/", listingUserRepos)
 
 		})
 	})
 	r.Route("/repositories/", func(r chi.Router) {
 		r.Use(authorize)
-		r.With(listingReposMiddle).
+		r.With(listingPublicReposMiddle).
 			Get("/", listingPublicRepos)
 		r.Route("/{id}", func(r chi.Router) {
 			r.Use(ctxRepo)
