@@ -90,11 +90,6 @@ func router(resources di.Container) http.Handler {
 		})
 	})
 
-	branchRoutes := resources.Get("branch-routes").(http.Handler)
-	multipostRoutes := resources.Get("multipost-routes").(http.Handler)
-	r.Mount("/branches/", branchRoutes)
-	r.Mount("/multipost/", multipostRoutes)
-
 	return r
 }
 

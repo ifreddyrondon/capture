@@ -17,10 +17,8 @@ import (
 
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
-	"github.com/ifreddyrondon/capture/pkg/branch"
 	"github.com/ifreddyrondon/capture/pkg/http/rest"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"github.com/ifreddyrondon/capture/pkg/multipost"
 	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/user"
 	"github.com/ifreddyrondon/capture/pkg/token"
@@ -30,19 +28,6 @@ import (
 func getResources(cfg *Config) di.Container {
 	builder, _ := di.NewBuilder()
 	definitions := []di.Def{
-		{
-			Name: "branch-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return branch.Routes(), nil
-			},
-		},
-		{
-			Name: "multipost-routes",
-			Build: func(ctn di.Container) (interface{}, error) {
-				return multipost.Routes(), nil
-			},
-		},
-		// resources for DDD migration
 		{
 			Name: "database",
 			Build: func(ctn di.Container) (i interface{}, e error) {

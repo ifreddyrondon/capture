@@ -9,7 +9,7 @@ import (
 	"gopkg.in/src-d/go-kallax.v1"
 )
 
-// CaptureStore provides access to the repository storage.
+// CaptureStore provides access to the capture storage.
 type CaptureStore interface {
 	CreateCapture(*domain.Capture) error
 }
