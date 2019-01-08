@@ -144,7 +144,7 @@ func getResources(cfg *Config) di.Container {
 		{
 			Name: "listing-user-repos-middleware",
 			Build: func(ctn di.Container) (interface{}, error) {
-				return middleware.FilterOwnRepos(), nil
+				return middleware.FilterUserRepos(), nil
 			},
 		},
 		{

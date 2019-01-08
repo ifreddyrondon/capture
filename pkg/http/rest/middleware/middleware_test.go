@@ -6,10 +6,28 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/go-chi/chi"
+	"github.com/ifreddyrondon/bastion"
+	"github.com/ifreddyrondon/bastion/middleware/listing"
+	"github.com/ifreddyrondon/bastion/render"
+
+	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
+
+	bastionMiddleware "github.com/ifreddyrondon/bastion/middleware"
+	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+)
+
+var (
+	publicVisibility  = filtering.NewValue("public", "public repos")
+	privateVisibility = filtering.NewValue("private", "private repos")
+	updatedDESC       = sorting.NewSort("updated_at_desc", "updated_at DESC", "Updated date descending")
+	updatedASC        = sorting.NewSort("updated_at_asc", "updated_at ASC", "Updated date ascendant")
+	createdDESC       = sorting.NewSort("created_at_desc", "created_at DESC", "Created date descending")
+	createdASC        = sorting.NewSort("created_at_asc", "created_at ASC", "Created date ascendant")
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -66,4 +84,24 @@ func withRepoMiddle(repo *domain.Repository) func(next http.Handler) http.Handle
 		}
 		return http.HandlerFunc(fn)
 	}
+}
+
+func setupFilterMiddleware(m func(http.Handler) http.Handler) (*bastion.Bastion, *listing.Listing) {
+	var result listing.Listing
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		l, err := bastionMiddleware.GetListing(r.Context())
+		if err != nil {
+			render.NewJSON().InternalServerError(w, err)
+			return
+		}
+		result = *l
+		w.Write([]byte("hi"))
+	})
+
+	app := bastion.New()
+	app.APIRouter.Route("/", func(r chi.Router) {
+		r.Use(m)
+		r.Get("/", h)
+	})
+	return app, &result
 }
