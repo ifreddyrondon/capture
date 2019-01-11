@@ -33,8 +33,8 @@ func (s *capturesService) AddCaptures(r *domain.Repository, captures MultiCaptur
 	return capt, nil
 }
 
-func getDomainCaptures(r *domain.Repository, captures MultiCapture) []domain.Capture {
+func getDomainCaptures(r *domain.Repository, m MultiCapture) []domain.Capture {
 	// TODO: make real captures
-	result := make([]domain.Capture, len(captures))
+	result := make([]domain.Capture, len(m.Captures))
 	return result
 }
