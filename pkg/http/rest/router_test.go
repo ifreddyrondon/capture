@@ -75,12 +75,16 @@ func (m *mockRepoService) Get(kallax.ULID) (*domain.Repository, error) {
 }
 
 type mockCaptureService struct {
-	capt *domain.Capture
-	err  error
+	capt     *domain.Capture
+	captures []domain.Capture
+	err      error
 }
 
 func (m *mockCaptureService) AddCapture(*domain.Repository, adding.Capture) (*domain.Capture, error) {
 	return m.capt, m.err
+}
+func (m *mockCaptureService) AddCaptures(*domain.Repository, adding.MultiCapture) ([]domain.Capture, error) {
+	return m.captures, m.err
 }
 func (m *mockCaptureService) ListRepoCaptures(*domain.Repository, *bastionListing.Listing) (*listing.ListCaptureResponse, error) {
 	return &listing.ListCaptureResponse{}, m.err
@@ -120,6 +124,10 @@ func resources() di.Container {
 		},
 		{
 			Name:  "adding-capture-service",
+			Build: func(ctn di.Container) (interface{}, error) { return &mockCaptureService{}, nil },
+		},
+		{
+			Name:  "adding-multi-capture-service",
 			Build: func(ctn di.Container) (interface{}, error) { return &mockCaptureService{}, nil },
 		},
 		{
@@ -165,6 +173,7 @@ func TestRouter(t *testing.T) {
 		{uri: "/repositories/", method: "GET"},
 		{uri: "/repositories/123", method: "GET"},
 		{uri: "/repositories/123/captures", method: "POST"},
+		{uri: "/repositories/123/captures/multi", method: "POST"},
 		{uri: "/repositories/123/captures", method: "GET"},
 		{uri: "/repositories/123/captures/abc", method: "GET"},
 		{uri: "/repositories/123/captures/abc", method: "DELETE"},

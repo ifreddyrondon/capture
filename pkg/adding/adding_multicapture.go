@@ -9,7 +9,7 @@ import (
 
 const (
 	MultiCaptureValidator    validator.StringValidator = "cannot unmarshal json into valid multi capture value"
-	errMissingCaptures                                 = "captures value must not be blank"
+	errMissingCaptures                                 = "captures value must not be blank or empty"
 	maxAllowedCapturesToPost                           = 50
 )
 
@@ -31,12 +31,14 @@ func (m *MultiCapture) OK() error {
 		return e
 	}
 
-	for i, c := range m.Captures {
-		err := c.OK()
-		if err != nil && !m.IgnoreErrors {
-			e.Add(fmt.Sprintf("capture %v", i), err.Error())
+	for i, capt := range m.Captures {
+		if err := capt.OK(); err != nil {
+			if !m.IgnoreErrors {
+				key := fmt.Sprintf("capture %v", i)
+				e.Add(key, fmt.Sprintf("%v: %v", key, err))
+			}
 		} else {
-			m.CapturesOK = append(m.CapturesOK, c)
+			m.CapturesOK = append(m.CapturesOK, capt)
 		}
 	}
 

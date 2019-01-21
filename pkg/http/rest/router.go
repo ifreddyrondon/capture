@@ -44,6 +44,8 @@ func Router(resources di.Container) http.Handler {
 
 	addingCaptureService := resources.Get("adding-capture-service").(adding.CaptureService)
 	addingCaptureHandler := handler.AddingCapture(addingCaptureService)
+	addingMultiCaptureService := resources.Get("adding-multi-capture-service").(adding.MultiCaptureService)
+	addingMultiCaptureHandler := handler.AddingMultiCapture(addingMultiCaptureService)
 	listingCapturesMiddleware := middleware.FilterCaptures()
 	listingCaptureService := resources.Get("listing-capture-services").(listing.CaptureService)
 	listingCapturesHandler := handler.ListingRepoCaptures(listingCaptureService)
@@ -76,6 +78,7 @@ func Router(resources di.Container) http.Handler {
 			r.With(repoOwnerOrPublicMiddleware).Get("/", gettingRepoHandler)
 			r.Route("/captures/", func(r chi.Router) {
 				r.With(repoOwnerMiddleware).Post("/", addingCaptureHandler)
+				r.With(repoOwnerMiddleware).Post("/multi", addingMultiCaptureHandler)
 				r.With(repoOwnerOrPublicMiddleware).With(listingCapturesMiddleware).Get("/", listingCapturesHandler)
 				r.Route("/{captureId}", func(r chi.Router) {
 					r.Use(ctxCaptureMiddleware)

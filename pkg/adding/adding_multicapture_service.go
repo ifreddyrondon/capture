@@ -1,40 +1,45 @@
 package adding
 
 import (
+	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 )
 
-// CapturesStore provides access to the captures storage.
-type CapturesStore interface {
-	CreateCaptures([]domain.Capture) error
+// MultiCaptureStore provides access to the captures storage.
+type MultiCaptureStore interface {
+	CreateCaptures(...domain.Capture) error
 }
 
-// CaptureService provides adding operations.
-type CapturesService interface {
+// MultiCaptureService provides adding operations.
+type MultiCaptureService interface {
 	// AddCaptures add new captures to a repository
 	AddCaptures(*domain.Repository, MultiCapture) ([]domain.Capture, error)
 }
 
-type capturesService struct {
-	s CapturesStore
+type multiCaptureService struct {
+	s     MultiCaptureStore
+	clock *pkg.Clock
 }
 
-// NewCapturesService creates an adding service with the necessary dependencies to add captures.
-func NewCapturesService(s CapturesStore) CapturesService {
-	return &capturesService{s: s}
+// NewMultiCaptureService creates an adding service with the necessary dependencies to add captures.
+func NewMultiCaptureService(s MultiCaptureStore) MultiCaptureService {
+	return &multiCaptureService{s: s}
 }
 
-func (s *capturesService) AddCaptures(r *domain.Repository, captures MultiCapture) ([]domain.Capture, error) {
-	capt := getDomainCaptures(r, captures)
-	if err := s.s.CreateCaptures(capt); err != nil {
+func (s *multiCaptureService) AddCaptures(r *domain.Repository, multiCapture MultiCapture) ([]domain.Capture, error) {
+	captures := getDomainCaptures(s.clock, r, multiCapture.CapturesOK)
+	if err := s.s.CreateCaptures(captures...); err != nil {
 		return nil, errors.Wrap(err, "could not add captures")
 	}
-	return capt, nil
+	return captures, nil
 }
 
-func getDomainCaptures(r *domain.Repository, m MultiCapture) []domain.Capture {
-	// TODO: make real captures
-	result := make([]domain.Capture, len(m.Captures))
+func getDomainCaptures(clock *pkg.Clock, r *domain.Repository, captures []Capture) []domain.Capture {
+	result := make([]domain.Capture, len(captures))
+	for i, c := range captures {
+		result[i] = *getDomainCapture(clock, r, c)
+	}
+
 	return result
 }

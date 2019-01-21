@@ -48,6 +48,13 @@ func (p *PGStorage) CreateCapture(c *domain.Capture) error {
 	return nil
 }
 
+func (p *PGStorage) CreateCaptures(captures ...domain.Capture) error {
+	if err := p.db.Insert(&captures); err != nil {
+		return errors.Wrap(err, "err saving captures with pgstorage")
+	}
+	return nil
+}
+
 func (p *PGStorage) List(l *domain.Listing) ([]domain.Capture, int64, error) {
 	var captures []domain.Capture
 	f := filter(*l)

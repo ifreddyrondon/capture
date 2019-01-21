@@ -142,6 +142,13 @@ func getResources(cfg *Config) di.Container {
 			},
 		},
 		{
+			Name: "adding-multi-capture-service",
+			Build: func(ctn di.Container) (interface{}, error) {
+				store := cfg.Resources.Get("capture-storage").(adding.MultiCaptureStore)
+				return adding.NewMultiCaptureService(store), nil
+			},
+		},
+		{
 			Name: "listing-capture-services",
 			Build: func(ctn di.Container) (interface{}, error) {
 				store := cfg.Resources.Get("capture-storage").(listing.CaptureStore)

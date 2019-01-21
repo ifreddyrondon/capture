@@ -31,14 +31,14 @@ func NewCaptureService(s CaptureStore) CaptureService {
 }
 
 func (s *captureService) AddCapture(r *domain.Repository, c Capture) (*domain.Capture, error) {
-	capt := s.getDomainCapture(r, c)
+	capt := getDomainCapture(s.clock, r, c)
 	if err := s.s.CreateCapture(capt); err != nil {
 		return nil, errors.Wrap(err, "could not add capture")
 	}
 	return capt, nil
 }
 
-func (s *captureService) getDomainCapture(r *domain.Repository, c Capture) *domain.Capture {
+func getDomainCapture(clock *pkg.Clock, r *domain.Repository, c Capture) *domain.Capture {
 	now := time.Now()
 	result := &domain.Capture{
 		ID:           kallax.NewULID(),
@@ -61,7 +61,7 @@ func (s *captureService) getDomainCapture(r *domain.Repository, c Capture) *doma
 	if c.Timestamp.Time != nil {
 		result.Timestamp = c.Timestamp.Time.UTC()
 	} else {
-		result.Timestamp = s.clock.Now()
+		result.Timestamp = clock.Now()
 	}
 	return result
 }

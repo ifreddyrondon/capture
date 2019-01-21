@@ -18,11 +18,11 @@ func s2n(v string) *json.Number {
 	return &n
 }
 
-type mockStore struct {
+type mockCaptureStore struct {
 	err error
 }
 
-func (m *mockStore) CreateCapture(*domain.Capture) error { return m.err }
+func (m *mockCaptureStore) CreateCapture(*domain.Capture) error { return m.err }
 
 func TestServiceAddCaptureOKWithDefaultTimestamp(t *testing.T) {
 	t.Parallel()
@@ -88,7 +88,7 @@ func TestServiceAddCaptureOKWithDefaultTimestamp(t *testing.T) {
 	}
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
-	s := adding.NewCaptureService(&mockStore{})
+	s := adding.NewCaptureService(&mockCaptureStore{})
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -145,7 +145,7 @@ func TestServiceAddCaptureOKWithTimestamp(t *testing.T) {
 	}
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
-	s := adding.NewCaptureService(&mockStore{})
+	s := adding.NewCaptureService(&mockCaptureStore{})
 
 	capt, err := s.AddCapture(repo, payl)
 	assert.Nil(t, err)
@@ -162,7 +162,7 @@ func TestServiceAddCaptureOKWithTimestamp(t *testing.T) {
 
 func TestServiceAddCaptureErrWhenSaving(t *testing.T) {
 	t.Parallel()
-	s := adding.NewCaptureService(&mockStore{err: errors.New("test")})
+	s := adding.NewCaptureService(&mockCaptureStore{err: errors.New("test")})
 
 	repo := &domain.Repository{ID: kallax.NewULID()}
 	payl := adding.Capture{
