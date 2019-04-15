@@ -7,9 +7,10 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/bastion/render"
+	"github.com/pkg/errors"
+
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/pkg/errors"
 )
 
 var (

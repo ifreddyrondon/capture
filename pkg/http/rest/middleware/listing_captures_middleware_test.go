@@ -8,8 +8,9 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing"
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
 
 func TestFilterCaptures(t *testing.T) {

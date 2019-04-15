@@ -7,17 +7,18 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/getting"
-	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/getting"
+	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
 
 func setupCaptureCtx(service getting.CaptureService, getRepo func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Route("/{captureId}", func(r chi.Router) {
+	app.Route("/{captureId}", func(r chi.Router) {
 		r.Use(getRepo)
 		r.Use(middleware.CaptureCtx(service))
 		r.Get("/", handler)

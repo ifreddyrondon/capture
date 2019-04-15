@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 	"github.com/ifreddyrondon/capture/pkg/updating"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockUpdatingCaptureService struct {
@@ -22,8 +23,8 @@ func (m *mockUpdatingCaptureService) Update(updating.Capture, *domain.Capture) e
 
 func setupUpdatingCaptureHandler(s updating.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Put("/", handler.UpdatingCapture(s))
+	app.Use(m)
+	app.Put("/", handler.UpdatingCapture(s))
 	return app
 }
 

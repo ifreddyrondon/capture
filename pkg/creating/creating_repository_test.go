@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/creating"
 )
 
 func TestValidatePayloadOK(t *testing.T) {

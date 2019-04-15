@@ -15,10 +15,11 @@ import (
 
 	bastionMiddleware "github.com/ifreddyrondon/bastion/middleware"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 )
 
 var (
@@ -99,7 +100,7 @@ func setupFilterMiddleware(m func(http.Handler) http.Handler) (*bastion.Bastion,
 	})
 
 	app := bastion.New()
-	app.APIRouter.Route("/", func(r chi.Router) {
+	app.Route("/", func(r chi.Router) {
 		r.Use(m)
 		r.Get("/", h)
 	})

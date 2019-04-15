@@ -8,6 +8,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 
 	"github.com/ifreddyrondon/bastion"
+
 	"github.com/ifreddyrondon/capture/pkg/signup"
 )
 
@@ -43,7 +44,7 @@ func TestSignUpSuccess(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &mockSignUpService{usr: tc.usrMock}
 			app := bastion.New()
-			app.APIRouter.Post("/", handler.SignUp(s))
+			app.Post("/", handler.SignUp(s))
 			e := bastion.Tester(t, app)
 			e.POST("/").WithJSON(tc.payload).
 				Expect().
@@ -63,7 +64,7 @@ func TestSignUpBadRequest(t *testing.T) {
 
 	s := &mockSignUpService{}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.SignUp(s))
+	app.Post("/", handler.SignUp(s))
 
 	e := bastion.Tester(t, app)
 	tt := []struct {
@@ -128,7 +129,7 @@ func (e conflictErr) Conflict() bool { return true }
 func TestSignUpConflictEmail(t *testing.T) {
 	s := &mockSignUpService{err: conflictErr("test")}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.SignUp(s))
+	app.Post("/", handler.SignUp(s))
 
 	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{
@@ -149,7 +150,7 @@ func TestSignUpFailSave(t *testing.T) {
 
 	s := &mockSignUpService{err: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.SignUp(s))
+	app.Post("/", handler.SignUp(s))
 
 	payload := map[string]interface{}{"email": "test@example.com"}
 	response := map[string]interface{}{

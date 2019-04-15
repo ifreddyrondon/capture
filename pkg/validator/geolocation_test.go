@@ -5,8 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 func f2P(v float64) *float64 {

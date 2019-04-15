@@ -2,8 +2,9 @@ package listing
 
 import (
 	"github.com/ifreddyrondon/bastion/middleware/listing"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 // RepoStore provides access to the repository storage.

@@ -3,10 +3,11 @@ package adding
 import (
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 // CaptureStore provides access to the capture storage.

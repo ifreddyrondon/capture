@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/removing"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/removing"
 )
 
 type mockCaptureStore struct {

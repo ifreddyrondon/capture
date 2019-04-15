@@ -3,6 +3,7 @@ package authenticating
 import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gobuffalo/validate"
+
 	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 

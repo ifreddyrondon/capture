@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/bastion/render"
+
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
 	"github.com/ifreddyrondon/capture/pkg/updating"
 )

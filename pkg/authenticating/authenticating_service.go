@@ -3,10 +3,11 @@ package authenticating
 import (
 	"fmt"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type notFoundErr interface {

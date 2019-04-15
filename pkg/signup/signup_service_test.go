@@ -3,10 +3,11 @@ package signup_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/signup"
 )
 
 type mockStore struct {

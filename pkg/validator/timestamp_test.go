@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 func s2t(date string) *time.Time {

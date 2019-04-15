@@ -1,8 +1,9 @@
 package authorizing
 
 import (
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type Permission interface {

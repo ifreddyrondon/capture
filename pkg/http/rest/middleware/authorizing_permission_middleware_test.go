@@ -7,14 +7,15 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion"
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func setupRepoOwner(auth, repoCtx func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Route("/", func(r chi.Router) {
+	app.Route("/", func(r chi.Router) {
 		r.Use(auth)
 		r.Use(repoCtx)
 		r.Use(middleware.RepoOwner())
@@ -88,7 +89,7 @@ func TestRepoOwnerFailsBecauseGetRepoMiddleware(t *testing.T) {
 
 func setupRepoOwnerOrPublic(auth, repoCtx func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Route("/", func(r chi.Router) {
+	app.Route("/", func(r chi.Router) {
 		r.Use(auth)
 		r.Use(repoCtx)
 		r.Use(middleware.RepoOwnerOrPublic())

@@ -1,9 +1,10 @@
 package adding
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/pkg/errors"
 )
 
 // MultiCaptureStore provides access to the captures storage.

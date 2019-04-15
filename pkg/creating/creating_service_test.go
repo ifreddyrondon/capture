@@ -3,11 +3,12 @@ package creating_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/creating"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/creating"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type mockStore struct {

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type invalidIDErr string

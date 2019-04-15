@@ -2,6 +2,7 @@ package adding
 
 import (
 	"github.com/gobuffalo/validate"
+
 	"github.com/ifreddyrondon/capture/pkg/validator"
 
 	"github.com/pkg/errors"

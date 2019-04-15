@@ -9,6 +9,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 
 	"github.com/ifreddyrondon/bastion"
+
 	"github.com/ifreddyrondon/capture/pkg/creating"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 )
@@ -24,8 +25,8 @@ func (m *mockCreatingService) CreateRepo(*domain.User, creating.Payload) (*creat
 
 func setupCreateHandler(s creating.Service, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Post("/", handler.Creating(s))
+	app.Use(m)
+	app.Post("/", handler.Creating(s))
 	return app
 }
 

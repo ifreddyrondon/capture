@@ -6,8 +6,9 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/pkg/errors"
+
+	"github.com/ifreddyrondon/capture/pkg/signup"
 )
 
 type conflictErr interface {

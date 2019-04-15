@@ -1,9 +1,10 @@
 package getting
 
 import (
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 // RepoStore provides access to the repository storage.

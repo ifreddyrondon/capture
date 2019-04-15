@@ -5,9 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/validator"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidatePayloadOK(t *testing.T) {

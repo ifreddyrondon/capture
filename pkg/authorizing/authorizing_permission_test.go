@@ -3,10 +3,11 @@ package authorizing_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/authorizing"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/authorizing"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 func TestRepoPermission(t *testing.T) {

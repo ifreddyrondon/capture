@@ -8,6 +8,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 
 	"github.com/ifreddyrondon/bastion"
+
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 )
@@ -23,8 +24,8 @@ func (m *mockAddingCaptureService) AddCapture(r *domain.Repository, c adding.Cap
 
 func setupAddingCaptureHandler(s adding.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Post("/", handler.AddingCapture(s))
+	app.Use(m)
+	app.Post("/", handler.AddingCapture(s))
 	return app
 }
 
@@ -227,8 +228,8 @@ func (m *mockAddingMultiCaptureService) AddCaptures(*domain.Repository, adding.M
 
 func setupAddingMultiCaptureHandler(s adding.MultiCaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Post("/", handler.AddingMultiCapture(s))
+	app.Use(m)
+	app.Post("/", handler.AddingMultiCapture(s))
 	return app
 }
 

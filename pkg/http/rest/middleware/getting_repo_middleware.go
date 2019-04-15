@@ -8,10 +8,11 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/getting"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/getting"
 )
 
 var (

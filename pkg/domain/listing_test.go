@@ -7,8 +7,9 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 func TestNewListingWithoutVisibilityFilterAndSorting(t *testing.T) {

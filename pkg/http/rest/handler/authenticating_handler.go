@@ -6,8 +6,9 @@ import (
 	"os"
 
 	"github.com/ifreddyrondon/bastion/render"
-	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/pkg/errors"
+
+	"github.com/ifreddyrondon/capture/pkg/authenticating"
 )
 
 type authenticatingErr interface {

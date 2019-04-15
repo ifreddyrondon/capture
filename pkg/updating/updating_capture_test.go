@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/updating"
 	"github.com/ifreddyrondon/capture/pkg/validator"
-	"github.com/stretchr/testify/assert"
 )
 
 func f2P(v float64) *float64 {

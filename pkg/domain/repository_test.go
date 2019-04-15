@@ -5,10 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 func TestMarshalJSONRepository(t *testing.T) {

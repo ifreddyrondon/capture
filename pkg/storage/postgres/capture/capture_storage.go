@@ -5,9 +5,10 @@ import (
 
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type captureNotFound string

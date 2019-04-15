@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/ifreddyrondon/bastion"
+
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 )
 
 func setupGettingRepoHandler(m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Get("/{id}", handler.GettingRepo())
+	app.Use(m)
+	app.Get("/{id}", handler.GettingRepo())
 	return app
 }
 
@@ -47,8 +48,8 @@ func TestGettingRepoInternalServer(t *testing.T) {
 
 func setupGettingCaptureHandler(m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Get("/{id}", handler.GettingCapture())
+	app.Use(m)
+	app.Get("/{id}", handler.GettingCapture())
 	return app
 }
 

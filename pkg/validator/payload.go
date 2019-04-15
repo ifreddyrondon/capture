@@ -2,6 +2,7 @@ package validator
 
 import (
 	"github.com/gobuffalo/validate"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 

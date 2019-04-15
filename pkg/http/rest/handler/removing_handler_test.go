@@ -7,9 +7,10 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 
 	"github.com/ifreddyrondon/bastion"
+	"github.com/pkg/errors"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/removing"
-	"github.com/pkg/errors"
 )
 
 type removingCaptureServiceMock struct {
@@ -20,8 +21,8 @@ func (m *removingCaptureServiceMock) Remove(*domain.Capture) error { return m.er
 
 func setupRemovingCaptureHandler(s removing.CaptureService, m func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(m)
-	app.APIRouter.Get("/", handler.RemovingCapture(s))
+	app.Use(m)
+	app.Get("/", handler.RemovingCapture(s))
 	return app
 }
 

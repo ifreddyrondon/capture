@@ -4,12 +4,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg/adding"
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/adding"
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 type mockMultiCaptureStore struct {

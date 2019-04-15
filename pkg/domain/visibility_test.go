@@ -3,8 +3,9 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 func TestAllowedVisibility(t *testing.T) {

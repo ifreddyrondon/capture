@@ -3,9 +3,10 @@ package creating
 import (
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 const defaultCrrBranchFieldValue = "master"

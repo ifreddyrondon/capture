@@ -15,6 +15,7 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/domain"
 
 	bastionListing "github.com/ifreddyrondon/bastion/middleware/listing"
+
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/creating"
@@ -154,7 +155,7 @@ func resources() di.Container {
 
 func setup() *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Mount("/", rest.Router(resources()))
+	app.Mount("/", rest.Router(resources()))
 	return app
 }
 

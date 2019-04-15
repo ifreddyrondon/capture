@@ -6,8 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 type mockValidator struct{ err error }

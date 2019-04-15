@@ -4,6 +4,9 @@ import (
 	"time"
 
 	"github.com/go-pg/pg"
+	"github.com/pkg/errors"
+	"github.com/sarulabs/di"
+
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
@@ -17,8 +20,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/storage/postgres/user"
 	"github.com/ifreddyrondon/capture/pkg/token"
 	"github.com/ifreddyrondon/capture/pkg/updating"
-	"github.com/pkg/errors"
-	"github.com/sarulabs/di"
 )
 
 func getResources(cfg *Config) di.Container {

@@ -2,8 +2,9 @@ package updating
 
 import (
 	"github.com/gobuffalo/validate"
-	"github.com/ifreddyrondon/capture/pkg/validator"
 	"github.com/pkg/errors"
+
+	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const CaptureValidator validator.StringValidator = "cannot unmarshal json into valid capture value"

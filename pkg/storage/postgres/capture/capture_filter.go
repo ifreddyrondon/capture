@@ -2,6 +2,7 @@ package capture
 
 import (
 	"github.com/go-pg/pg/orm"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 

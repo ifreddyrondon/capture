@@ -5,11 +5,12 @@ import (
 
 	listingBastion "github.com/ifreddyrondon/bastion/middleware/listing"
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
-	"github.com/ifreddyrondon/capture/pkg/domain"
-	"github.com/ifreddyrondon/capture/pkg/listing"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
+	"github.com/ifreddyrondon/capture/pkg/listing"
 )
 
 type mockCaptureStore struct {

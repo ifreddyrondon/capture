@@ -4,10 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ifreddyrondon/capture/pkg"
+
 	"github.com/dgrijalva/jwt-go"
+
 	"github.com/ifreddyrondon/capture/pkg/token"
 )
 

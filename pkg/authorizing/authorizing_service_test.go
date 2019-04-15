@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/authorizing"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/authorizing"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type mockTokenService struct {

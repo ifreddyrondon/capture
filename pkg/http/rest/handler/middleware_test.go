@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func f2P(v float64) *float64 {

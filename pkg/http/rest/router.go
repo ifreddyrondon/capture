@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/sarulabs/di"
+
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/authorizing"
@@ -15,7 +17,6 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/removing"
 	"github.com/ifreddyrondon/capture/pkg/signup"
 	"github.com/ifreddyrondon/capture/pkg/updating"
-	"github.com/sarulabs/di"
 )
 
 // Router returns a configured http.Handler with app resources.

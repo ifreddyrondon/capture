@@ -9,9 +9,10 @@ import (
 	"github.com/ifreddyrondon/capture/pkg/http/rest/handler"
 
 	"github.com/ifreddyrondon/bastion"
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
 	"github.com/ifreddyrondon/capture/pkg/domain"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 type mockAuthenticatingService struct {
@@ -41,7 +42,7 @@ func TestAuthenticateSuccess(t *testing.T) {
 		token: "token*test",
 	}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.Authenticating(s))
+	app.Post("/", handler.Authenticating(s))
 
 	response := map[string]interface{}{"token": "token*test"}
 	e := bastion.Tester(t, app)
@@ -57,7 +58,7 @@ func TestAuthenticateFailBadRequest(t *testing.T) {
 
 	s := &mockAuthenticatingService{usr: &domain.User{}}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.Authenticating(s))
+	app.Post("/", handler.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  400.0,
@@ -77,7 +78,7 @@ func TestAuthenticateFailUnauthorized(t *testing.T) {
 
 	s := &mockAuthenticatingService{err: invalidCredentialErr("invalid email or password")}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.Authenticating(s))
+	app.Post("/", handler.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  401.0,
@@ -97,7 +98,7 @@ func TestAuthenticateFailInternalServerErrorWhenAuthenticateUser(t *testing.T) {
 
 	s := &mockAuthenticatingService{err: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.Authenticating(s))
+	app.Post("/", handler.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  500.0,
@@ -117,7 +118,7 @@ func TestAuthenticateFailInternalServerErrorWhenGetUserToken(t *testing.T) {
 
 	s := &mockAuthenticatingService{usr: &domain.User{}, tokenErr: errors.New("test")}
 	app := bastion.New()
-	app.APIRouter.Post("/", handler.Authenticating(s))
+	app.Post("/", handler.Authenticating(s))
 
 	response := map[string]interface{}{
 		"status":  500.0,

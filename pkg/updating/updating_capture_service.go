@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
+
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 // CaptureStore provides access to the capture storage.

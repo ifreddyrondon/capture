@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ifreddyrondon/capture/pkg/adding"
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/validator"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestValidateMultiCaptureOK(t *testing.T) {

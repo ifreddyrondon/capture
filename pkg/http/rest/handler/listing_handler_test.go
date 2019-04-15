@@ -14,9 +14,10 @@ import (
 	"github.com/ifreddyrondon/bastion/middleware/listing/filtering"
 	"github.com/ifreddyrondon/bastion/middleware/listing/paging"
 	"github.com/ifreddyrondon/bastion/middleware/listing/sorting"
+	"gopkg.in/src-d/go-kallax.v1"
+
 	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/ifreddyrondon/capture/pkg/listing"
-	"gopkg.in/src-d/go-kallax.v1"
 )
 
 func getBaseListing() listingBastionMiddleware.Listing {
@@ -83,16 +84,16 @@ func (m *mockListingRepoService) GetPublicRepos(l *listingBastionMiddleware.List
 
 func setupListingPublicReposHandler(s listing.RepoService, listMiddle func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(listMiddle)
-	app.APIRouter.Get("/", handler.ListingPublicRepos(s))
+	app.Use(listMiddle)
+	app.Get("/", handler.ListingPublicRepos(s))
 	return app
 }
 
 func setupListingUserReposHandler(s listing.RepoService, listMiddle, auth func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(listMiddle)
-	app.APIRouter.Use(auth)
-	app.APIRouter.Get("/", handler.ListingUserRepos(s))
+	app.Use(listMiddle)
+	app.Use(auth)
+	app.Get("/", handler.ListingUserRepos(s))
 	return app
 }
 
@@ -249,10 +250,10 @@ func (m *mockListingCaptureService) ListRepoCaptures(r *domain.Repository, l *li
 
 func setupListingRepoCapturesHandler(s listing.CaptureService, listMiddle, auth, repoMiddle func(http.Handler) http.Handler) *bastion.Bastion {
 	app := bastion.New()
-	app.APIRouter.Use(listMiddle)
-	app.APIRouter.Use(auth)
-	app.APIRouter.Use(repoMiddle)
-	app.APIRouter.Get("/", handler.ListingRepoCaptures(s))
+	app.Use(listMiddle)
+	app.Use(auth)
+	app.Use(repoMiddle)
+	app.Get("/", handler.ListingRepoCaptures(s))
 	return app
 }
 

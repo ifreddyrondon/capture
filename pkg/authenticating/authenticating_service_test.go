@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ifreddyrondon/capture/pkg/authenticating"
-	"github.com/ifreddyrondon/capture/pkg/domain"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/src-d/go-kallax.v1"
+
+	"github.com/ifreddyrondon/capture/pkg/authenticating"
+	"github.com/ifreddyrondon/capture/pkg/domain"
 )
 
 type authenticatingErr interface{ InvalidCredentials() bool }
