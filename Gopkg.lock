@@ -149,7 +149,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:aecf2c7fade6d3026df5b00fe3a1240f3aaba974c92ab9a47a8ecd84e8ac8880"
+  digest = "1:e71cc66dffc89070fdf7a674af6568db5141d1761a783e8ed1e46b400819abcc"
   name = "github.com/ifreddyrondon/bastion"
   packages = [
     ".",
@@ -161,8 +161,8 @@
     "render",
   ]
   pruneopts = "UT"
-  revision = "0bcb79f21fa75d553ed670392554ed087a9f5862"
-  version = "v3.0.1"
+  revision = "2b3d6c732290a3e9bcf7ea46d1bd4203eb354785"
+  version = "v3.0.2"
 
 [[projects]]
   digest = "1:a3ce4de79566c21e93cb6934797fdaa587ad3fc6a964708ab77babe54ea67188"
