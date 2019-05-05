@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/ifreddyrondon/bastion"
-  version = "3.0.2"
+  version = "3.1.0"
 
 [[constraint]]
   name = "github.com/stretchr/testify"

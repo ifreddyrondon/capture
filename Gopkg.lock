@@ -149,10 +149,11 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:e71cc66dffc89070fdf7a674af6568db5141d1761a783e8ed1e46b400819abcc"
+  digest = "1:e0c400b9465d0d413ba23d42002fd23df46ef77b243345560954ba4dfe30a9ef"
   name = "github.com/ifreddyrondon/bastion"
   packages = [
     ".",
+    "binder",
     "middleware",
     "middleware/listing",
     "middleware/listing/filtering",
@@ -161,8 +162,8 @@
     "render",
   ]
   pruneopts = "UT"
-  revision = "2b3d6c732290a3e9bcf7ea46d1bd4203eb354785"
-  version = "v3.0.2"
+  revision = "9e596beec6eb06adf9a8a4e8a39d3961dd9ae0e2"
+  version = "v3.1.0"
 
 [[projects]]
   digest = "1:a3ce4de79566c21e93cb6934797fdaa587ad3fc6a964708ab77babe54ea67188"
@@ -573,12 +574,12 @@
   version = "1.3.4"
 
 [[projects]]
-  digest = "1:2a81c6e126d36ad027328cffaa4888fc3be40f09dc48028d1f93705b718130b9"
+  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
-  revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
-  version = "v2.1.1"
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [[projects]]
   digest = "1:999d566ad1ae4303c456af5a155f7b42401cca4fd33552567ed9dd997b107a08"
@@ -601,6 +602,7 @@
     "github.com/go-pg/pg/orm",
     "github.com/gobuffalo/validate",
     "github.com/ifreddyrondon/bastion",
+    "github.com/ifreddyrondon/bastion/binder",
     "github.com/ifreddyrondon/bastion/middleware",
     "github.com/ifreddyrondon/bastion/middleware/listing",
     "github.com/ifreddyrondon/bastion/middleware/listing/filtering",
