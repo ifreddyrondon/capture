@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/ifreddyrondon/bastion/render"
 
 	"github.com/ifreddyrondon/capture/pkg/adding"
@@ -13,60 +14,54 @@ import (
 
 // AddingCapture returns a configured http.Handler with adding capture resources.
 func AddingCapture(service adding.CaptureService) http.HandlerFunc {
-	renderJSON := render.NewJSON()
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payl adding.Capture
-		err := adding.CaptureValidator.Decode(r, &payl)
-		if err != nil {
-			renderJSON.BadRequest(w, err)
+		var payload adding.Capture
+		if err := binder.JSON.FromReq(r, &payload); err != nil {
+			render.JSON.BadRequest(w, err)
 			return
 		}
 
 		repo, err := middleware.GetRepo(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		capt, err := service.AddCapture(repo, payl)
+		capt, err := service.AddCapture(repo, payload)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Created(w, capt)
+		render.JSON.Created(w, capt)
 	}
 }
 
 // AddingMultiCapture returns a configured http.Handler with adding captures resources.
 func AddingMultiCapture(service adding.MultiCaptureService) http.HandlerFunc {
-	renderJSON := render.NewJSON()
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		var multi adding.MultiCapture
-		err := adding.MultiCaptureValidator.Decode(r, &multi)
-		if err != nil {
-			renderJSON.BadRequest(w, err)
+		if err := binder.JSON.FromReq(r, &multi); err != nil {
+			render.JSON.BadRequest(w, err)
 			return
 		}
 
 		repo, err := middleware.GetRepo(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
 		captures, err := service.AddCaptures(repo, multi)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Created(w, captures)
+		render.JSON.Created(w, captures)
 	}
 }

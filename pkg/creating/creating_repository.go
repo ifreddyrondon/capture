@@ -5,17 +5,12 @@ import (
 	"time"
 
 	"github.com/gobuffalo/validate"
-
-	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const (
 	errNameRequired         = "name must not be blank"
 	errVisibilityNotAllowed = "not allowed visibility type. it Could be one of public, or private. Default: public"
 )
-
-// Validator for sign-up request payload
-const Validator validator.StringValidator = "cannot unmarshal json into valid repository"
 
 var visibilityTypes = [...]string{"public", "private"}
 
@@ -43,7 +38,7 @@ type Payload struct {
 	Visibility *string `json:"visibility"`
 }
 
-func (p Payload) OK() error {
+func (p Payload) Validate() error {
 	e := validate.NewErrors()
 	if p.Name == nil {
 		e.Add("name", errNameRequired)

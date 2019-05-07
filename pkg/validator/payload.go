@@ -8,15 +8,12 @@ import (
 
 const errMissingPayload = "payload value must not be blank"
 
-// PayloadValidator for adding request payload
-const PayloadValidator StringValidator = "cannot unmarshal json into valid payload value"
-
 type Payload struct {
 	Data    []domain.Metric `json:"data"`
 	Payload []domain.Metric `json:"payload"`
 }
 
-func (p *Payload) OK() error {
+func (p *Payload) Validate() error {
 	e := validate.NewErrors()
 	data := getPayload(p)
 	if len(data) == 0 {

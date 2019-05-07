@@ -42,13 +42,12 @@ func GetUser(ctx context.Context) (*domain.User, error) {
 }
 
 func AuthorizeReq(service authorizing.Service) func(next http.Handler) http.Handler {
-	json := render.NewJSON()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			u, err := service.AuthorizeRequest(r)
 			if err != nil {
 				if isInvalidErr(err) {
-					json.BadRequest(w, errInvalidUserID)
+					render.JSON.BadRequest(w, errInvalidUserID)
 					return
 				}
 				if isNotAuthorized(err) {
@@ -57,15 +56,15 @@ func AuthorizeReq(service authorizing.Service) func(next http.Handler) http.Hand
 						Error:   http.StatusText(http.StatusUnauthorized),
 						Message: "authorization required, access is denied due to invalid credentials",
 					}
-					json.Response(w, http.StatusUnauthorized, httpErr)
+					render.JSON.Response(w, http.StatusUnauthorized, httpErr)
 					return
 				}
 				if isNotFound(err) {
-					json.NotFound(w, err)
+					render.JSON.NotFound(w, err)
 					return
 				}
 				fmt.Fprintln(os.Stderr, err)
-				json.InternalServerError(w, err)
+				render.JSON.InternalServerError(w, err)
 				return
 			}
 

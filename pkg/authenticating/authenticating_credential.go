@@ -3,8 +3,6 @@ package authenticating
 import (
 	"github.com/asaskevich/govalidator"
 	"github.com/gobuffalo/validate"
-
-	"github.com/ifreddyrondon/capture/pkg/validator"
 )
 
 const (
@@ -13,9 +11,6 @@ const (
 	errPasswordRequired = "password must not be blank"
 )
 
-// Validator for authenticating request
-const Validator validator.StringValidator = "cannot unmarshal body into valid user credentials"
-
 // BasicCredential for authentication purposes.
 type BasicCredential struct {
 	Email    string `json:"email"`
@@ -23,7 +18,7 @@ type BasicCredential struct {
 }
 
 // OK implementation of validator.OK
-func (c *BasicCredential) OK() error {
+func (c *BasicCredential) Validate() error {
 	e := validate.NewErrors()
 
 	if c.Email == "" {

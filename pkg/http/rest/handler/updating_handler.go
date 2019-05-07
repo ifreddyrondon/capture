@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/ifreddyrondon/bastion/render"
 
 	"github.com/ifreddyrondon/capture/pkg/http/rest/middleware"
@@ -13,30 +14,27 @@ import (
 
 // UpdatingCapture returns a configured http.Handler with updating capture resources.
 func UpdatingCapture(service updating.CaptureService) http.HandlerFunc {
-	renderJSON := render.NewJSON()
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		capt, err := middleware.GetCapture(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
 		var data updating.Capture
-		err = updating.CaptureValidator.Decode(r, &data)
-		if err != nil {
-			renderJSON.BadRequest(w, err)
+		if err = binder.JSON.FromReq(r, &data); err != nil {
+			render.JSON.BadRequest(w, err)
 			return
 		}
 
 		err = service.Update(data, capt)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Send(w, capt)
+		render.JSON.Send(w, capt)
 	}
 }

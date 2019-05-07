@@ -45,31 +45,30 @@ func GetCapture(ctx context.Context) (*domain.Capture, error) {
 }
 
 func CaptureCtx(service getting.CaptureService) func(next http.Handler) http.Handler {
-	json := render.NewJSON()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			captureID := chi.URLParam(r, "captureId")
 			repo, err := GetRepo(r.Context())
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				json.InternalServerError(w, err)
+				render.JSON.InternalServerError(w, err)
 				return
 			}
 
 			id, err := kallax.NewULIDFromText(captureID)
 			if err != nil {
-				json.BadRequest(w, errInvalidCaptureID)
+				render.JSON.BadRequest(w, errInvalidCaptureID)
 				return
 			}
 
 			capt, err := service.Get(id, repo)
 			if err != nil {
 				if isNotFound(err) {
-					json.NotFound(w, errMissingCapture)
+					render.JSON.NotFound(w, errMissingCapture)
 					return
 				}
 				fmt.Fprintln(os.Stderr, err)
-				json.InternalServerError(w, err)
+				render.JSON.InternalServerError(w, err)
 				return
 			}
 

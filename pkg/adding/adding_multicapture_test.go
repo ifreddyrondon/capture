@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/adding"
@@ -75,7 +76,7 @@ func TestValidateMultiCaptureOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var multiCapture adding.MultiCapture
-			err := adding.MultiCaptureValidator.Decode(r, &multiCapture)
+			err := binder.JSON.FromReq(r, &multiCapture)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expectedOK, len(multiCapture.CapturesOK))
 			for i, c := range multiCapture.CapturesOK {
@@ -136,7 +137,7 @@ func TestValidationMultiCaptureFails(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 			var multiCapture adding.MultiCapture
-			err := adding.MultiCaptureValidator.Decode(r, &multiCapture)
+			err := binder.JSON.FromReq(r, &multiCapture)
 			for _, e := range tc.errs {
 				assert.Contains(t, err.Error(), e)
 			}

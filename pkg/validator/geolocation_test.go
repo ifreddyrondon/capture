@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/validator"
@@ -79,7 +80,7 @@ func TestValidateGeolocationOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p validator.GeoLocation
-			err := validator.GeolocationValidator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.LAT, p.LAT)
 			assert.Equal(t, tc.expected.LNG, p.LNG)
@@ -129,7 +130,7 @@ func TestValidateGeolocationFails(t *testing.T) {
 		{
 			"decode point when invalid json",
 			".",
-			"cannot unmarshal json into valid geolocation value",
+			"cannot unmarshal json body",
 		},
 	}
 
@@ -138,7 +139,7 @@ func TestValidateGeolocationFails(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p validator.GeoLocation
-			err := validator.GeolocationValidator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/ifreddyrondon/bastion/render"
 
 	"github.com/ifreddyrondon/capture/pkg/creating"
@@ -13,30 +14,27 @@ import (
 
 // Creating returns a configured http.Handler with creating resources.
 func Creating(service creating.Service) http.HandlerFunc {
-	renderJSON := render.NewJSON()
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payl creating.Payload
-		err := creating.Validator.Decode(r, &payl)
-		if err != nil {
-			renderJSON.BadRequest(w, err)
+		var payload creating.Payload
+		if err := binder.JSON.FromReq(r, &payload); err != nil {
+			render.JSON.BadRequest(w, err)
 			return
 		}
 
 		u, err := middleware.GetUser(r.Context())
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		repo, err := service.CreateRepo(u, payl)
+		repo, err := service.CreateRepo(u, payload)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Created(w, repo)
+		render.JSON.Created(w, repo)
 	}
 }

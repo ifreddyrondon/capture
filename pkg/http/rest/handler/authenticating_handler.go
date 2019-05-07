@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/pkg/errors"
 
@@ -29,13 +30,10 @@ type tokenJSON struct {
 
 // AuthenticatingRoutes returns a configured http.Handler with capture resources.
 func Authenticating(service authenticating.Service) http.HandlerFunc {
-	renderJSON := render.NewJSON()
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		var credential authenticating.BasicCredential
-		err := authenticating.Validator.Decode(r, &credential)
-		if err != nil {
-			renderJSON.BadRequest(w, err)
+		if err := binder.JSON.FromReq(r, &credential); err != nil {
+			render.JSON.BadRequest(w, err)
 			return
 		}
 
@@ -47,21 +45,21 @@ func Authenticating(service authenticating.Service) http.HandlerFunc {
 					Error:   http.StatusText(http.StatusUnauthorized),
 					Message: "invalid email or password",
 				}
-				renderJSON.Response(w, http.StatusUnauthorized, httpErr)
+				render.JSON.Response(w, http.StatusUnauthorized, httpErr)
 				return
 			}
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
 		t, err := service.GetUserToken(u.ID)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Send(w, tokenJSON{Token: t})
+		render.JSON.Send(w, tokenJSON{Token: t})
 	}
 }

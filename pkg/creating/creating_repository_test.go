@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/creating"
@@ -41,7 +42,7 @@ func TestValidatePayloadOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p creating.Payload
-			err := creating.Validator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.Name, p.Name)
 			assert.Equal(t, tc.expected.Visibility, p.Visibility)
@@ -84,7 +85,7 @@ func TestValidatePayloadFails(t *testing.T) {
 		{
 			name: "invalid payload payload",
 			body: `.`,
-			err:  "cannot unmarshal json into valid repository",
+			err:  "cannot unmarshal json body",
 		},
 	}
 
@@ -93,7 +94,7 @@ func TestValidatePayloadFails(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p creating.Payload
-			err := creating.Validator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

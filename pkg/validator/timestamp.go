@@ -7,15 +7,13 @@ import (
 	"github.com/araddon/dateparse"
 )
 
-const TimestampValidator StringValidator = "cannot unmarshal json into valid time value"
-
 type Timestamp struct {
 	Date      *json.Number `json:"date"`
 	Timestamp *json.Number `json:"timestamp"`
 	Time      *time.Time
 }
 
-func (t *Timestamp) OK() error {
+func (t *Timestamp) Validate() error {
 	date := getNumber(t.Date, t.Timestamp)
 	if date != nil {
 		parsedTime, err := dateparse.ParseAny(date.String())

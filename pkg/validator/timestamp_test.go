@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/validator"
@@ -61,7 +62,7 @@ func TestValidateTimestampOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var d validator.Timestamp
-			err := validator.TimestampValidator.Decode(r, &d)
+			err := binder.JSON.FromReq(r, &d)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expectedTimestamp, d.Time)
 		})
@@ -78,7 +79,7 @@ func TestDecodeTimestampFails(t *testing.T) {
 		{
 			"decode timestamp when invalid json",
 			".",
-			"cannot unmarshal json into valid time value",
+			"cannot unmarshal json body",
 		},
 		{
 			"decode timestamp when invalid date",
@@ -97,7 +98,7 @@ func TestDecodeTimestampFails(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var d validator.Timestamp
-			err := validator.TimestampValidator.Decode(r, &d)
+			err := binder.JSON.FromReq(r, &d)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

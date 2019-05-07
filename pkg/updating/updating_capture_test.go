@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/domain"
@@ -160,7 +161,7 @@ func TestValidateCaptureOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var capt updating.Capture
-			err := updating.CaptureValidator.Decode(r, &capt)
+			err := binder.JSON.FromReq(r, &capt)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.Payload, capt.Payload)
 			assert.Equal(t, tc.expected.Location, capt.Location)
@@ -180,7 +181,7 @@ func TestValidationCaptureFails(t *testing.T) {
 		{
 			"decode Capture when invalid json",
 			".",
-			[]string{"cannot unmarshal json into valid capture value"},
+			[]string{"cannot unmarshal json body"},
 		},
 		{
 			"decode Capture when payload empty",
@@ -217,7 +218,7 @@ func TestValidationCaptureFails(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var capt updating.Capture
-			err := updating.CaptureValidator.Decode(r, &capt)
+			err := binder.JSON.FromReq(r, &capt)
 			for _, e := range tc.errs {
 				assert.Contains(t, err.Error(), e)
 			}

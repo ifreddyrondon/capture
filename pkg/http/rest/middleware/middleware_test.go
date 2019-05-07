@@ -92,7 +92,7 @@ func setupFilterMiddleware(m func(http.Handler) http.Handler) (*bastion.Bastion,
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		l, err := bastionMiddleware.GetListing(r.Context())
 		if err != nil {
-			render.NewJSON().InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 		result = *l

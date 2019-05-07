@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/domain"
@@ -56,7 +57,7 @@ func TestValidatePayloadOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p validator.Payload
-			err := validator.PayloadValidator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.Nil(t, err)
 			assert.Equal(t, tc.expected.Payload, p.Payload)
 		})
@@ -73,22 +74,22 @@ func TestValidatePayloadFails(t *testing.T) {
 		{
 			"unmarshal error",
 			`'`,
-			"cannot unmarshal json into valid payload value",
+			"cannot unmarshal json body",
 		},
 		{
 			"unmarshal nil payload",
 			`{"payload": null`,
-			"cannot unmarshal json into valid payload value",
+			"cannot unmarshal json body",
 		},
 		{
 			"unmarshal empty payload",
 			`{"payload": []`,
-			"cannot unmarshal json into valid payload value",
+			"cannot unmarshal json body",
 		},
 		{
 			"unmarshal payload with nulls",
 			`{"payload": [null]`,
-			"cannot unmarshal json into valid payload value",
+			"cannot unmarshal json body",
 		},
 		{
 			"unmarshal empty body",
@@ -102,7 +103,7 @@ func TestValidatePayloadFails(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p validator.Payload
-			err := validator.PayloadValidator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.EqualError(t, err, tc.err)
 		})
 	}

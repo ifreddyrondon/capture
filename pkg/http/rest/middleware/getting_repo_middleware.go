@@ -45,24 +45,23 @@ func GetRepo(ctx context.Context) (*domain.Repository, error) {
 }
 
 func RepoCtx(service getting.RepoService) func(next http.Handler) http.Handler {
-	json := render.NewJSON()
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			repoID := chi.URLParam(r, "id")
 			id, err := kallax.NewULIDFromText(repoID)
 			if err != nil {
-				json.BadRequest(w, errInvalidRepoID)
+				render.JSON.BadRequest(w, errInvalidRepoID)
 				return
 			}
 
 			repo, err := service.Get(id)
 			if err != nil {
 				if isNotFound(err) {
-					json.NotFound(w, errMissingRepo)
+					render.JSON.NotFound(w, errMissingRepo)
 					return
 				}
 				fmt.Fprintln(os.Stderr, err)
-				json.InternalServerError(w, err)
+				render.JSON.InternalServerError(w, err)
 				return
 			}
 

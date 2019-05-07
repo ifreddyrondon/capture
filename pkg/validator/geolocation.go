@@ -12,8 +12,6 @@ const (
 	errLNGRange   = "longitude out of boundaries, may range from -180.0 to 180.0"
 )
 
-const GeolocationValidator StringValidator = "cannot unmarshal json into valid geolocation value"
-
 type GeoLocation struct {
 	LAT       *float64 `json:"lat"`
 	Latitude  *float64 `json:"latitude"`
@@ -23,7 +21,7 @@ type GeoLocation struct {
 	Altitude  *float64 `json:"altitude"`
 }
 
-func (p *GeoLocation) OK() error {
+func (p *GeoLocation) Validate() error {
 	e := validate.NewErrors()
 
 	lat := getFloat(p.LAT, p.Latitude)

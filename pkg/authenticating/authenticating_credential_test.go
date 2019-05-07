@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/authenticating"
@@ -23,7 +24,7 @@ func TestValidateUserOK(t *testing.T) {
 	r, _ := http.NewRequest("POST", "/", body)
 
 	var credentials authenticating.BasicCredential
-	err := authenticating.Validator.Decode(r, &credentials)
+	err := binder.JSON.FromReq(r, &credentials)
 	assert.Nil(t, err)
 	assert.Equal(t, expected.Email, credentials.Email)
 	assert.Equal(t, expected.Password, credentials.Password)
@@ -40,7 +41,7 @@ func TestValidateUserError(t *testing.T) {
 		{
 			"invalid payload",
 			`{`,
-			[]string{"cannot unmarshal body into valid user credentials"},
+			[]string{"cannot unmarshal json body"},
 		},
 		{
 			"empty email and empty password",
@@ -68,7 +69,7 @@ func TestValidateUserError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 			var credentials authenticating.BasicCredential
-			err := authenticating.Validator.Decode(r, &credentials)
+			err := binder.JSON.FromReq(r, &credentials)
 			for _, v := range tc.errs {
 				assert.Contains(t, err.Error(), v)
 			}

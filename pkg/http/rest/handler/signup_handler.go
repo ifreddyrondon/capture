@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/ifreddyrondon/bastion/render"
 	"github.com/pkg/errors"
 
@@ -24,32 +25,30 @@ func isConflictErr(err error) bool {
 
 // SignUp returns a configured http.Handler with sign-up resources.
 func SignUp(service signup.Service) http.HandlerFunc {
-	renderJSON := render.NewJSON()
 	return func(w http.ResponseWriter, r *http.Request) {
-		var payl signup.Payload
-		err := signup.Validator.Decode(r, &payl)
-		if err != nil {
-			renderJSON.BadRequest(w, err)
+		var payload signup.Payload
+		if err := binder.JSON.FromReq(r, &payload); err != nil {
+			render.JSON.BadRequest(w, err)
 			return
 		}
 
-		u, err := service.EnrollUser(payl)
+		u, err := service.EnrollUser(payload)
 		if err != nil {
 			if isConflictErr(err) {
 				httpErr := render.HTTPError{
 					Status:  http.StatusConflict,
 					Error:   http.StatusText(http.StatusConflict),
-					Message: fmt.Sprintf("email '%v' already exists", *payl.Email),
+					Message: fmt.Sprintf("email '%v' already exists", *payload.Email),
 				}
-				renderJSON.Response(w, http.StatusConflict, httpErr)
+				render.JSON.Response(w, http.StatusConflict, httpErr)
 				return
 			}
 
 			fmt.Fprintln(os.Stderr, err)
-			renderJSON.InternalServerError(w, err)
+			render.JSON.InternalServerError(w, err)
 			return
 		}
 
-		renderJSON.Created(w, u)
+		render.JSON.Created(w, u)
 	}
 }

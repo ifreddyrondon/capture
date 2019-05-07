@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ifreddyrondon/bastion/binder"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ifreddyrondon/capture/pkg/signup"
@@ -36,7 +37,7 @@ func TestValidatePayloadOK(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p signup.Payload
-			err := signup.Validator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.Nil(t, err)
 			assert.Equal(t, p.Email, p.Email)
 			assert.Equal(t, p.Password, p.Password)
@@ -69,7 +70,7 @@ func TestValidatePayloadError(t *testing.T) {
 		{
 			name: "invalid user payload",
 			body: `.`,
-			err:  "cannot unmarshal json into valid user",
+			err:  "cannot unmarshal json body",
 		},
 	}
 
@@ -78,7 +79,7 @@ func TestValidatePayloadError(t *testing.T) {
 			r, _ := http.NewRequest("POST", "/", strings.NewReader(tc.body))
 
 			var p signup.Payload
-			err := signup.Validator.Decode(r, &p)
+			err := binder.JSON.FromReq(r, &p)
 			assert.EqualError(t, err, tc.err)
 		})
 	}
